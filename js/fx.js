@@ -34,7 +34,7 @@ const FX = {
   },
   // squash & stretch when something is set down
   land(el) {
-    this.anim(el, [{ transform: 'scale(1.08, .9)' }, { transform: 'scale(.96, 1.05)', offset: .5 }, { transform: 'none' }], { duration: 360, delay: 120 });
+    this.anim(el, [{ transform: 'scale(1.08, .9)' }, { transform: 'scale(.96, 1.05)', offset: .5 }, { transform: 'none' }], { duration: 360, delay: 330 }); // after the 320 ms FLIP glide, not on top of it
   },
   shake(el) {
     this.anim(el, [{ transform: 'translateX(0)' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(6px)' },
@@ -42,9 +42,9 @@ const FX = {
   },
   ghostTransform(g) { return g.style.transform || 'none'; },
   // dragged ghost returns home, then disappears
-  flyBack(ghost, home, delay = 0) {
+  flyBack(ghost, home, delay = 0, from = this.ghostTransform(ghost)) {
     const r = home.getBoundingClientRect();
-    const a = this.anim(ghost, [{ transform: this.ghostTransform(ghost) }, { transform: `translate3d(${r.left}px, ${r.top}px, 0)` }],
+    const a = this.anim(ghost, [{ transform: from }, { transform: `translate3d(${r.left}px, ${r.top}px, 0)` }],
       { duration: 280, delay, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'forwards' });
     dropGhost(a, ghost, 280 + delay);
   },
@@ -80,7 +80,8 @@ const FX = {
       { transform: `translate3d(${x}px, ${y}px, 0) rotate(0deg)` }], { duration: 900, easing: 'ease-in-out', fill: 'forwards' });
     // spout is at the top-left once tipped
     this.stream(() => ({ x: x + 6, y: y + gr.height * 0.22 }), () => this.surface(cupEl), C.milk, 7, 0.35, 0.8);
-    a ? a.finished.then(() => this.flyBack(ghost, home), () => ghost.remove()) : ghost.remove();
+    // return from above the cup, where the pour ended, not from the drop point
+    a ? a.finished.then(() => { a.cancel(); this.flyBack(ghost, home, 0, `translate3d(${x}px, ${y}px, 0)`); }, () => ghost.remove()) : ghost.remove();
     setTimeout(() => ghost.isConnected && ghost.remove(), 2000);
   },
 

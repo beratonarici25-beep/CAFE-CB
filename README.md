@@ -35,4 +35,5 @@ Run the tests (needs `playwright-core` and Microsoft Edge):
 
 ```
 node tests/e2e.js
+node tests/fuzz.js 3000   # random play, checks for errors and broken state
 ```
