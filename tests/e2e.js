@@ -83,8 +83,10 @@ async function brewOrder(page) {
     if (!tops.includes(k)) console.log('topping drag missed', k, tops, await page.textContent('#toast'));
   }
   await drag(page, '#cupObj', '#serveZone');
+  const floated = await page.locator('.float-money').count();
   await page.waitForFunction(() => window.CB.G.state === 'RESULT', null, { timeout: 5000 });
-  return st(page, () => ({ stars: window.CB.G.result.stars, checks: window.CB.G.result.checks.filter(c => !c.ok).map(c => c.label) }));
+  return st(page, () => ({ stars: window.CB.G.result.stars, checks: window.CB.G.result.checks.filter(c => !c.ok).map(c => c.label) }))
+    .then(r => ({ ...r, floated }));
 }
 
 (async () => {
@@ -104,6 +106,7 @@ async function brewOrder(page) {
     await arrive(page);
     const r = await brewOrder(page);
     ok(`order ${i + 1} brewed by drag gets 4+ stars`, r.stars >= 4, JSON.stringify(r));
+    ok(`order ${i + 1} shows floating earnings`, r.floated > 0);
     await page.click('#nextBtn');
   }
 
@@ -146,7 +149,37 @@ async function brewOrder(page) {
 
   try { await page.screenshot({ path: path.join(process.env.SHOT_DIR || __dirname, 'shot-desktop.png'), fullPage: true, timeout: 8000 }); }
   catch (e) { console.log('(screenshot skipped: ' + e.message.split(/\r?\n/)[0] + ')'); }
+  ok('particle canvas present', (await page.locator('#fxCv').count()) === 1);
   ok('no page errors', errors.length === 0, errors.join(' | '));
+
+  // the whole flow still works with reduced motion (no particles, instant moves)
+  const rm = await browser.newPage({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
+  const rmErrors = [];
+  rm.on('pageerror', e => rmErrors.push(e.message));
+  await rm.addInitScript(() => localStorage.setItem('cafe-cb-save-v1', JSON.stringify({ lang: 'tr', day: 2, cash: 0 })));
+  await rm.goto(URL);
+  await rm.click('#startBtn');
+  await arrive(rm);
+  const rr = await brewOrder(rm);
+  ok('reduced motion: order brewed by drag gets 4+ stars', rr.stars >= 4, JSON.stringify(rr));
+  ok('reduced motion: no page errors', rmErrors.length === 0, rmErrors.join(' | '));
+
+  // a whole day: serve quick (wrong) drinks until the shop closes, then open the next day
+  await rm.click('#nextBtn');
+  for (let guard = 0; guard < 12; guard++) {
+    const stt = await rm.evaluate(() => window.CB.G.state);
+    if (stt === 'DAY_END') break;
+    await arrive(rm);
+    await rm.evaluate(() => { window.CB.drop('newcup:S', 'prep'); window.CB.drop('cup', 'serve'); });
+    await rm.waitForFunction(() => window.CB.G.state === 'RESULT');
+    await rm.click('#nextBtn');
+    await rm.waitForFunction(() => window.CB.G.state !== 'RESULT');
+    await rm.waitForFunction(() => ['ORDERING', 'DAY_END'].includes(window.CB.G.state), null, { timeout: 10000 });
+  }
+  ok('day ends after the last guest', await rm.evaluate(() => window.CB.G.state === 'DAY_END'));
+  await rm.click('#nextDayBtn');
+  ok('next day opens', await rm.evaluate(() => window.CB.G.state === 'ORDERING' && window.CB.G.day === 3));
+  ok('full day: no page errors', rmErrors.length === 0, rmErrors.join(' | '));
   await browser.close();
   for (const r of results) console.log(r.join('  '));
   const fails = results.filter(r => r[0] === 'FAIL').length;

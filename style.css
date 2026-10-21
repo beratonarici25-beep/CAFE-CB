@@ -321,11 +321,13 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
   background: linear-gradient(#f6b3ab, #e8968c); border: 3px solid var(--ink); border-radius: 18px 18px 10px 10px;
   padding: 10px; display: grid; gap: 8px; box-shadow: inset 0 6px 0 rgba(255,255,255,.35);
 }
-.mach-head { display: grid; grid-template-columns: 54px 1fr 64px; align-items: center; gap: 8px; }
-.mach-logo { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--paper); text-shadow: 0 2px 0 var(--ink); }
+/* head and tray share columns so the group head sits right above the drip tray */
+.mach-head { position: relative; display: grid; grid-template-columns: 1fr 104px; align-items: center; gap: 8px; padding-inline: 8px 0; }
+.mach-head .brew { justify-self: center; }
+.mach-logo { position: absolute; left: 4px; top: -2px; font-family: var(--font-display); font-weight: 800; font-size: 15px; color: var(--paper); text-shadow: 0 2px 0 var(--ink); }
 .group { display: grid; justify-items: center; }
 .group-head { width: 66px; height: 18px; background: #c9d2d6; border: 3px solid var(--ink); border-radius: 6px 6px 14px 14px; }
-.group .slot { width: 100%; min-height: 56px; border-color: rgba(255,250,243,.6); }
+.group .slot { width: min(100%, 150px); min-height: 56px; border-color: rgba(255,250,243,.6); }
 .brew {
   width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--ink); background: var(--mint);
   font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 0 var(--ink); touch-action: manipulation;
@@ -334,7 +336,7 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 .brew.on { background: var(--butter); }
 .mach-tray {
   display: grid; grid-template-columns: 1fr 104px; gap: 8px; align-items: end;
-  background: rgba(75,46,43,.18); border-radius: 12px; padding: 8px;
+  background: rgba(75,46,43,.18); border-radius: 12px; padding: 8px 0 8px 8px;
 }
 .mach-tray .cupslot { border-color: rgba(255,250,243,.7); background: repeating-linear-gradient(90deg, rgba(75,46,43,.15) 0 4px, transparent 4px 9px) bottom / 100% 10px no-repeat; }
 .wandbox { position: relative; display: grid; }
@@ -396,17 +398,21 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
     grid-template-areas:
       "machine machine"
       "grinder cups"
-      "prep    milk"
-      "syrups  tops"
-      "serve   trash";
+      "milk    milk"
+      "prep    syrups"
+      "tops    serve"
+      "trash   serve";
   }
   .say { font-size: 15px; }
   .brand { font-size: 17px; }
   .draghint { display: none; }
-  .mach-head { grid-template-columns: 40px 1fr 58px; }
+  .mach-head, .mach-tray { grid-template-columns: 1fr 92px; }
   .rack { grid-template-columns: 1fr; }
   .cupobj canvas { width: 116px; height: 148px; }
   .cupslot { min-height: 150px; }
+  .z-milk { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .z-milk h3, .z-milk .bottles { grid-column: 1 / -1; }
+  .wandctl .chips .chip { font-size: 10.5px; padding: 3px 1px; overflow-wrap: anywhere; }
 }
 
 /* compact milk controls so the whole counter fits on a laptop screen */

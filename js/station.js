@@ -90,7 +90,7 @@ function apply(spec, target, from) {
       sfx.pour(); fx('pourInto', $('#pitcherObj'), C.milk);
       break;
     case 'pitcher':
-      if (target === 'cup') { pourMilk(); break; }
+      if (target === 'cup') { pourMilk(); if (!from) fx('pourInto', $('#cupObj'), C.milk); break; }
       if (target === 'trash') {
         B.pitcher = { ...newPitcher(), at: B.pitcher.at, foam: B.pitcher.foam };
         sfx.trash(); fx('lid');
@@ -159,7 +159,7 @@ function pourMilk() {
   const c = B.cup, p = B.pitcher;
   c.milkPoured = true; c.milkType = p.milk; c.foamUsed = p.foam; c.milkTemp = p.temp; c.scorched = p.scorched;
   B.pitcher = { ...newPitcher(), at: p.at, foam: p.foam };
-  sfx.pour(); fx('pourInto', $('#cupObj'), C.milk, true);
+  sfx.pour();
 }
 function trashCup(from) {
   if (B.cup.shotting) stopShot();
@@ -508,6 +508,7 @@ function updateBench(dt) {
       if (pt.temp > 82) pt.scorched = true;
     }
   }
+  $('#pfObj').classList.toggle('has-grounds', p.dose > 0);
   $('#doseFill').style.width = (p.dose / 25 * 100) + '%';
   $('#doseTxt').textContent = p.dose.toFixed(1) + ' g';
   const [lo, hi] = doseZone();

@@ -1,0 +1,54 @@
+/* Juice (issue #3): hover lift, drop-target pulses, pops. Only transform / opacity / filter are animated,
+   timings stay in the 200–500 ms range so the pace of the game is not slowed down. */
+:root { --pop: cubic-bezier(.34, 1.56, .64, 1); }
+
+#fxCv { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 17; }
+
+/* lift + warm glow on things you can grab */
+.obj { transition: transform .22s var(--pop), filter .22s ease; }
+@media (hover: hover) {
+  .bench:not(.idle) .obj:hover:not(.dragging-src) {
+    transform: translateY(-3px) scale(1.05);
+    filter: drop-shadow(0 6px 5px rgba(75,46,43,.25)) drop-shadow(0 0 8px rgba(255,214,140,.75));
+  }
+}
+.obj.selected { transform: translateY(-4px) scale(1.06); filter: drop-shadow(0 0 10px rgba(232,150,140,.8)); }
+body.is-dragging, body.is-dragging * { cursor: grabbing !important; }
+.drag-ghost { filter: drop-shadow(0 14px 10px rgba(75,46,43,.3)); }
+
+/* where it can go: soft breathing outline; where it will go: a heartbeat */
+.can-drop { animation: breathe 1.4s ease-in-out infinite; }
+.drop-hover { animation: beat .55s var(--pop) infinite; }
+@keyframes breathe { 50% { outline-color: rgba(140,199,174,.35); } }
+@keyframes beat {
+  0% { box-shadow: 0 0 0 0 rgba(79,158,112,.55); transform: scale(1); }
+  40% { transform: scale(1.03); }
+  100% { box-shadow: 0 0 0 12px rgba(79,158,112,0); transform: scale(1); }
+}
+.obj.can-drop, .obj.drop-hover { border-radius: 12px; }
+
+/* brew button pulses while a shot runs; hold buttons glow while held */
+.brew.on { animation: brewing 1s ease-in-out infinite; }
+@keyframes brewing { 50% { box-shadow: 0 1px 0 var(--ink), 0 0 0 7px rgba(246,216,140,.45); } }
+.btn.hold.active { box-shadow: 0 0 0 var(--ink), 0 0 0 5px rgba(246,216,140,.5); }
+
+/* floating earnings */
+.float-money {
+  position: fixed; z-index: 24; pointer-events: none; transform: translate(-50%, 0);
+  font-family: var(--font-display); font-weight: 800; font-size: 28px; color: #2f7d4f;
+  -webkit-text-stroke: 1.5px var(--paper); text-shadow: 0 3px 0 var(--ink);
+}
+
+/* toasts and result stars pop in */
+.toast.pop { animation: toastIn .3s var(--pop); }
+@keyframes toastIn { from { transform: translate(-50%, 14px) scale(.9); opacity: 0; } }
+.stars span { display: inline-block; animation: star .4s var(--pop) both; }
+.stars span:nth-child(2) { animation-delay: .08s; } .stars span:nth-child(3) { animation-delay: .16s; }
+.stars span:nth-child(4) { animation-delay: .24s; } .stars span:nth-child(5) { animation-delay: .32s; }
+@keyframes star { from { transform: scale(0) rotate(-40deg); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .obj, .obj.selected { transition: none; }
+  .can-drop, .drop-hover, .brew.on, .toast.pop, .stars span { animation: none; }
+}
+.drag-ghost { transition: none !important; }

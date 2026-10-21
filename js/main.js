@@ -246,7 +246,14 @@ function drawCupObj() {
   const g = cupG, W = dims.cw, H = dims.ch;
   if (!W || !B.cup.size) return;
   g.clearRect(0, 0, W, H);
-  drawCup(g, B.cup, W / 2, H - 8, Math.min(0.8, (H - 16) / 196));
+  const c = B.cup;
+  const A = c._anim || (c._anim = { esp: 0, milk: 0, pumps: 0, levelPx: 0 });
+  const k = reduceMotion ? 1 : 1 - Math.exp(-dtLast * 6);
+  const espT = c.shots.length * 30 + (c.shotting ? Math.min(30, c.shotT) : 0);
+  A.esp += (espT - A.esp) * (c.shotting ? 1 : k);
+  A.milk += ((c.milkPoured ? 1 : 0) - A.milk) * (reduceMotion ? 1 : 1 - Math.exp(-dtLast * 3.2));
+  A.pumps += (Object.values(c.syrups).reduce((a, b) => a + b, 0) - A.pumps) * k;
+  drawCup(g, c, W / 2, H - 8, Math.min(0.8, (H - 16) / 196));
 }
 
 /* ---------------- main loop ---------------- */
@@ -282,9 +289,9 @@ function update(dt) {
   }
   updateBench(dt);
 }
-let last = performance.now();
+let last = performance.now(), dtLast = 0.016;
 function frame(now) {
-  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; T += dt;
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; T += dt; dtLast = dt;
   try { update(dt); drawScene(); drawCupObj(); fx('frame', dt); } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
 }
