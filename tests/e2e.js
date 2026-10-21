@@ -3,7 +3,7 @@
 const path = require('path');
 const pw = require(process.env.PW_CORE || 'playwright-core');
 
-const URL = 'file:///' + path.resolve(__dirname, '..', 'index.html').replace(/\\/g, '/');
+const URL = process.env.GAME_URL || 'file:///' + path.resolve(__dirname, '..', 'index.html').replace(/\\/g, '/');
 const results = [];
 const ok = (name, cond, extra = '') => { results.push([cond ? 'PASS' : 'FAIL', name, extra]); };
 
