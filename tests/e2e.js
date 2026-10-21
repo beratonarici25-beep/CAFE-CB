@@ -8,6 +8,13 @@ const results = [];
 const ok = (name, cond, extra = '') => { results.push([cond ? 'PASS' : 'FAIL', name, extra]); };
 
 async function drag(page, from, to) {
+  // a real player scrolls a little when the thing they want is below the fold
+  const pre = await page.locator(from).first().boundingBox();
+  const vh = page.viewportSize().height;
+  if (pre && pre.y + pre.height / 2 > vh - 20) {
+    await page.evaluate(dy => window.scrollBy(0, dy), Math.ceil(pre.y + pre.height - vh + 30));
+    await page.waitForTimeout(50);
+  }
   const a = await page.locator(from).first().boundingBox();
   const b = await page.locator(to).first().boundingBox();
   if (!a || !b) throw new Error(`no box for ${!a ? from : to}`);
@@ -26,7 +33,12 @@ async function hold(page, sel, untilFn) {
   const b = await page.locator(sel).boundingBox();
   await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
   await page.mouse.down();
-  await page.waitForFunction(untilFn, null, { timeout: 15000 });
+  try { await page.waitForFunction(untilFn, null, { timeout: 15000 }); }
+  catch (e) {
+    console.log('hold failed on', sel, await page.evaluate(() => JSON.stringify({ pf: window.CB.B.pf, pitcher: window.CB.B.pitcher, y: scrollY,
+      toast: document.querySelector('#toast').textContent, state: window.CB.G.state })));
+    throw e;
+  }
   await page.mouse.up();
 }
 const st = (page, fn) => page.evaluate(fn);
@@ -132,7 +144,8 @@ async function brewOrder(page) {
   ok('no horizontal scroll at 375px', overflow <= 0, 'overflow ' + overflow);
   await page.setViewportSize({ width: 1366, height: 900 });
 
-  await page.screenshot({ path: path.join(process.env.SHOT_DIR || __dirname, 'shot-desktop.png'), fullPage: true });
+  try { await page.screenshot({ path: path.join(process.env.SHOT_DIR || __dirname, 'shot-desktop.png'), fullPage: true, timeout: 8000 }); }
+  catch (e) { console.log('(screenshot skipped: ' + e.message.split(/\r?\n/)[0] + ')'); }
   ok('no page errors', errors.length === 0, errors.join(' | '));
   await browser.close();
   for (const r of results) console.log(r.join('  '));

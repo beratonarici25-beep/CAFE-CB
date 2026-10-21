@@ -181,14 +181,15 @@ const SLOT = {
 };
 function moveInto(el, parentSel, from) {
   const parent = $(parentSel);
-  const before = from || (el.isConnected && !el.hidden ? el.getBoundingClientRect() : null);
+  // from: a rect to glide from; false: appear in place; undefined: glide from wherever it was
+  const before = from === false ? null : from || (el.isConnected && !el.hidden ? el.getBoundingClientRect() : null);
   if (el.parentElement !== parent) parent.appendChild(el);
   if (before) fx('flip', el, before);
 }
 function layout(from = {}) {
-  const cupEl = $('#cupObj');
+  const cupEl = $('#cupObj'), wasHidden = cupEl.hidden;
   cupEl.hidden = !B.cup.size;
-  if (B.cup.size) moveInto(cupEl, SLOT.cup[B.cup.at], from.cup);
+  if (B.cup.size) moveInto(cupEl, SLOT.cup[B.cup.at], from.cup || (wasHidden ? false : undefined));
   moveInto($('#pfObj'), SLOT.pf[B.pf.at], from.pf);
   moveInto($('#pitcherObj'), SLOT.pitcher[B.pitcher.at], from.pitcher);
   document.querySelectorAll('.slot').forEach(s => s.classList.toggle('filled', [...s.children].some(ch => ch.classList.contains('obj') && !ch.hidden)));
@@ -360,7 +361,9 @@ function updateDrag() {
   if (!drag || !drag.started) return;
   // scroll the page when the object is held near the top or bottom edge
   const edge = 70, vh = window.innerHeight;
-  const dy = drag.y < edge ? -(edge - drag.y) / 4 : drag.y > vh - edge ? (drag.y - (vh - edge)) / 4 : 0;
+  // only once the pointer has travelled toward that edge, so grabbing something low on screen does not scroll
+  const dy = drag.y < edge && drag.y < drag.sy - 12 ? -(edge - drag.y) / 4
+    : drag.y > vh - edge && drag.y > drag.sy + 12 ? (drag.y - (vh - edge)) / 4 : 0;
   if (dy) { window.scrollBy(0, Math.round(dy)); updateHover(); }
   const g = drag.ghost, tx = drag.x - drag.offX, ty = drag.y - drag.offY;
   const k = reduceMotion ? 1 : 0.38;

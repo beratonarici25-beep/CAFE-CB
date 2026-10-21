@@ -408,3 +408,13 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
   .cupobj canvas { width: 116px; height: 148px; }
   .cupslot { min-height: 150px; }
 }
+
+/* compact milk controls so the whole counter fits on a laptop screen */
+.bottle-obj.milk .n { display: none; }
+.bottle-obj .n { min-height: 1.2em; }
+.wandctl .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.wandctl .chips .chip { padding: 3px 2px; font-size: 11px; line-height: 1.15; text-align: center; }
+.wandctl .bandlabels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 4px; margin-top: 4px; font-size: 10px; }
+.wandctl .bandlabels span { white-space: normal; line-height: 1.15; align-items: flex-start; }
+.wandctl .bandlabels i { flex: none; margin-top: 1px; }
+.wandctl .readout span:last-child { font-size: 11px; }

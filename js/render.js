@@ -151,38 +151,50 @@ function drawCup(g, c, x, y, s) {
   g.restore();
 }
 
+// The bar counter in front of the customers: marble top over a walnut front. Cached; redrawn only on resize.
+let counterCache = null;
+function counterImage(W, H, cy) {
+  const key = W + 'x' + H;
+  if (counterCache && counterCache.key === key) return counterCache.cv;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cv = document.createElement('canvas');
+  cv.width = Math.ceil(W * dpr); cv.height = Math.ceil((H - cy + 4) * dpr);
+  const g = cv.getContext('2d');
+  g.scale(dpr, dpr); g.translate(0, -cy + 4);
+  // walnut front with vertical panels
+  const wood = g.createLinearGradient(0, cy, 0, H);
+  wood.addColorStop(0, '#7a4a2c'); wood.addColorStop(1, '#5a341f');
+  g.fillStyle = wood; g.fillRect(0, cy + 12, W, H - cy);
+  g.strokeStyle = 'rgba(30,15,8,.45)'; g.lineWidth = 2;
+  for (let x = 40; x < W; x += 90) { g.strokeRect(x - 34, cy + 20, 68, H - cy - 26); }
+  g.strokeStyle = 'rgba(255,220,180,.12)'; g.lineWidth = 1;
+  for (let x = 6; x < W; x += 14) { g.beginPath(); g.moveTo(x, cy + 14); g.bezierCurveTo(x + 3, cy + 22, x - 3, H - 10, x + 2, H); g.stroke(); }
+  // marble top with veins
+  const top = g.createLinearGradient(0, cy - 4, 0, cy + 14);
+  top.addColorStop(0, '#fbf8f3'); top.addColorStop(1, '#e4ddd3');
+  g.fillStyle = top; g.fillRect(0, cy - 2, W, 15);
+  g.strokeStyle = 'rgba(150,140,130,.45)'; g.lineWidth = 1;
+  for (let x = 0, k = 0; x < W; x += 70, k++) {
+    g.beginPath(); g.moveTo(x, cy + (k % 3) * 3); g.bezierCurveTo(x + 20, cy + 8, x + 40, cy + 1, x + 66, cy + 10); g.stroke();
+  }
+  g.strokeStyle = C.ink; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(0, cy - 2); g.lineTo(W, cy - 2); g.moveTo(0, cy + 13); g.lineTo(W, cy + 13); g.stroke();
+  g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(0, cy + 14, W, 6);
+  counterCache = { key, cv };
+  return cv;
+}
+
 function drawScene() {
   const g = sceneG, W = dims.sw, H = dims.sh;
   if (!W) return;
   g.clearRect(0, 0, W, H);
-  g.fillStyle = C.wall; g.fillRect(0, 0, W, H);
-  g.fillStyle = C.wall2; for (let x = 0; x < W; x += 36) g.fillRect(x, 0, 14, H);
-  const seg = 150, bulbs = [C.blush, C.butter, C.mint, C.sky];
-  g.strokeStyle = C.ink; g.lineWidth = 1.5;
-  let bi = 0;
-  for (let x0 = -20; x0 < W; x0 += seg) {
-    g.beginPath(); g.moveTo(x0, 6); g.quadraticCurveTo(x0 + seg / 2, 34, x0 + seg, 6); g.stroke();
-    for (let k = 1; k < 4; k++) {
-      const u = k / 4, bx = x0 + seg * u, by = 6 + 2 * u * (1 - u) * 28;
-      const tw = reduceMotion ? 1 : 0.75 + 0.25 * Math.sin(T * 2 + bi);
-      g.globalAlpha = tw; g.fillStyle = bulbs[bi++ % 4];
-      g.beginPath(); g.ellipse(bx, by + 6, 4, 6, 0, 0, TAU); g.fill(); g.stroke(); g.globalAlpha = 1;
-    }
-  }
   const cy = H - 44;
-  if (W > 620) {
-    const px = W - 46;
-    g.fillStyle = '#7fb48f'; g.strokeStyle = C.ink; g.lineWidth = 2.5;
-    for (const [dx, dy, r] of [[-14, -38, 13], [12, -42, 14], [0, -56, 14], [-4, -30, 12], [14, -26, 11]]) { circle(g, px + dx, cy + dy, r); g.fill(); g.stroke(); }
-    g.fillStyle = C.blush; g.beginPath(); g.moveTo(px - 20, cy - 24); g.lineTo(px + 20, cy - 24); g.lineTo(px + 15, cy); g.lineTo(px - 15, cy); g.closePath(); g.fill(); g.stroke();
+  // soft floor shadow where the customer stands
+  if (G.cust) {
+    g.fillStyle = 'rgba(40,20,10,.18)';
+    g.beginPath(); g.ellipse(G.cust.x, cy + 2, 70, 10, 0, 0, TAU); g.fill();
+    drawCustomer(g, G.cust, G.cust.x, cy);
   }
-  if (G.cust) drawCustomer(g, G.cust, G.cust.x, cy);
-  g.fillStyle = C.wood; g.fillRect(0, cy, W, H - cy);
-  g.fillStyle = C.woodTop; g.fillRect(0, cy, W, 10);
-  g.strokeStyle = C.ink; g.lineWidth = 3;
-  g.beginPath(); g.moveTo(0, cy); g.lineTo(W, cy); g.moveTo(0, cy + 10); g.lineTo(W, cy + 10); g.stroke();
-  g.lineWidth = 1.5; g.globalAlpha = 0.35;
-  for (let x = 30; x < W; x += 64) { g.beginPath(); g.moveTo(x, cy + 14); g.lineTo(x, H); g.stroke(); }
-  g.globalAlpha = 1;
+  g.drawImage(counterImage(W, H, cy), 0, cy - 4, W, H - cy + 4);
   if (G.served && G.cust) drawCup(g, G.served, G.cust.x + 86, cy + 7, 0.42);
 }
