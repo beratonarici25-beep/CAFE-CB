@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cafe C&amp;B</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="CAFE C&amp;B — a cozy drag-and-drop barista simulator.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grandstander:wght@500;700;800&family=Nunito:wght@400;600;700;800&family=Courier+Prime:wght@400;700&family=Pacifico&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">CAFE C<b>&amp;</b>B</div>
+  <div class="hud">
+    <span class="pill" id="hudDay">Day 1</span>
+    <span class="pill" id="hudCust">—</span>
+    <span class="pill cash" id="hudCash">$0.00</span>
+    <button class="iconbtn" id="bookBtn" type="button" data-t="recipes">Recipes</button>
+    <button class="iconbtn" id="muteBtn" type="button">Sound on</button>
+    <button class="iconbtn lang" id="langBtn" type="button" title="Language / Dil">TR</button>
+    <button class="iconbtn" id="menuBtn" type="button" data-t="menu">Menu</button>
+  </div>
+</header>
+
+<section class="scene" id="scene">
+  <canvas id="sceneCv" aria-hidden="true"></canvas>
+  <div class="talk">
+    <div class="bubble" id="bubble" hidden>
+      <div class="who"><span id="custName">Guest</span><span class="patience" title="Patience"><i id="patBar"></i></span></div>
+      <p class="say" id="say" aria-live="polite"></p>
+    </div>
+    <div class="talk-actions" id="talkActions" hidden>
+      <button class="btn go" id="takeBtn" type="button" data-t="startBrewing">Start brewing</button>
+    </div>
+  </div>
+</section>
+
+<main class="bench idle" id="bench">
+  <div class="benchhead">
+    <div class="ticket" id="ticket">
+      <h4><span data-t="orderTicket">Order ticket</span><span id="ticketNo">#000</span></h4>
+      <p id="ticketText"></p>
+    </div>
+    <p class="draghint" id="dragHint" data-t="dragHint"></p>
+    <div class="holding" id="holding" hidden></div>
+  </div>
+
+  <div class="counter" id="counter">
+    <!-- 1 cups -->
+    <section class="zone z-cups">
+      <h3><span class="step">1</span><span data-t="obj.cups">Cups</span></h3>
+      <div class="cupstand" id="cupStand">
+        <button class="obj newcup" type="button" data-drag="newcup:S"><span class="papercup s"></span><b data-size="S"></b></button>
+        <button class="obj newcup" type="button" data-drag="newcup:M"><span class="papercup m"></span><b data-size="M"></b></button>
+        <button class="obj newcup" type="button" data-drag="newcup:L"><span class="papercup l"></span><b data-size="L"></b></button>
+      </div>
+    </section>
+
+    <!-- 2 grinder -->
+    <section class="zone z-grinder">
+      <h3><span class="step">2</span><span data-t="grinder">Grinder</span> <span class="hint" id="doseZoneTxt"></span></h3>
+      <div class="grinder">
+        <div class="hopper" id="hopper"><i></i></div>
+        <div class="grinder-body"><span class="chute"></span></div>
+        <div class="slot pfslot" data-drop="grinder" id="slotGrinder"></div>
+      </div>
+      <div class="chips" id="beanChips"></div>
+      <div class="meter" id="doseMeter"><div class="zone" id="doseZone"></div><div class="fill" id="doseFill"></div></div>
+      <div class="readout"><span id="doseTxt">0.0 g</span><span id="doseMsg"></span></div>
+      <button class="btn hold" id="grindBtn" type="button" data-t="holdGrindShort">Hold: grind</button>
+      <div class="rack">
+        <div class="slot pfslot" data-drop="pfrack" id="slotPfRack">
+          <div class="obj pf" id="pfObj" role="button" tabindex="0" data-drag="pf" data-drop="pf">
+            <svg viewBox="0 0 130 54" aria-hidden="true">
+              <rect x="58" y="20" width="66" height="14" rx="7" class="pf-handle"/>
+              <ellipse cx="32" cy="27" rx="30" ry="22" class="pf-ring"/>
+              <ellipse cx="32" cy="27" rx="22" ry="15" class="pf-basket"/>
+              <ellipse cx="32" cy="27" rx="20" ry="13" class="pf-grounds"/>
+            </svg>
+            <small class="objtag" id="pfTag"></small>
+          </div>
+        </div>
+        <div class="slot tamperslot" id="slotTamper">
+          <div class="obj tamper" id="tamperObj" role="button" tabindex="0" data-drag="tamper">
+            <svg viewBox="0 0 44 64" aria-hidden="true">
+              <circle cx="22" cy="13" r="11" class="tp-knob"/>
+              <rect x="17" y="22" width="10" height="22" rx="3" class="tp-shaft"/>
+              <rect x="4" y="44" width="36" height="14" rx="4" class="tp-base"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 espresso machine -->
+    <section class="zone z-machine">
+      <h3><span class="step">3</span><span data-t="obj.machine">Espresso machine</span> <span class="hint" data-t="stopAt">stop at 25–30 s</span></h3>
+      <div class="machine" id="machine">
+        <div class="mach-head">
+          <span class="mach-logo">C&amp;B</span>
+          <div class="group"><span class="group-head"></span><div class="slot pfslot locked-in" data-drop="group" id="slotGroup"></div></div>
+          <button class="brew" id="brewBtn" type="button">Brew</button>
+        </div>
+        <div class="mach-tray">
+          <div class="slot cupslot" data-drop="tray" id="slotTray"><span class="slotlabel" data-t="obj.tray">Drip tray</span></div>
+          <div class="wandbox">
+            <span class="wand-pipe"></span>
+            <div class="slot pitcherslot" data-drop="wand" id="slotWand"><span class="slotlabel" data-t="obj.wand">Steam wand</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="meter" id="shotMeter"><div class="zone" id="shotZone"></div><div class="needle" id="shotNeedle"></div></div>
+      <div class="readout"><span id="shotTxt">0 s</span><span id="shotMsg"></span></div>
+      <div class="shotlist" id="shotList"></div>
+</section>
+
+    <!-- 4 milk -->
+    <section class="zone z-milk">
+      <h3><span class="step">4</span><span data-t="obj.milk">Milk</span></h3>
+      <div class="bottles" id="milkBottles"></div>
+      <div class="slot pitcherslot" data-drop="pitcherrack" id="slotPitcherRack">
+        <div class="obj pitcher" id="pitcherObj" role="button" tabindex="0" data-drag="pitcher" data-drop="pitcher">
+          <svg viewBox="0 0 80 86" aria-hidden="true">
+            <defs><clipPath id="pitcherClip"><path d="M14 14 L58 14 L64 80 Q64 84 60 84 L12 84 Q8 84 8 80 Z"/></clipPath></defs>
+            <path d="M14 14 L58 14 L64 80 Q64 84 60 84 L12 84 Q8 84 8 80 Z" class="pt-body"/>
+            <g clip-path="url(#pitcherClip)">
+              <rect id="ptMilk" x="0" y="84" width="80" height="0" class="pt-milk"/>
+              <rect id="ptFoam" x="0" y="84" width="80" height="0" class="pt-foam"/>
+            </g>
+            <path d="M14 14 L58 14 L64 80 Q64 84 60 84 L12 84 Q8 84 8 80 Z" class="pt-line"/>
+            <path d="M58 14 L74 8 L62 22" class="pt-spout"/>
+            <path d="M10 30 Q-6 44 10 62" class="pt-handle"/>
+          </svg>
+          <small class="objtag" id="pitcherTag"></small>
+        </div>
+      </div>
+      <div class="wandctl">
+        <div class="chips" id="foamChips"></div>
+        <div class="meter temp" id="tempMeter">
+          <div class="band warm" id="bandWarm"></div><div class="band normal" id="bandNormal"></div><div class="band hot" id="bandHot"></div>
+          <div class="fill" id="tempFill"></div>
+        </div>
+        <div class="bandlabels" id="bandLabels"></div>
+        <div class="readout"><span id="tempTxt">6 °C</span><span id="tempMsg"></span></div>
+        <button class="btn hold" id="steamBtn" type="button" data-t="holdSteamShort">Hold: steam</button>
+      </div>
+        </section>
+
+    <!-- prep mat -->
+    <section class="zone z-prep">
+      <h3><span data-t="obj.prep">Prep mat</span></h3>
+      <div class="slot cupslot mat" data-drop="prep" id="slotPrep">
+        <div class="obj cupobj" id="cupObj" role="button" tabindex="0" data-drag="cup" data-drop="cup" hidden>
+          <canvas id="cupCv" aria-label="Drink"></canvas>
+        </div>
+      </div>
+      <div class="cupinfo" id="cupInfo"></div>
+    </section>
+
+    <!-- 5 syrups -->
+    <section class="zone z-syrups">
+      <h3><span class="step">5</span><span data-t="syrups">Syrups</span></h3>
+      <div class="bottles" id="syrupBottles"></div>
+    </section>
+
+    <!-- 6 toppings -->
+    <section class="zone z-tops">
+      <h3><span class="step">6</span><span data-t="toppings">Toppings</span></h3>
+      <div class="bottles" id="topShakers"></div>
+    </section>
+
+    <!-- serve -->
+    <section class="zone z-serve" data-drop="serve" id="serveZone">
+      <h3><span data-t="obj.serve">Serve here</span></h3>
+      <div class="hatch"><span class="bell"></span></div>
+      <button class="btn primary" id="serveBtn" type="button" data-t="serveBtn">Serve</button>
+    </section>
+
+    <!-- trash -->
+    <section class="zone z-trash" data-drop="trash" id="trashZone">
+      <h3><span data-t="obj.trash">Trash</span></h3>
+      <div class="bin" id="bin"><span class="lid"></span><span class="can"></span></div>
+    </section>
+  </div>
+</main>
+
+<div class="overlay menu" id="ovMenu" hidden>
+  <div class="card">
+    <div class="logo"><div class="big">CAFE C<b>&amp;</b>B</div><div class="sub" data-t="sub">Barista Simulator</div></div>
+    <div class="stats">
+      <div><b id="mCash">$0</b><span data-t="savings">Savings</span></div>
+      <div><b id="mDay">1</b><span data-t="nextDay">Next day</span></div>
+      <div><b id="mBest">$0</b><span data-t="bestDay">Best day</span></div>
+    </div>
+    <div class="menu-actions">
+      <button class="btn primary big" id="startBtn" type="button">Open the café</button>
+      <button class="btn big" id="howBtn" type="button" data-t="howTo">How to brew</button>
+      <button class="btn big" id="langBtn2" type="button">Türkçe</button>
+    </div>
+    <div class="shop" id="menuShop"></div>
+    <div class="menu-actions"><button class="btn" id="resetBtn" type="button" data-t="reset">Reset progress</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ovResult" hidden>
+  <div class="card">
+    <div class="stars" id="rStars"></div>
+    <p class="quote" id="rQuote"></p>
+    <div class="checks" id="rChecks"></div>
+    <div class="bars" id="rBars"></div>
+    <div class="money" id="rMoney"></div>
+    <div class="menu-actions"><button class="btn go big" id="nextBtn" type="button">Next customer</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ovDay" hidden>
+  <div class="card">
+    <h2 id="dTitle" style="text-align:center;font-size:30px">Day 1</h2>
+    <div class="stats">
+      <div><b id="dEarn">$0</b><span data-t="earned">Earned</span></div>
+      <div><b id="dStars">0</b><span data-t="avgStars">Avg stars</span></div>
+      <div><b id="dCash">$0</b><span data-t="savings">Savings</span></div>
+    </div>
+    <div class="shop" id="dayShop"></div>
+    <div class="menu-actions">
+      <button class="btn primary big" id="nextDayBtn" type="button">Open next day</button>
+      <button class="btn big" id="toMenuBtn" type="button" data-t="toMenu">Main menu</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ovBook" hidden>
+  <div class="card book">
+    <h2 data-t="recipeBook">Recipe book</h2>
+    <div id="bookBody"></div>
+    <div class="menu-actions"><button class="btn go" id="closeBookBtn" type="button" data-t="backToBar">Back to the bar</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/util.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/recipe.js"></script>
+<script src="js/render.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/station.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
