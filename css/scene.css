@@ -3,7 +3,7 @@
 .scene { min-height: 258px; background: #b3aa9e; isolation: isolate; }
 .scene .layer, .scene .neon { position: absolute; pointer-events: none; will-change: transform; transform: translate3d(var(--px, 0px), var(--py, 0px), 0); }
 .scene .layer { inset: -10px; }
-.scene canvas { z-index: 2; }
+#sceneCv { z-index: 2; }
 .scene .talk { z-index: 3; padding-top: 64px; }
 
 .layer.far { background: url(../assets/bg-wall.svg) center bottom / cover no-repeat; }

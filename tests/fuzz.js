@@ -18,9 +18,10 @@ const STEPS = +process.argv[2] || 1500;
 
   const bad = await page.evaluate(async (steps) => {
     const SPECS = ['newcup:S', 'newcup:M', 'newcup:L', 'cup', 'pf', 'tamper', 'milk:whole', 'milk:oat', 'pitcher', 'syrup:vanilla', 'syrup:caramel', 'top:whip', 'top:cinnamon'];
-    const TGT = ['prep', 'tray', 'serve', 'trash', 'grinder', 'group', 'pfrack', 'pf', 'pitcher', 'wand', 'pitcherrack', 'cup'];
-    const BTN = ['#brewBtn', '#brewBtn', '#langBtn', '#serveBtn', '#bookBtn', '#closeBookBtn'];
-    const stats = { serves: 0, days: 0, menus: 0 };
+    const TGT = ['prep', 'tray', 'serving', 'serving', 'customer', 'trash', 'grinder', 'group', 'pfrack', 'pf', 'pitcher', 'wand', 'pitcherrack', 'cup'];
+    const BTN = ['#brewBtn', '#brewBtn', '#langBtn', '#serveBtn', '#serveBtn', '#bookBtn', '#closeBookBtn', '#peekBtn', '#backBtn'];
+    const press = sel => { const b = document.querySelector(sel); if (b && !b.disabled && b.offsetParent !== null) b.click(); };
+    const stats = { serves: 0, days: 0, menus: 0, bells: 0 };
     const pick = a => a[Math.floor(Math.random() * a.length)];
     const wait = ms => new Promise(r => setTimeout(r, ms));
     const problems = [];
@@ -38,18 +39,28 @@ const STEPS = +process.argv[2] || 1500;
         if (st === 'MENU') document.querySelector('#startBtn').click();
         else if (st === 'DAY_END') { stats.days++; document.querySelector('#nextDayBtn').click(); }
         else if (st === 'RESULT') { stats.serves++; document.querySelector('#nextBtn').click(); }
-        else if (st === 'ORDERING') { const b = document.querySelector('#takeBtn'); if (b.offsetParent) b.click(); else await wait(50); }
-        else if (st === 'SERVING') await wait(60);
+        else if (st === 'ORDER_PENDING') { const b = document.querySelector('#takeBtn'); if (b.offsetParent) b.click(); else await wait(50); }
+        else if (st === 'COMPLETED') await wait(60);
+        else if (st === 'READY_TO_SERVE') {
+          // mostly hand it over; sometimes try moves that must be refused while the cup is out on the bar
+          if (r < 0.5) CB.drop('cup', 'customer'); else if (r < 0.8) CB.drop(pick(SPECS), pick(TGT)); else press(pick(BTN));
+        }
         else if (r < 0.003) { stats.menus++; document.querySelector('#menuBtn').click(); }
+        else if (r < 0.03) { CB.drop(pick(['newcup:S', 'newcup:M']), 'prep'); CB.drop('cup', 'serving'); press('#serveBtn'); if (CB.G.state === 'READY_TO_SERVE') stats.bells++; }
         else if (r < 0.55) CB.drop(pick(SPECS), pick(TGT));
         else if (r < 0.62) await holdBtn('#grindBtn');
         else if (r < 0.69) await holdBtn('#steamBtn');
         else if (r < 0.72) document.querySelector(pick(['#beanChips', '#foamChips']) + ' button:nth-child(' + (1 + Math.floor(Math.random() * 3)) + ')').click();
-        else { const b = document.querySelector(pick(BTN)); if (b && !b.disabled && b.offsetParent !== null) b.click(); }
+        else if (r < 0.75) document.querySelector('[data-press="syrup:' + pick(['vanilla', 'caramel', 'hazelnut']) + '"]').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+        else press(pick(BTN));
       } catch (e) { problems.push('throw: ' + e.message); }
       if (i % 7 === 0) await wait(30);
       const B = CB.B, c = B.cup;
-      if (c.size && !['prep', 'tray'].includes(c.at)) problems.push('cup.at ' + c.at);
+      const st2 = CB.G.state;
+      if (c.size && st2 === 'PREPARING' && !['prep', 'tray', 'serving'].includes(c.at)) problems.push('cup.at ' + c.at + ' while preparing');
+      if (st2 === 'READY_TO_SERVE' && (!c.size || c.at !== 'hand')) problems.push('ready to serve without a cup on the bar');
+      if (c.size && c.at === 'hand' && st2 !== 'READY_TO_SERVE') problems.push('cup left on the bar in ' + st2);
+      if (!CB.switching() && CB.view() !== (st2 === 'PREPARING' && !CB.G.peek ? 'barista' : 'customer')) problems.push('wrong view ' + CB.view() + ' in ' + st2);
       if (!['rack', 'grinder', 'group'].includes(B.pf.at)) problems.push('pf.at ' + B.pf.at);
       if (B.pf.tamped && B.pf.dose <= 0) problems.push('tamped empty pf');
       if (B.pf.at === 'group' && !B.pf.tamped) problems.push('untamped pf in group');
@@ -59,7 +70,8 @@ const STEPS = +process.argv[2] || 1500;
       if (Object.values(c.syrups).reduce((a, b) => a + b, 0) > 6) problems.push('too many pumps');
       if (new Set(c.tops).size !== c.tops.length) problems.push('duplicate topping');
       const cupEl = document.querySelector('#cupObj');
-      if (cupEl.hidden !== !c.size && CB.G.state === 'BREWING') problems.push('cup element visibility out of sync');
+      if (cupEl.hidden !== !c.size && ['PREPARING', 'READY_TO_SERVE'].includes(CB.G.state)) problems.push('cup element visibility out of sync');
+      if (c.size && !cupEl.parentElement.matches({ prep: '#slotPrep', tray: '#slotTray', serving: '#slotServe', hand: '#slotHand' }[c.at])) problems.push('cup element in the wrong slot');
       if (!Number.isFinite(document.querySelector('#hudCash').textContent.replace(/[$,]/g, '') * 1)) problems.push('cash NaN');
       if (problems.length > 20) break;
     }

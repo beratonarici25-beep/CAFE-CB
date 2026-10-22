@@ -1,0 +1,182 @@
+/* Two-view flow (issue #5), physical machine controls (issue #7) and depth / contact shadows (issue #6).
+   Customer view = the café with a tall 2.5D bar; barista view = the bench in front of a tiled wall. */
+
+/* ---------- the two views ---------- */
+.views { position: relative; overflow-x: clip; }
+.view-off { display: none !important; }
+.view-leaving { position: absolute !important; left: 0; right: 0; z-index: 1; pointer-events: none; }
+.views.switching { pointer-events: none; }
+
+/* customer view: the scene fills the screen under the top bar */
+/* --top-h is the real top bar height (it wraps to two rows on phones), set from JS */
+.scene { min-height: clamp(440px, calc(100vh - var(--top-h, 46px)), 880px); min-height: clamp(440px, calc(100dvh - var(--top-h, 46px)), 880px); }
+.scene .talk { display: flex; gap: 16px; align-items: flex-start; max-width: none; }
+.talk-main { flex: 1 1 auto; min-width: 0; max-width: 620px; }
+#sceneTicket { flex: 0 0 250px; }
+.talk-actions .btn.big { font-size: 17px; }
+.handhint {
+  display: inline-block; margin: 12px 0 0; padding: 6px 14px; border-radius: 999px;
+  background: var(--butter); border: 2px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
+  font-weight: 800; font-size: 14px; animation: nudge 1.6s ease-in-out infinite;
+}
+@keyframes nudge { 50% { transform: translateX(-6px); } }
+
+/* the order ticket: pinned paper note in the café, a strip on top of the bench */
+.ticket { position: relative; }
+.ticket-pat { display: block; max-width: none; height: 6px; margin: 7px 0 0; }
+.scene .ticket {
+  background: #fffdf6; border: 2px solid var(--ink); border-radius: 4px; transform: rotate(1.6deg);
+  box-shadow: 0 8px 14px rgba(40,20,10,.22), 0 2px 0 var(--ink); padding-top: 16px;
+  animation: ticketIn .45s var(--pop, ease-out);
+}
+.scene .ticket::before {
+  content: ""; position: absolute; top: -7px; left: 50%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffb3a8, #d4685a); border: 2px solid var(--ink);
+}
+@keyframes ticketIn { from { transform: translateY(-24px) rotate(-8deg); opacity: 0; } }
+
+/* the tray on the bar where the finished drink waits */
+.cust-tray {
+  position: absolute; z-index: 3; left: 52%; width: 180px; margin-left: -90px;
+  bottom: calc(var(--counter-h, 44px) - var(--top-d, 15px) * .55 - 12px);
+}
+.cust-tray::before {
+  content: ""; position: absolute; left: 6px; right: 6px; bottom: 2px; height: 22px; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, #c98b62, #9b6544 70%); border: 3px solid var(--ink);
+  box-shadow: 0 5px 0 rgba(40,20,10,.25);
+}
+.cust-tray .slot { border: 0; min-height: 168px; position: relative; }
+.cust-tray .slot::after { display: none; }
+
+/* drop zone over the customer while the drink waits */
+.cust-zone { position: absolute; z-index: 4; border-radius: 46% 46% 22% 22%; }
+.cust-zone.can-drop { outline: 3px dashed rgba(255,250,243,.9); outline-offset: 4px; background: rgba(140,199,174,.12); }
+.cust-zone.drop-hover { outline: 4px solid var(--mint); background: rgba(140,199,174,.28); }
+
+/* barista view: the bench stands in front of a mint subway-tile wall */
+body.view-barista {
+  background-color: #e3efe8;
+  background-image: linear-gradient(rgba(75,46,43,.07) 2px, transparent 2px), linear-gradient(90deg, rgba(75,46,43,.07) 2px, transparent 2px);
+  background-size: 56px 28px;
+}
+.benchhead #benchTicket { flex: 1 1 420px; min-width: 0; }
+#peekBtn { margin-left: auto; }
+
+/* ---------- depth: objects rest on the counter with soft contact shadows ---------- */
+.zone { box-shadow: 0 5px 0 rgba(75,46,43,.12); }
+.slot::after {
+  content: ""; position: absolute; left: 18%; right: 18%; bottom: 5px; height: 12px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(75,46,43,.32), transparent); opacity: 0; transition: opacity .2s;
+}
+.slot.filled::after { opacity: 1; }
+.slot > .obj { z-index: 1; }
+.bottles .obj .glass { box-shadow: 0 5px 3px -2px rgba(75,46,43,.3); }
+.machine { box-shadow: inset 0 6px 0 rgba(255,255,255,.35), 0 7px 0 #c06f66, 0 9px 0 1px var(--ink); }
+
+/* ---------- physical controls (issue #7) ---------- */
+.mbtn {
+  position: relative; border: 3px solid var(--ink); border-radius: 12px; cursor: pointer;
+  background: linear-gradient(#fff8ec, #ecd7c1); box-shadow: 0 4px 0 var(--ink);
+  font-weight: 800; font-size: 12px; line-height: 1.1; padding: 5px 10px 5px 24px;
+  user-select: none; -webkit-user-select: none; touch-action: none;
+  transition: transform .07s, box-shadow .07s, filter .2s;
+}
+.mbtn .led {
+  position: absolute; left: 8px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%;
+  background: #6b4f47; border: 1.5px solid var(--ink); transition: background .15s, box-shadow .15s;
+}
+.mbtn:hover:not(:disabled) { filter: brightness(1.04); }
+.mbtn:active:not(:disabled), .mbtn.active, .mbtn.on { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink), inset 0 2px 5px rgba(0,0,0,.25); }
+.mbtn.active .led, .mbtn.on .led { background: #8dff9f; box-shadow: 0 0 6px 2px rgba(141,255,159,.85); }
+.mbtn:disabled { opacity: .55; cursor: not-allowed; }
+.mbtn:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+.mbtn.round, .mbtn.brew {
+  width: 58px; height: 58px; border-radius: 50%; padding: 14px 0 0; display: grid; place-items: center;
+  background: radial-gradient(circle at 38% 32%, #c8f0dc, var(--mint) 70%);
+}
+.mbtn.round { background: radial-gradient(circle at 38% 32%, #ffd8d2, var(--blush-deep) 72%); }
+.mbtn.brew.on { background: radial-gradient(circle at 38% 32%, #fff1c6, var(--butter) 72%); }
+.mbtn.round .led, .mbtn.brew .led { left: 50%; top: 7px; margin: 0 0 0 -4.5px; }
+.mbtn .cap { pointer-events: none; }
+
+.lcd {
+  font-family: var(--font-ticket); font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums;
+  background: linear-gradient(#c6e3ae, #a9cf8f); color: #1f3a1c; border: 2px solid var(--ink); border-radius: 6px;
+  padding: 2px 7px; box-shadow: inset 0 2px 3px rgba(0,0,0,.2); white-space: nowrap; min-width: 58px; text-align: right;
+}
+
+.keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.key {
+  position: relative; border: 2px solid var(--ink); border-radius: 6px; cursor: pointer;
+  background: linear-gradient(#fffaf3, #e7d8ca); box-shadow: 0 3px 0 var(--ink);
+  font-weight: 800; font-size: 10.5px; line-height: 1.1; padding: 8px 2px 3px; overflow-wrap: anywhere;
+  transition: transform .07s, box-shadow .07s;
+}
+.key::before {
+  content: ""; position: absolute; left: 50%; top: 2px; width: 12px; height: 3px; margin-left: -6px; border-radius: 2px; background: #9b847b;
+}
+.key:active:not(:disabled), .key[aria-pressed="true"] { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink), inset 0 2px 4px rgba(0,0,0,.18); }
+.key[aria-pressed="true"] { background: #ffeabd; }
+.key[aria-pressed="true"]::before { background: #ffb43b; box-shadow: 0 0 5px 1px rgba(255,180,59,.9); }
+.key:disabled { opacity: .5; cursor: not-allowed; }
+
+/* grinder: a bigger body that carries its own keys, scale display and grind button */
+.grinder-body {
+  width: min(100%, 200px); height: auto; display: grid; gap: 7px; padding: 8px 8px 12px;
+  background: linear-gradient(#5a3a35, var(--ink)); border-radius: 12px 12px 6px 6px; box-shadow: 0 5px 0 #2a1816;
+}
+.grind-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.grinder-body .chute { bottom: -9px; }
+.grinder .slot { margin-top: 14px; }
+
+/* espresso machine control panel */
+.mach-panel {
+  display: grid; grid-template-columns: 1fr 104px; gap: 8px; align-items: center;
+  background: rgba(75,46,43,.16); border-radius: 12px; padding: 6px 8px; box-shadow: inset 0 2px 0 rgba(0,0,0,.08);
+}
+.panel-left { display: flex; align-items: center; gap: 6px; justify-content: space-around; min-width: 0; }
+.panel-left .lcd { min-width: 0; }
+.machine, .mach-panel > * { min-width: 0; }
+.panel-right { display: grid; gap: 6px; }
+.panel-right .key { font-size: 10px; }
+.mbtn.steam { width: 100%; }
+.mach-head { grid-template-columns: 1fr 104px; }
+.gauge-dial {
+  justify-self: center; position: relative; width: 46px; height: 46px; border-radius: 50%;
+  background: radial-gradient(circle, #fff 55%, #e9e2d8); border: 3px solid var(--ink); box-shadow: 0 3px 0 rgba(75,46,43,.35);
+}
+.gauge-dial i {
+  position: absolute; left: 50%; bottom: 50%; width: 3px; height: 16px; margin-left: -1.5px; background: var(--blush-deep);
+  border-radius: 2px; transform-origin: 50% 100%; transform: rotate(-60deg); transition: transform .6s var(--pop, ease-out);
+}
+.gauge-dial::after { content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--ink); }
+.machine.busy .gauge-dial i { transform: rotate(55deg); animation: needle .4s ease-in-out infinite alternate; }
+@keyframes needle { to { transform: rotate(40deg); } }
+
+/* serving tray + bell */
+.z-serve { justify-items: stretch; }
+.servetray {
+  background: radial-gradient(ellipse 46% 16px at 50% calc(100% - 16px), #c98b62 0 92%, transparent 96%);
+  border-color: rgba(79,158,112,.6);
+}
+.mbtn.bellbtn { justify-self: center; display: grid; justify-items: center; gap: 4px; padding: 8px 16px 6px; background: linear-gradient(#fff3cf, var(--butter)); }
+.mbtn.bellbtn .bell { width: 30px; height: 17px; }
+.mbtn.bellbtn.ready { animation: ready 1.2s ease-in-out infinite; }
+@keyframes ready { 50% { box-shadow: 0 4px 0 var(--ink), 0 0 0 7px rgba(246,216,140,.55); } }
+
+/* ---------- smaller screens ---------- */
+@media (max-width: 900px) {
+  .scene .talk { flex-wrap: wrap; }
+  #sceneTicket { flex: 1 1 100%; }
+}
+@media (max-width: 760px) {
+  .scene .talk { margin-left: 16px; }
+  .bubble::before { left: 26px; bottom: -14px; transform: rotate(-45deg) skew(10deg, 10deg); }
+  .cust-tray { left: 66%; }
+  #peekBtn { margin-left: 0; }
+  .mach-panel, .mach-head { grid-template-columns: 1fr 92px; }
+  .panel-left .lcd { min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .handhint, .mbtn.bellbtn.ready, .machine.busy .gauge-dial i, .scene .ticket { animation: none; }
+}

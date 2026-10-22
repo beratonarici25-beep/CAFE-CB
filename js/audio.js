@@ -60,4 +60,12 @@ Object.assign(sfx, {
   trash() { this.burst('bandpass', 900, 0.18, 0.3); this.tone(160, 0.2, 'triangle', 0.15, 0.08); },
   error() { this.tone(220, 0.12, 'square', 0.06); this.tone(185, 0.16, 'square', 0.06, 0.1); },
   pickup() { this.tone(560, 0.06, 'sine', 0.08, 0, 1.4); },
+  // issues #6/#7: machine keys click, the service bell dings, coins jingle on the bar
+  button() { this.tone(1800, 0.025, 'square', 0.05); this.tone(240, 0.06, 'triangle', 0.12, 0.012); },
+  ding() { this.tone(2093, 0.9, 'sine', 0.16); this.tone(3136, 0.5, 'sine', 0.05, 0.01); this.tone(2093, 0.6, 'sine', 0.06, 0.18); },
+  whoosh() { if (!this.ctx) return; const stop = this.loop('bandpass', 900, 0.8, 0.12); setTimeout(stop, 260); },
+  coins(tip) {
+    for (let i = 0, n = tip ? 6 : 3; i < n; i++) this.tone(rand(1700, 2600), 0.12, 'triangle', 0.07, 0.05 + i * 0.07 + rand(0, 0.03));
+    this.coin();
+  },
 });
