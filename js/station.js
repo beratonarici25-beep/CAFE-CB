@@ -18,7 +18,9 @@ function resetBench() {
 // legacy name used by the main loop and tests
 Object.defineProperty(window, 'cup', { get: () => B.cup });
 
-const canAct = () => G.state === 'BREWING';
+const canAct = () => G.state === 'PREPARING';
+// once the drink is out on the bar, the only thing left to move is the cup, onto the customer
+const canDrag = spec => canAct() || (G.state === 'READY_TO_SERVE' && spec === 'cup');
 function deny(key, el) {
   if (key === 'same') return;
   toast(t('err.' + key));
@@ -29,7 +31,7 @@ function deny(key, el) {
 /* ---------------- what can go where ---------------- */
 const TARGETS = {
   newcup: ['prep', 'tray'],
-  cup: ['prep', 'tray', 'serve', 'trash'],
+  cup: ['prep', 'tray', 'serving', 'trash', 'customer'],
   pf: ['grinder', 'group', 'pfrack', 'trash'],
   tamper: ['pf'],
   milk: ['pitcher'],
@@ -44,9 +46,11 @@ const PITCHER_SPOT = { wand: 'wand', pitcherrack: 'rack' };
 function check(spec, target) {
   const [kind, arg] = spec.split(':');
   if (!(TARGETS[kind] || []).includes(target)) return 'nope';
+  if (target === 'customer') return G.state === 'READY_TO_SERVE' ? Rules.handOver(B) : 'notReady';
+  if (!canAct()) return 'nope';
   switch (kind) {
     case 'newcup': return Rules.placeNewCup(B);
-    case 'cup': return target === 'serve' ? Rules.serve(B) : target === 'trash' ? Rules.trashCup(B) : Rules.moveCup(B, target);
+    case 'cup': return target === 'trash' ? Rules.trashCup(B) : Rules.moveCup(B, target);
     case 'pf': return target === 'trash' ? Rules.dumpPf(B) : Rules.movePf(B, PF_SPOT[target]);
     case 'tamper': return Rules.tamp(B);
     case 'milk': return Rules.fillPitcher(B);
@@ -67,10 +71,10 @@ function apply(spec, target, from) {
       sfx.clack(); layout({ cup: from }); fx('land', $('#cupObj'));
       break;
     case 'cup':
-      if (target === 'serve') { serve(); return; }
+      if (target === 'customer') { serve(); return; }
       if (target === 'trash') { trashCup(from); return; }
       if (c.shotting) stopShot();
-      c.at = target; sfx.clack(); layout({ cup: from });
+      c.at = target; sfx.clack(); layout({ cup: from }); fx('land', $('#cupObj'));
       break;
     case 'pf':
       if (target === 'trash') {
@@ -80,7 +84,7 @@ function apply(spec, target, from) {
         break;
       }
       if (B.pf.grinding) grindEnd();
-      B.pf.at = PF_SPOT[target]; sfx.clack(); layout({ pf: from });
+      B.pf.at = PF_SPOT[target]; sfx.clack(); layout({ pf: from }); fx('land', $('#pfObj'));
       break;
     case 'tamper':
       B.pf.tamped = true; sfx.tamp(); fx('tamp', $('#pfObj'));
@@ -96,7 +100,7 @@ function apply(spec, target, from) {
         sfx.trash(); fx('lid');
         break;
       }
-      B.pitcher.at = PITCHER_SPOT[target]; sfx.clack(); layout({ pitcher: from });
+      B.pitcher.at = PITCHER_SPOT[target]; sfx.clack(); layout({ pitcher: from }); fx('land', $('#pitcherObj'));
       break;
     case 'syrup':
       c.syrups[arg] = (c.syrups[arg] || 0) + 1;
@@ -161,21 +165,39 @@ function pourMilk() {
   B.pitcher = { ...newPitcher(), at: p.at, foam: p.foam };
   sfx.pour();
 }
+// pressing a syrup bottle's pump head pumps straight into the cup on the bench (issue #7)
+function pressPump(el) {
+  const spec = el.dataset.press;
+  sfx.init();
+  const e = check(spec, 'cup');
+  if (e) { deny(e, el.closest('.obj')); return; }
+  clearHeld();
+  apply(spec, 'cup');
+}
 function trashCup(from) {
   if (B.cup.shotting) stopShot();
   B.cup = newCup();
   sfx.trash(); fx('lid');
   layout(); render();
 }
-function serveFromButton() {
+// the bell on the serving tray: the drink goes out to the bar and the view turns back to the customer
+function sendOut() {
   if (!canAct()) return;
-  const e = Rules.serve(B); if (e) { deny(e, $('#serveZone')); return; }
-  serve();
+  const e = Rules.sendOut(B); if (e) { deny(e, $('#slotServe')); return; }
+  if (B.pf.grinding) grindEnd();
+  if (B.pitcher.steaming) steamEnd();
+  stopAllSounds();
+  sfx.ding();
+  B.cup.at = 'hand';
+  G.peek = false;
+  setState('READY_TO_SERVE');
+  layout({ cup: false });
+  fx('land', $('#cupObj'), 420);
 }
 
 /* ---------------- placing objects in their slots ---------------- */
 const SLOT = {
-  cup: { prep: '#slotPrep', tray: '#slotTray' },
+  cup: { prep: '#slotPrep', tray: '#slotTray', serving: '#slotServe', hand: '#slotHand' },
   pf: { rack: '#slotPfRack', grinder: '#slotGrinder', group: '#slotGroup' },
   pitcher: { rack: '#slotPitcherRack', wand: '#slotWand' },
 };
@@ -189,7 +211,7 @@ function moveInto(el, parentSel, from) {
 function layout(from = {}) {
   const cupEl = $('#cupObj'), wasHidden = cupEl.hidden;
   cupEl.hidden = !B.cup.size;
-  if (B.cup.size) moveInto(cupEl, SLOT.cup[B.cup.at], from.cup || (wasHidden ? false : undefined));
+  if (B.cup.size) moveInto(cupEl, SLOT.cup[B.cup.at], 'cup' in from ? from.cup : wasHidden ? false : undefined);
   moveInto($('#pfObj'), SLOT.pf[B.pf.at], from.pf);
   moveInto($('#pitcherObj'), SLOT.pitcher[B.pitcher.at], from.pitcher);
   document.querySelectorAll('.slot').forEach(s => s.classList.toggle('filled', [...s.children].some(ch => ch.classList.contains('obj') && !ch.hidden)));
@@ -257,11 +279,14 @@ function makeGhost(src) {
   g.style.width = r.width + 'px'; g.style.height = r.height + 'px';
   g.style.transform = `translate3d(${r.left}px, ${r.top}px, 0)`;
   document.body.appendChild(g);
-  return { el: g, x: r.left, y: r.top, w: r.width, h: r.height, tilt: 0 };
+  const cv = src.id === 'cupObj' ? g.querySelector('canvas') : null;
+  return { el: g, x: r.left, y: r.top, w: r.width, h: r.height, tilt: 0, sq: 0, cv, slosh: { a: 0, v: 0 } };
 }
 
 function onPointerDown(e) {
   if (e.button > 0 || drag) return;
+  const press = e.target.closest('[data-press]');
+  if (press && canAct()) { e.preventDefault(); pressPump(press); return; }
   if (held) {
     const tgt = resolveTarget(e.target, held.spec, held.src);
     if (tgt) {
@@ -273,7 +298,7 @@ function onPointerDown(e) {
     }
   }
   const src = e.target.closest('[data-drag]');
-  if (!src || !canAct()) { if (held && !e.target.closest('button, .chip')) clearHeld(); return; }
+  if (!src || !canDrag(src.dataset.drag)) { if (held && !e.target.closest('button, .key')) clearHeld(); return; }
   e.preventDefault();
   sfx.init();
   drag = { spec: src.dataset.drag, src, id: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, started: false, ghost: null, hover: null };
@@ -315,13 +340,13 @@ function onPointerUp(e) {
   const from = { left: g.x, top: g.y, width: g.w, height: g.h };
   const tgt = d.hover;
   const kind = kindOf(d.spec);
-  const ok = tgt && canAct() ? attempt(d.spec, tgt, from, d.src) : false;
-  if (ok && ['cup', 'pf', 'pitcher', 'newcup'].includes(kind) && !(tgt.name === 'trash' || tgt.name === 'serve' || (kind === 'pitcher' && tgt.name === 'cup'))) {
+  const ok = tgt && canDrag(d.spec) ? attempt(d.spec, tgt, from, d.src) : false;
+  if (ok && ['cup', 'pf', 'pitcher', 'newcup'].includes(kind) && !(tgt.name === 'trash' || tgt.name === 'customer' || (kind === 'pitcher' && tgt.name === 'cup'))) {
     g.el.remove();                       // the real object glides in from the ghost (FLIP)
   } else if (ok && tgt.name === 'trash' && kind === 'cup') {
     fx('intoTrash', g.el, $('#bin'));
-  } else if (ok && tgt.name === 'serve') {
-    fx('fadeOut', g.el);
+  } else if (ok && tgt.name === 'customer') {
+    fx('handOver', g.el, $('#custZone'));
   } else if (ok && (kind === 'pitcher' && tgt.name === 'cup')) {
     fx('tiltPour', g.el, $('#cupObj'), d.src);
   } else {
@@ -337,7 +362,7 @@ function onPointerCancel(e) {
   if (d.ghost) d.ghost.el.remove();
 }
 function tap(src) {
-  if (!canAct()) return;
+  if (!canDrag(src.dataset.drag)) return;
   const spec = src.dataset.drag;
   if (held && held.src === src) { clearHeld(); return; }
   setHeld(spec, src);
@@ -347,13 +372,12 @@ function onKey(e) {
   if (e.key === 'Escape' && held) { clearHeld(); return; }
   if (e.key !== 'Enter' && e.key !== ' ') return;
   const el = document.activeElement;
-  if (!el || !el.closest || !el.closest('#counter')) return;
+  if (!el || !el.closest || !el.closest('#counter, #scene')) return;
   if (held) {
     const tgt = resolveTarget(el, held.spec, held.src);
     if (tgt) { e.preventDefault(); const { spec, src } = held; clearHeld(); attempt(spec, tgt, null, src); return; }
   }
-  if (el.dataset.drag && el.tagName !== 'BUTTON') { e.preventDefault(); tap(el); }
-  else if (el.dataset.drag) { e.preventDefault(); tap(el); }
+  if (el.dataset.drag) { e.preventDefault(); tap(el); }
 }
 
 // per-frame ghost follow with a little lag and tilt
@@ -367,10 +391,34 @@ function updateDrag() {
   if (dy) { window.scrollBy(0, Math.round(dy)); updateHover(); }
   const g = drag.ghost, tx = drag.x - drag.offX, ty = drag.y - drag.offY;
   const k = reduceMotion ? 1 : 0.38;
-  const vx = (tx - g.x) * k;
-  g.x += vx; g.y += (ty - g.y) * k;
+  const vx = (tx - g.x) * k, vy = (ty - g.y) * k;
+  g.x += vx; g.y += vy;
   g.tilt += (clamp(vx * 0.9, -16, 16) - g.tilt) * 0.25;
-  g.el.style.transform = `translate3d(${g.x}px, ${g.y}px, 0) rotate(${reduceMotion ? 0 : g.tilt}deg) scale(1.06)`;
+  if (reduceMotion) { g.el.style.transform = `translate3d(${g.x}px, ${g.y}px, 0) scale(1.06)`; return; }
+  // stretch along the motion, settle back when it stops (issue #6)
+  g.sq += (clamp(Math.hypot(vx, vy) * 0.006, 0, 0.1) - g.sq) * 0.3;
+  const across = Math.abs(vx) > Math.abs(vy);
+  const sx = 1.06 + (across ? g.sq : -g.sq * 0.6), sy = 1.06 + (across ? -g.sq * 0.6 : g.sq);
+  g.el.style.transform = `translate3d(${g.x}px, ${g.y}px, 0) rotate(${g.tilt}deg) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
+  if (g.cv && B.cup.size) sloshGhost(g, vx);
+}
+// a dragged cup is redrawn every frame so its drink rocks against the tilt and spills a drop now and then.
+// Purely visual: nothing is taken out of the drink.
+function sloshGhost(g, vx) {
+  const s = g.slosh, target = -g.tilt * PI / 180 * 0.9;
+  s.v += ((target - s.a) * 90 - s.v * 7) * dtLast;
+  s.a = clamp(s.a + s.v * dtLast, -0.45, 0.45);
+  const cv = g.cv, W = cv.clientWidth, H = cv.clientHeight;
+  if (!W || !H) return;
+  const ctx = cv.getContext('2d'), sc = Math.min(0.8, (H - 16) / 196);
+  ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0); ctx.clearRect(0, 0, W, H);
+  drawCup(ctx, B.cup, W / 2, H - 8, sc, s.a);
+  const c = B.cup;
+  if ((c.shots.length || c.milkPoured) && Math.abs(vx) > 7 && Math.random() < 0.3) {
+    const r = cv.getBoundingClientRect(), d = CUPD[c.size], k = sc * r.height / H;
+    fx('add', { x: r.left + r.width / 2 - Math.sign(vx) * d.t * 0.42 * k, y: r.bottom - (8 / sc + d.h) * k,
+      vx: -vx * 3 + rand(-20, 20), vy: rand(-90, -30), g: 900, r: rand(1.6, 2.6), color: c.milkPoured ? C.milk : C.espresso, life: 0.55, kind: 'drop' });
+  }
 }
 
 /* ---------------- building the bench DOM ---------------- */
@@ -384,14 +432,14 @@ function makeChips(el, keys, fn) {
   el.innerHTML = '';
   for (const k of keys) {
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip'; b.dataset.k = k;
-    b.addEventListener('click', () => { sfx.init(); fn(k); });
+    b.type = 'button'; b.className = 'key'; b.dataset.k = k;
+    b.addEventListener('click', () => { sfx.init(); if (b.getAttribute('aria-pressed') !== 'true') sfx.button(); fn(k); });
     el.appendChild(b);
   }
 }
 function holdable(btn, onStart, onEnd) {
   let on = false;
-  const start = () => { if (btn.disabled || on) return; on = true; btn.classList.add('active'); sfx.init(); onStart(); };
+  const start = () => { if (btn.disabled || on) return; on = true; btn.classList.add('active'); sfx.init(); sfx.button(); onStart(); };
   const end = () => { if (!on) return; on = false; btn.classList.remove('active'); onEnd(); };
   btn.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.preventDefault(); try { btn.setPointerCapture(e.pointerId); } catch (_) {} start(); });
   btn.addEventListener('pointerup', end);
@@ -405,24 +453,24 @@ function holdable(btn, onStart, onEnd) {
 
 function buildBench() {
   $('#milkBottles').innerHTML = MILK_KEYS.map(k => bottle('milk:' + k, 'milk', MILK_COLORS[k])).join('');
-  $('#syrupBottles').innerHTML = Object.entries(SYRUPS).map(([k, s]) => bottle('syrup:' + k, 'syrup', s.color, '<span class="pumphead"></span>')).join('');
+  $('#syrupBottles').innerHTML = Object.entries(SYRUPS).map(([k, s]) => bottle('syrup:' + k, 'syrup', s.color, `<span class="pumphead" data-press="syrup:${k}"></span>`)).join('');
   $('#topShakers').innerHTML = TOP_KEYS.map(k => bottle('top:' + k, 'shaker', TOP_COLORS[k])).join('');
   makeChips($('#beanChips'), BEAN_KEYS, pickBean);
   makeChips($('#foamChips'), FOAM_KEYS, setFoam);
   holdable($('#grindBtn'), grindStart, grindEnd);
   holdable($('#steamBtn'), steamStart, steamEnd);
-  $('#brewBtn').addEventListener('click', () => { sfx.init(); toggleShot(); });
-  $('#serveBtn').addEventListener('click', serveFromButton);
-  const ctr = $('#counter');
-  ctr.addEventListener('pointerdown', onPointerDown);
-  document.addEventListener('pointerdown', e => { if (held && !ctr.contains(e.target)) clearHeld(); });
+  $('#brewBtn').addEventListener('click', () => { sfx.init(); sfx.button(); toggleShot(); });
+  $('#serveBtn').addEventListener('click', () => { sfx.init(); sendOut(); });
+  const ctr = $('#counter'), views = $('#views');
+  views.addEventListener('pointerdown', onPointerDown);
+  document.addEventListener('pointerdown', e => { if (held && !views.contains(e.target)) clearHeld(); });
   window.addEventListener('pointermove', onPointerMove, { passive: true });
   window.addEventListener('pointerup', onPointerUp);
   window.addEventListener('pointercancel', onPointerCancel);
   document.addEventListener('keydown', onKey);
   ctr.addEventListener('dragstart', e => e.preventDefault());
   // drop spots become keyboard-reachable
-  ctr.querySelectorAll('.slot[data-drop], .zone[data-drop]').forEach(n => n.tabIndex = 0);
+  views.querySelectorAll('.slot[data-drop], .zone[data-drop], #custZone').forEach(n => n.tabIndex = 0);
   // thermometer bands (0–90 °C) and the shot window (0–45 s)
   const map = { warm: '#bandWarm', normal: '#bandNormal', hot: '#bandHot' };
   for (const [k, b] of Object.entries(TEMPS)) {
@@ -436,8 +484,8 @@ function buildBench() {
 function applyBenchLang() {
   const L = S();
   document.querySelectorAll('#cupStand b[data-size]').forEach(b => { b.textContent = L.sizes[b.dataset.size]; });
-  $('#beanChips').querySelectorAll('button').forEach(b => { b.textContent = L.beans[b.dataset.k]; });
-  $('#foamChips').querySelectorAll('button').forEach(b => { b.textContent = L.foams[b.dataset.k]; });
+  $('#beanChips').querySelectorAll('button').forEach(b => { b.textContent = L.beanKey[b.dataset.k]; b.title = L.beans[b.dataset.k]; });
+  $('#foamChips').querySelectorAll('button').forEach(b => { b.textContent = L.foamKey[b.dataset.k]; b.title = L.foams[b.dataset.k]; });
   document.querySelectorAll('[data-drag^="milk:"] .nm').forEach(n => { n.textContent = L.milks[n.parentElement.dataset.drag.split(':')[1]]; });
   document.querySelectorAll('[data-drag^="syrup:"] .nm').forEach(n => { n.textContent = L.syrupNames[n.parentElement.dataset.drag.split(':')[1]]; });
   document.querySelectorAll('[data-drag^="top:"] .nm').forEach(n => { n.textContent = L.tops[n.parentElement.dataset.drag.split(':')[1]]; });
@@ -461,9 +509,8 @@ function renderBench() {
   pfEl.classList.toggle('tamped', p.tamped);
   $('#pfTag').textContent = p.dose > 0 ? fmt(p.tamped ? L.pfState.tamped : L.pfState.ground, p.dose.toFixed(1)) : L.pfState.empty;
 
-  const brew = $('#brewBtn');
-  brew.textContent = c.shotting ? L.stopBtn : L.brewBtn;
-  brew.classList.toggle('on', c.shotting);
+  $('#brewCap').textContent = c.shotting ? L.stopBtn : L.brewBtn;
+  $('#brewBtn').classList.toggle('on', c.shotting);
   $('#shotList').innerHTML = c.shots.map((s, i) => {
     const cls = s.q >= 0.9 ? 'good' : s.q < 0.5 ? 'bad' : '';
     const word = s.t < 25 ? L.sour : s.t > 30 ? L.bitter : L.perfect;
@@ -480,7 +527,8 @@ function renderBench() {
   document.querySelectorAll('[data-drag^="top:"]').forEach(b => {
     b.querySelector('.n').textContent = c.tops.includes(b.dataset.drag.split(':')[1]) ? '✓' : '';
   });
-  $('#serveBtn').disabled = !canAct() || !c.size;
+  $('#serveBtn').disabled = !canAct() || !c.size || c.at !== 'serving';
+  $('#serveBtn').classList.toggle('ready', canAct() && c.at === 'serving' && !c.shotting);
 
   const info = [];
   if (c.size) info.push(fmt(L.cupWord, L.sizes[c.size]));
@@ -494,7 +542,7 @@ function renderBench() {
 // per-frame: timers, meters and the pitcher's milk level
 function updateBench(dt) {
   const L = S(), c = B.cup, p = B.pf, pt = B.pitcher;
-  if (G.state === 'BREWING') {
+  if (G.state === 'PREPARING') {
     if (p.grinding) {
       p.dose = Math.min(25, p.dose + 7 * dt);
       if (p.dose >= 25) grindEnd();
@@ -509,6 +557,7 @@ function updateBench(dt) {
     }
   }
   $('#pfObj').classList.toggle('has-grounds', p.dose > 0);
+  $('#machine').classList.toggle('busy', c.shotting || pt.steaming);
   $('#doseFill').style.width = (p.dose / 25 * 100) + '%';
   $('#doseTxt').textContent = p.dose.toFixed(1) + ' g';
   const [lo, hi] = doseZone();

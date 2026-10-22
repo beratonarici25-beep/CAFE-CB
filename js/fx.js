@@ -33,8 +33,9 @@ const FX = {
     this.anim(el, [{ transform: `translate(${dx}px, ${dy}px) scale(1.06)` }, { transform: 'none' }], { duration: 320 });
   },
   // squash & stretch when something is set down
-  land(el) {
-    this.anim(el, [{ transform: 'scale(1.08, .9)' }, { transform: 'scale(.96, 1.05)', offset: .5 }, { transform: 'none' }], { duration: 360, delay: 330 }); // after the 320 ms FLIP glide, not on top of it
+  land(el, delay = 330) {
+    // after the 320 ms FLIP glide, not on top of it
+    this.anim(el, [{ transform: 'scale(1.08, .9)' }, { transform: 'scale(.96, 1.05)', offset: .5 }, { transform: 'none' }], { duration: 360, delay });
   },
   shake(el) {
     this.anim(el, [{ transform: 'translateX(0)' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(6px)' },
@@ -47,6 +48,16 @@ const FX = {
     const a = this.anim(ghost, [{ transform: from }, { transform: `translate3d(${r.left}px, ${r.top}px, 0)` }],
       { duration: 280, delay, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'forwards' });
     dropGhost(a, ghost, 280 + delay);
+  },
+  // the cup is taken by the customer: it hops toward their hands and shrinks away
+  handOver(ghost, zone) {
+    const z = rectOf(zone), g = ghost.getBoundingClientRect();
+    if (!z) { this.fadeOut(ghost); return; }
+    const x = z.left + z.width * 0.75 - g.width / 2, y = z.top + z.height * 0.55 - g.height / 2;
+    const a = this.anim(ghost, [{ transform: this.ghostTransform(ghost), opacity: 1 },
+      { transform: `translate3d(${x}px, ${y - 24}px, 0) scale(.8, .9)`, opacity: 1, offset: .55 },
+      { transform: `translate3d(${x}px, ${y}px, 0) scale(.35)`, opacity: 0 }], { duration: 380, easing: 'ease-out', fill: 'forwards' });
+    dropGhost(a, ghost, 380);
   },
   fadeOut(ghost) {
     const a = this.anim(ghost, [{ transform: this.ghostTransform(ghost), opacity: 1 }, { transform: this.ghostTransform(ghost) + ' translateY(-30px) scale(.8)', opacity: 0 }],
@@ -172,11 +183,16 @@ const FX = {
   },
   // continuous effects driven by the bench state
   emit(dt) {
-    if (reduceMotion || G.state !== 'BREWING') return;
+    if (reduceMotion || G.state !== 'PREPARING') return;
     const p = B.pf, c = B.cup, pt = B.pitcher;
     if (p.grinding) {
       const r = rectOf($('.chute'));
       if (r && Math.random() < 0.9) this.add({ x: r.left + r.width / 2 + rand(-3, 3), y: r.bottom, vx: rand(-8, 8), vy: 40, g: 600, r: rand(1.2, 2.2), color: pick(['#5b3423', '#6b3b26', '#4a2a1c']), life: 0.35, stopY: r.bottom + 30 });
+    }
+    // a fresh shot steams a little above the cup (issue #6)
+    if (c.shotting && Math.random() < 0.35) {
+      const s = this.surface($('#cupObj'));
+      if (s) this.add({ x: s.x + rand(-s.w * 0.3, s.w * 0.3), y: s.y - 6, vx: rand(-8, 8), vy: rand(-45, -25), g: -12, r: rand(2, 3.5), color: 'rgba(255,255,255,.55)', life: rand(0.6, 1), drag: 1, fade: true, grow: 6 });
     }
     if (pt.steaming) {
       const r = rectOf($('.wand-pipe'));
@@ -188,7 +204,7 @@ const FX = {
     if (!this.cv) return;
     this.emit(dt);
     const g = this.g, now = performance.now() / 1000;
-    const live = this.parts.length || this.streams.length || (B.cup.shotting && G.state === 'BREWING');
+    const live = this.parts.length || this.streams.length || (B.cup.shotting && G.state === 'PREPARING');
     if (!live && !this.dirty) return;
     g.clearRect(0, 0, innerWidth, innerHeight);
     this.dirty = !!live;

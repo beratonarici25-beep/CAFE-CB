@@ -233,10 +233,14 @@ const fmt = (s, ...args) => s.replace(/\{(\d)\}/g, (_, i) => args[i]);
 Object.assign(STR.en, {
   obj: {
     cups: 'Cups', grinder: 'Grinder', machine: 'Espresso machine', group: 'Group head', tray: 'Drip tray', wand: 'Steam wand',
-    milk: 'Milk', pitcher: 'Pitcher', syrups: 'Syrups', tops: 'Toppings', prep: 'Prep mat', serve: 'Serve here', trash: 'Trash',
+    milk: 'Milk', pitcher: 'Pitcher', syrups: 'Syrups', tops: 'Toppings', prep: 'Prep mat', serve: 'Serve here', trash: 'Trash', serving: 'Serving tray',
     pf: 'Portafilter', tamper: 'Tamper', rack: 'Rack', cup: 'Cup', brew: 'Brew', hold: 'Holding: {0}', drop: 'Drop',
   },
   brewBtn: 'Brew', stopBtn: 'Stop!', holdGrindShort: 'Hold: grind', holdSteamShort: 'Hold: steam', serveBtn: 'Serve',
+  grindKey: 'Grind', steamKey: 'Steam',
+  beanKey: { esp: 'House', decaf: 'Decaf', dark: 'Dark' }, foamKey: { none: 'None', light: 'Light', thick: 'Thick' },
+  toBarista: 'Go to the barista bench', toCustomer: 'Look at the customer', backToBench: 'Back to the bench',
+  dragToCust: 'Your drink is on the bar. Drag the cup to the customer!',
   dragHint: 'Drag things onto each other, or tap one and then tap where it goes.',
   pfState: { empty: 'empty', ground: '{0} g, loose', tamped: '{0} g, tamped' },
   pitcherState: { empty: 'empty', milk: '{0}, {1} °C' },
@@ -250,15 +254,20 @@ Object.assign(STR.en, {
     pitcherToWand: 'Put the pitcher under the steam wand.', pitcherEmpty: 'Fill the pitcher with milk first.',
     steamFirst: 'Steam the milk first.', milkAlready: 'This cup already has milk.', plenty: 'That is plenty of syrup.',
     topAlready: 'That topping is already on.', nope: 'That does not go there.',
+    cupToServeTray: 'Put the cup on the serving tray first.', notReady: 'Put the cup on the serving tray and ring the bell first.',
   },
 });
 Object.assign(STR.tr, {
   obj: {
     cups: 'Bardaklar', grinder: 'Öğütücü', machine: 'Espresso makinesi', group: 'Grup başlığı', tray: 'Damlalık', wand: 'Buhar çubuğu',
-    milk: 'Süt', pitcher: 'Süt potu', syrups: 'Şuruplar', tops: 'Süslemeler', prep: 'Hazırlık alanı', serve: 'Servis', trash: 'Çöp',
+    milk: 'Süt', pitcher: 'Süt potu', syrups: 'Şuruplar', tops: 'Süslemeler', prep: 'Hazırlık alanı', serve: 'Servis', trash: 'Çöp', serving: 'Servis tepsisi',
     pf: 'Portafiltre', tamper: 'Tamper', rack: 'Askı', cup: 'Bardak', brew: 'Demle', hold: 'Elinde: {0}', drop: 'Bırak',
   },
   brewBtn: 'Demle', stopBtn: 'Dur!', holdGrindShort: 'Basılı tut: öğüt', holdSteamShort: 'Basılı tut: ısıt', serveBtn: 'Servis et',
+  grindKey: 'Öğüt', steamKey: 'Buhar',
+  beanKey: { esp: 'Ev', decaf: 'Kafeinsiz', dark: 'Koyu' }, foamKey: { none: 'Yok', light: 'Az', thick: 'Bol' },
+  toBarista: 'Barista alanına geç', toCustomer: 'Müşteriye bak', backToBench: 'Tezgâha dön',
+  dragToCust: 'İçecek tezgâhta. Bardağı müşteriye sürükle!',
   dragHint: 'Nesneleri birbirinin üstüne sürükle ya da birine dokunup gideceği yere dokun.',
   pfState: { empty: 'boş', ground: '{0} g, sıkıştırılmadı', tamped: '{0} g, sıkıştırıldı' },
   pitcherState: { empty: 'boş', milk: '{0}, {1} °C' },
@@ -272,23 +281,26 @@ Object.assign(STR.tr, {
     pitcherToWand: 'Süt potunu buhar çubuğunun altına koy.', pitcherEmpty: 'Önce potaya süt koy.',
     steamFirst: 'Önce sütü ısıt.', milkAlready: 'Bu bardakta zaten süt var.', plenty: 'Bu kadar şurup yeter.',
     topAlready: 'O süsleme zaten var.', nope: 'Bu oraya gitmez.',
+    cupToServeTray: 'Önce bardağı servis tepsisine koy.', notReady: 'Önce bardağı servis tepsisine koyup zile bas.',
   },
 });
 STR.en.howSteps = `<ol class="steps">
   <li><b>Cup:</b> drag a cup from the stand onto the prep mat or the drip tray.</li>
-  <li><b>Grind:</b> drag the portafilter under the grinder, pick the beans, hold the grind button to <b>17–19 g</b>.</li>
+  <li><b>Order:</b> listen to the customer, then press <b>Go to the barista bench</b>. The order ticket stays pinned while you work.</li>
+  <li><b>Grind:</b> drag the portafilter under the grinder, pick the beans with the keys on the grinder, hold its <b>Grind</b> button to <b>17–19 g</b>.</li>
   <li><b>Tamp:</b> drag the tamper onto the portafilter.</li>
-  <li><b>Brew:</b> lock the portafilter into the group head, put the cup on the drip tray, press <b>Brew</b> and stop at <b>25–30 s</b>. Press again for another shot.</li>
-  <li><b>Milk:</b> drag a milk bottle onto the pitcher, put the pitcher under the steam wand, pick the foam, hold to steam, then drag the pitcher onto the cup.</li>
-  <li><b>Extras:</b> drag syrup bottles and topping shakers onto the cup.</li>
-  <li><b>Finish:</b> drag the cup to <b>Serve</b>. Messed up? Drag it into the trash. The trash also empties the portafilter and the pitcher.</li>
+  <li><b>Brew:</b> lock the portafilter into the group head, put the cup on the drip tray, press the machine's <b>Brew</b> button and stop at <b>25–30 s</b>. Press again for another shot.</li>
+  <li><b>Milk:</b> drag a milk bottle onto the pitcher, put the pitcher under the steam wand, pick the foam with the keys on the machine, hold <b>Steam</b>, then drag the pitcher onto the cup.</li>
+  <li><b>Extras:</b> press a syrup bottle's pump (or drag the bottle onto the cup) and drag topping shakers onto the cup.</li>
+  <li><b>Serve:</b> put the cup on the <b>serving tray</b> and ring the <b>Serve</b> bell. Back at the bar, drag the cup onto the customer. Messed up? Drag it into the trash. The trash also empties the portafilter and the pitcher.</li>
 </ol>`;
 STR.tr.howSteps = `<ol class="steps">
   <li><b>Bardak:</b> standdan bir bardağı hazırlık alanına ya da damlalığa sürükle.</li>
-  <li><b>Öğüt:</b> portafiltreyi öğütücünün altına sürükle, çekirdeği seç, öğüt düğmesini <b>17–19 g</b> olana kadar basılı tut.</li>
+  <li><b>Sipariş:</b> müşteriyi dinle, sonra <b>Barista alanına geç</b>’e bas. Sipariş fişi sen çalışırken köşede durur.</li>
+  <li><b>Öğüt:</b> portafiltreyi öğütücünün altına sürükle, çekirdeği öğütücünün üstündeki tuşlardan seç, <b>Öğüt</b> düğmesini <b>17–19 g</b> olana kadar basılı tut.</li>
   <li><b>Sıkıştır:</b> tamper’ı portafiltrenin üstüne sürükle.</li>
-  <li><b>Demle:</b> portafiltreyi grup başlığına tak, bardağı damlalığa koy, <b>Demle</b>’ye bas ve <b>25–30 sn</b>’de durdur. Bir shot daha için tekrar bas.</li>
-  <li><b>Süt:</b> bir süt şişesini potaya sürükle, potayı buhar çubuğunun altına koy, köpüğü seç, basılı tutarak ısıt, sonra potayı bardağın üstüne sürükle.</li>
-  <li><b>Ekstralar:</b> şurup şişelerini ve süsleme kaplarını bardağın üstüne sürükle.</li>
-  <li><b>Bitir:</b> bardağı <b>Servis</b> alanına sürükle. Hata mı yaptın? Çöpe at. Çöp ayrıca portafiltreyi ve potayı da boşaltır.</li>
+  <li><b>Demle:</b> portafiltreyi grup başlığına tak, bardağı damlalığa koy, makinedeki <b>Demle</b> düğmesine bas ve <b>25–30 sn</b>’de durdur. Bir shot daha için tekrar bas.</li>
+  <li><b>Süt:</b> bir süt şişesini potaya sürükle, potayı buhar çubuğunun altına koy, köpüğü makinedeki tuşlardan seç, <b>Buhar</b>’ı basılı tut, sonra potayı bardağın üstüne sürükle.</li>
+  <li><b>Ekstralar:</b> şurup şişesinin pompasına bas (ya da şişeyi bardağa sürükle), süsleme kaplarını bardağın üstüne sürükle.</li>
+  <li><b>Servis:</b> bardağı <b>servis tepsisine</b> koy ve <b>Servis et</b> ziline bas. Tezgâha dönünce bardağı müşterinin üstüne sürükle. Hata mı yaptın? Çöpe at. Çöp ayrıca portafiltreyi ve potayı da boşaltır.</li>
 </ol>`;

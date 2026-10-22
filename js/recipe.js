@@ -23,7 +23,8 @@ const HAIR = ['#3b2a24', '#6b4430', '#d9a35b', '#1f1b1a', '#b5533c', '#9aa0a8', 
 const SHIRT = ['#f2b5b8', '#a9c7ea', '#f6d88c', '#b9dcb0', '#d5b8ea', '#f4c095', '#9fd3cf'];
 
 /* ---------------- bench state ---------------- */
-// cup.at: 'prep' (mat) | 'tray' (under the group head); null size means no cup on the bench
+// cup.at: 'prep' (mat) | 'tray' (under the group head) | 'serving' (serving tray) | 'hand' (out on the bar, waiting to be handed over);
+// null size means no cup on the bench
 function newCup() {
   return { size: null, at: 'prep', bean: 'esp', dose: 0, doseQ: 0, shotting: false, shotT: 0, shots: [],
     scorched: false, milkPoured: false, milkType: null, foamUsed: null, milkTemp: 0, syrups: {}, tops: [] };
@@ -63,7 +64,9 @@ const Rules = {
   dumpPitcher: (b) => b.pitcher.steaming ? 'steamRunning' : !b.pitcher.milk ? 'pitcherEmpty' : null,
   syrup: (b) => !b.cup.size ? 'noCup' : Object.values(b.cup.syrups).reduce((a, n) => a + n, 0) >= 6 ? 'plenty' : null,
   topping: (b, k) => !b.cup.size ? 'noCup' : b.cup.tops.includes(k) ? 'topAlready' : null,
-  serve: (b) => !b.cup.size ? 'noCup' : b.cup.shotting ? 'shotRunning' : null,
+  // the bell takes the cup on the serving tray out to the customer; then it is dragged onto them
+  sendOut: (b) => !b.cup.size ? 'noCup' : b.cup.shotting ? 'shotRunning' : b.cup.at !== 'serving' ? 'cupToServeTray' : null,
+  handOver: (b) => !b.cup.size ? 'noCup' : b.cup.at !== 'hand' ? 'notReady' : null,
   trashCup: (b) => !b.cup.size ? 'noCup' : null,
 };
 
@@ -170,9 +173,11 @@ function evaluate(o, c, patience) {
   const empty = !shotsN && !c.milkType;
   const stars = empty ? 1 : clamp(Math.round(score * 5), 1, 5);
   const base = (o.surprise ? 4.5 : DRINKS[o.drink].price) * SIZES[c.size].mult;
-  // a badly wrong drink gets a reluctant partial payment; an empty cup gets nothing
-  const pay = empty ? 0 : Math.round((acc >= 0.6 ? base : acc >= 0.3 ? base * 0.4 : 0) * 4) / 4;
-  const tip = stars >= 4 ? Math.round(base * (stars === 5 ? 0.35 : 0.15) * (has('tipjar') ? 1.5 : 1) * 4) / 4 : 0;
+  // a badly wrong drink gets a reluctant partial payment, an empty cup nothing and a late one is paid short;
+  // a quick, decent drink earns a little extra on top of the star tip
+  const late = patience <= 0, fast = !late && patience >= 0.6 && stars >= 3;
+  const pay = empty ? 0 : Math.round((acc >= 0.6 ? base : acc >= 0.3 ? base * 0.4 : 0) * (late ? 0.6 : 1) * 4) / 4;
+  const tip = Math.round(((stars >= 4 ? base * (stars === 5 ? 0.35 : 0.15) : 0) + (fast ? base * 0.1 : 0)) * (has('tipjar') ? 1.5 : 1) * 4) / 4;
 
   let quote;
   const miss = checks.find(x => !x.ok), q = o.r.q;
@@ -181,5 +186,5 @@ function evaluate(o, c, patience) {
   else if (miss) quote = miss.say;
   else if (patience <= 0) quote = L.forever;
   else quote = L.meh[q % L.meh.length];
-  return { checks, acc, parts, quality, speed, stars, pay, tip, quote };
+  return { checks, acc, parts, quality, speed, stars, pay, tip, fast, late, quote };
 }

@@ -1,9 +1,11 @@
-/* Game flow: customers arrive, order, get served, the day ends. Owns the overlays, the HUD and the frame loop. */
+/* Game flow: customers arrive, order, get served, the day ends. Owns the overlays, the HUD, the two views and the frame loop.
+   One customer goes ORDER_PENDING (customer view) → PREPARING (barista view) → READY_TO_SERVE (customer view, cup on the bar)
+   → COMPLETED (reaction, payment, leaving) → RESULT (score card), then the next customer. */
 
 const G = {
   state: 'MENU', day: save.day, idx: 0, total: 0, ticket: 100,
   cust: null, order: null, typed: 0, patience: 1, patMax: 70, servedPatience: 1,
-  earned: 0, stars: [], result: null, served: null, resultTimer: 0,
+  earned: 0, stars: [], result: null, served: null, resultTimer: 0, peek: false,
 };
 let T = 0;
 
@@ -12,8 +14,54 @@ const OVERLAYS = { MENU: 'ovMenu', RESULT: 'ovResult', DAY_END: 'ovDay' };
 function setState(s) {
   G.state = s;
   for (const [k, id] of Object.entries(OVERLAYS)) $('#' + id).hidden = k !== s;
-  if (s !== 'BREWING') clearHeld();
+  if (s !== 'PREPARING') { clearHeld(); G.peek = false; }
   if (s === 'MENU') renderMenu();
+  render();
+}
+
+/* ---------------- the two views (issue #5) ---------------- */
+// The barista view is shown only while preparing (unless the player peeks at the customer); everything else
+// happens in the customer view. Switching slides one view out and the other in, like a camera pan.
+const viewFor = () => G.state === 'PREPARING' && !G.peek ? 'barista' : 'customer';
+let curView = null, viewAnim = null;
+function setView(v) {
+  if (v === curView) return;
+  if (viewAnim) viewAnim();
+  const first = curView === null;
+  curView = v;
+  const inEl = v === 'barista' ? $('#bench') : $('#scene'), outEl = v === 'barista' ? $('#scene') : $('#bench');
+  document.body.classList.toggle('view-barista', v === 'barista');
+  document.body.classList.toggle('view-customer', v === 'customer');
+  $(v === 'barista' ? '#benchTicket' : '#sceneTicket').appendChild($('#ticket'));
+  inEl.classList.remove('view-off');
+  if (first || reduceMotion) { outEl.classList.add('view-off'); fit(); window.scrollTo(0, 0); return; }
+  const views = $('#views'), dir = v === 'barista' ? 1 : -1, y = window.scrollY;
+  views.classList.add('switching');
+  outEl.classList.add('view-leaving');
+  outEl.style.top = -y + 'px';           // keep the old view where it was on screen while the page jumps to the top
+  window.scrollTo(0, 0);
+  fit();
+  const opts = { duration: 520, easing: 'cubic-bezier(.65,0,.35,1)' };
+  const a1 = outEl.animate([{ transform: 'none' }, { transform: `translateX(${-dir * 100}%)` }], opts);
+  const a2 = inEl.animate([{ transform: `translateX(${dir * 100}%)` }, { transform: 'none' }], opts);
+  sfx.whoosh();
+  let done = false;
+  const finish = () => {
+    if (done) return; done = true; viewAnim = null;
+    a1.cancel(); a2.cancel();
+    outEl.classList.remove('view-leaving'); outEl.style.top = '';
+    if (outEl !== (curView === 'barista' ? $('#bench') : $('#scene'))) outEl.classList.add('view-off');
+    views.classList.remove('switching');
+    fit();
+  };
+  viewAnim = finish;
+  a2.finished.then(finish, finish);
+  setTimeout(finish, 900);
+}
+function peek(on) {
+  if (G.state !== 'PREPARING') return;
+  sfx.click();
+  G.peek = on;
   render();
 }
 
@@ -31,7 +79,7 @@ function nextCustomer() {
   resetBench();
   $('#say').textContent = '';
   $('#bubble').hidden = true;
-  setState('ORDERING');
+  setState('ORDER_PENDING');
 }
 function onArrive() {
   sfx.bell();
@@ -39,19 +87,17 @@ function onArrive() {
   $('#custName').textContent = G.cust.name;
 }
 function takeOrder() {
-  if (G.state !== 'ORDERING') return;
+  if (G.state !== 'ORDER_PENDING') return;
   G.typed = Infinity;
   $('#say').textContent = curText();
   sfx.click();
-  setState('BREWING');
+  setState('PREPARING');
 }
+// the cup was dropped on the customer: they check it, react, and leave their money on the bar
 function serve() {
-  if (G.state !== 'BREWING') return;
+  if (G.state !== 'READY_TO_SERVE') return;
   const cup = B.cup;
   if (!cup.size) { toast(t('pickFirst')); return; }
-  if (cup.shotting) stopShot();
-  if (B.pf.grinding) grindEnd();
-  if (B.pitcher.steaming) steamEnd();
   stopAllSounds();
   G.servedPatience = G.patience;
   const r = evaluate(G.order, cup, G.patience);
@@ -62,11 +108,11 @@ function serve() {
   save.cash += r.pay + r.tip; save.served++; G.earned += r.pay + r.tip; G.stars.push(r.stars);
   persist();
   $('#say').textContent = r.quote;
-  r.stars >= 3 ? sfx.coin() : sfx.sad();
-  if (r.pay + r.tip > 0) fx('floatMoney', $('#serveZone'), r.pay + r.tip, $('#hudCash'));
-  setState('SERVING');
+  r.stars >= 3 ? sfx.coins(r.tip > 0) : sfx.sad();
+  if (r.pay + r.tip > 0) fx('floatMoney', $('#custZone'), r.pay + r.tip, $('#hudCash'));
+  setState('COMPLETED');
   clearTimeout(G.resultTimer);
-  G.resultTimer = setTimeout(showResult, 1300);
+  G.resultTimer = setTimeout(showResult, 1500);
 }
 function fillResult() {
   const r = G.result;
@@ -81,7 +127,7 @@ function fillResult() {
   $('#nextBtn').textContent = G.idx + 1 >= G.total ? t('closeShop') : t('nextCustomer');
 }
 function showResult() {
-  if (G.state !== 'SERVING' || !G.cust || !G.result) return;
+  if (G.state !== 'COMPLETED' || !G.cust || !G.result) return;
   fillResult();
   setState('RESULT');
   $('#nextBtn').focus({ preventScroll: true });
@@ -92,7 +138,7 @@ function afterResult() {
   G.idx++;
   G.cust.state = 'leave';
   $('#bubble').hidden = true;
-  setState('SERVING');
+  setState('COMPLETED');
 }
 function onLeft() {
   G.cust = null; G.served = null;
@@ -119,6 +165,8 @@ function endDay() {
 
 /* ---------------- menus, HUD, language ---------------- */
 $('#takeBtn').addEventListener('click', takeOrder);
+$('#peekBtn').addEventListener('click', () => peek(true));
+$('#backBtn').addEventListener('click', () => peek(false));
 $('#nextBtn').addEventListener('click', afterResult);
 $('#startBtn').addEventListener('click', startDay);
 $('#nextDayBtn').addEventListener('click', startDay);
@@ -128,7 +176,7 @@ $('#bookBtn').addEventListener('click', () => { $('#ovBook').hidden = false; });
 $('#closeBookBtn').addEventListener('click', () => { $('#ovBook').hidden = true; });
 $('#menuBtn').addEventListener('click', () => {
   if (G.state === 'MENU') return;
-  if (['ORDERING', 'BREWING', 'SERVING', 'RESULT'].includes(G.state)) toast(t('paused'));
+  if (['ORDER_PENDING', 'PREPARING', 'READY_TO_SERVE', 'COMPLETED', 'RESULT'].includes(G.state)) toast(t('paused'));
   clearTimeout(G.resultTimer);
   G.cust = null; G.order = null; G.total = 0; resetBench(); $('#bubble').hidden = true; setState('MENU');
 });
@@ -193,7 +241,7 @@ function applyLang() {
   $('#langBtn').textContent = L.otherLang;
   $('#langBtn2').textContent = L.otherLangLong;
   $('#bookBody').innerHTML = L.howSteps + L.book;
-  $('.patience').title = L.patience;
+  document.querySelectorAll('.patience').forEach(el => { el.title = L.patience; });
   applyBenchLang();
   if (resetArmed) $('#resetBtn').textContent = t('resetConfirm');
   // re-voice whatever the customer is currently saying
@@ -213,14 +261,21 @@ function applyLang() {
 
 function render() {
   const L = S();
-  $('#bench').classList.toggle('idle', G.state !== 'BREWING');
+  $('#bench').classList.toggle('idle', G.state !== 'PREPARING');
+  setView(viewFor());
   $('#hudDay').textContent = t('day', G.state === 'MENU' || G.state === 'DAY_END' ? save.day : G.day);
   $('#hudCust').textContent = G.total && G.state !== 'MENU' && G.state !== 'DAY_END' ? t('guest', Math.min(G.idx + 1, G.total), G.total) : L.closed;
   $('#hudCash').textContent = money(save.cash);
   $('#muteBtn').textContent = save.muted ? L.soundOff : L.soundOn;
-  $('#talkActions').hidden = G.state !== 'ORDERING' || !G.cust || G.cust.state !== 'wait';
+  const waiting = G.cust && G.cust.state === 'wait';
+  $('#talkActions').hidden = G.state !== 'ORDER_PENDING' || !waiting;
+  $('#peekActions').hidden = G.state !== 'PREPARING';
+  $('#handHint').hidden = G.state !== 'READY_TO_SERVE';
+  $('#custZone').hidden = G.state !== 'READY_TO_SERVE' || !waiting;
   const text = curText();
-  const showTicket = G.order && G.cust && G.cust.state === 'wait' && G.typed >= text.length && G.state !== 'MENU';
+  // the ticket appears once the order has been said, and then stays pinned in both views until the drink is handed over
+  const showTicket = G.order && waiting && G.typed >= text.length && G.state !== 'MENU';
+  $('#ticket').hidden = !showTicket && curView === 'customer';
   $('#ticketNo').textContent = '#' + String(G.ticket).padStart(3, '0');
   $('#ticketText').textContent = showTicket ? `${G.cust.name}: “${text}”` : (G.state === 'MENU' || G.state === 'DAY_END' ? L.ticketIdle : L.ticketWait);
   renderBench();
@@ -229,13 +284,24 @@ function render() {
 /* ---------------- canvases ---------------- */
 const sceneCv = $('#sceneCv'), sceneG = sceneCv.getContext('2d');
 const cupCv = $('#cupCv'), cupG = cupCv.getContext('2d');
-const dims = { sw: 0, sh: 0, cw: 0, ch: 0 };
+const dims = { sw: 0, sh: 0, cw: 0, ch: 0, k: 1, counterH: 44, topD: 15 };
 function fit() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  document.documentElement.style.setProperty('--top-h', Math.ceil($('.topbar').getBoundingClientRect().height) + 'px');
   const s = sceneCv.getBoundingClientRect(), c = cupCv.getBoundingClientRect();
-  dims.sw = s.width; dims.sh = s.height;
+  if (s.width) {
+    dims.sw = s.width; dims.sh = s.height;
+    // the customer view is tall: a deeper bar seen slightly from above, and bigger customers (issue #6)
+    dims.counterH = clamp(Math.round(s.height * 0.2), 44, 150);
+    dims.topD = clamp(Math.round(dims.counterH * 0.42), 15, 58);
+    dims.k = clamp(Math.min((s.height - dims.counterH) / 300, s.width / 330), 1, 1.7);
+    const sc = $('#scene');
+    sc.style.setProperty('--counter-h', dims.counterH + 'px');
+    sc.style.setProperty('--top-d', dims.topD + 'px');
+  }
+  // a view that is switched off measures 0 × 0; keep the last real sizes until it comes back
   if (c.width) { dims.cw = c.width; dims.ch = c.height; cupCv.width = Math.round(c.width * dpr); cupCv.height = Math.round(c.height * dpr); }
-  sceneCv.width = Math.round(s.width * dpr); sceneCv.height = Math.round(s.height * dpr);
+  if (s.width) { sceneCv.width = Math.round(s.width * dpr); sceneCv.height = Math.round(s.height * dpr); }
   sceneG.setTransform(dpr, 0, 0, dpr, 0, 0); cupG.setTransform(dpr, 0, 0, dpr, 0, 0);
   fx('fit');
 }
@@ -266,10 +332,10 @@ function update(dt) {
       if (c.x >= tx) { c.state = 'wait'; onArrive(); render(); }
     } else if (c.state === 'leave') {
       c.x += 280 * dt;
-      if (c.x > dims.sw + 120) { onLeft(); return; }
+      if (c.x > dims.sw + 120 * dims.k) { onLeft(); return; }
     } else {
       c.x = custTargetX();
-      if (G.state === 'ORDERING') {
+      if (G.state === 'ORDER_PENDING') {
         const text = curText();
         if (G.typed < text.length) {
           G.typed = Math.min(text.length, G.typed + 48 * dt);
@@ -277,15 +343,21 @@ function update(dt) {
           if (G.typed >= text.length) render();
         }
       }
-      if (G.state === 'ORDERING' || G.state === 'BREWING') {
+      if (G.state === 'ORDER_PENDING' || G.state === 'PREPARING' || G.state === 'READY_TO_SERVE') {
         G.patience = Math.max(0, G.patience - dt / G.patMax);
         c.mood = G.patience > 0.55 ? 'happy' : G.patience > 0.25 ? 'neutral' : 'annoyed';
       }
     }
     if (c.reactT != null) c.reactT += dt;
-    const pb = $('#patBar');
-    pb.style.width = (G.patience * 100) + '%';
-    pb.style.background = G.patience > 0.55 ? 'var(--mint)' : G.patience > 0.25 ? 'var(--butter)' : 'var(--blush-deep)';
+    const col = G.patience > 0.55 ? 'var(--mint)' : G.patience > 0.25 ? 'var(--butter)' : 'var(--blush-deep)';
+    for (const pb of [$('#patBar'), $('#patBar2')]) { pb.style.width = (G.patience * 100) + '%'; pb.style.background = col; }
+    // the hand-over drop zone covers the customer standing at the bar
+    const z = $('#custZone');
+    if (!z.hidden) {
+      const k = dims.k, cy = dims.sh - dims.counterH;
+      z.style.left = (c.x - 62 * k) + 'px'; z.style.top = (cy - 178 * k) + 'px';
+      z.style.width = (124 * k) + 'px'; z.style.height = (178 * k + dims.topD) + 'px';
+    }
   }
   updateBench(dt);
 }
@@ -297,7 +369,8 @@ function frame(now) {
 }
 
 // small debug/test hook
-window.CB = { G, B, drop: (spec, target) => { const e = check(spec, target); if (!e) apply(spec, target); return e; }, cupState: () => cupSnapshot(B.cup) };
+window.CB = { G, B, drop: (spec, target) => { const e = check(spec, target); if (!e) apply(spec, target); return e; }, cupState: () => cupSnapshot(B.cup),
+  view: () => curView, switching: () => !!viewAnim };
 
 function start() {
   buildBench();

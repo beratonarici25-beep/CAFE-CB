@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="css/scene.css">
 <link rel="stylesheet" href="css/fx.css">
+<link rel="stylesheet" href="css/views.css">
 </head>
 <body>
 
@@ -28,7 +29,9 @@
   </div>
 </header>
 
-<section class="scene" id="scene">
+<!-- two views (issue #5): the customer view and the barista view; only one is shown, they slide when switching -->
+<div class="views" id="views">
+<section class="scene view" id="scene">
   <!-- parallax layers, back to front (issue #2); the canvas draws customers and the counter -->
   <div class="layer far" data-depth="3" aria-hidden="true"></div>
   <div class="layer seating" data-depth="7" aria-hidden="true"></div>
@@ -37,24 +40,38 @@
   <div class="neon" data-depth="4" aria-hidden="true">Cafe C<span>&amp;</span>B</div>
   <canvas id="sceneCv" aria-hidden="true"></canvas>
   <div class="talk">
-    <div class="bubble" id="bubble" hidden>
-      <div class="who"><span id="custName">Guest</span><span class="patience" title="Patience"><i id="patBar"></i></span></div>
-      <p class="say" id="say" aria-live="polite"></p>
+    <div class="talk-main">
+      <div class="bubble" id="bubble" hidden>
+        <div class="who"><span id="custName">Guest</span><span class="patience" title="Patience"><i id="patBar"></i></span></div>
+        <p class="say" id="say" aria-live="polite"></p>
+      </div>
+      <div class="talk-actions" id="talkActions" hidden>
+        <button class="btn go big" id="takeBtn" type="button" data-t="toBarista">Go to the barista bench</button>
+      </div>
+      <div class="talk-actions" id="peekActions" hidden>
+        <button class="btn go" id="backBtn" type="button" data-t="backToBench">Back to the bench</button>
+      </div>
+      <p class="handhint" id="handHint" hidden data-t="dragToCust"></p>
     </div>
-    <div class="talk-actions" id="talkActions" hidden>
-      <button class="btn go" id="takeBtn" type="button" data-t="startBrewing">Start brewing</button>
-    </div>
+    <div class="ticketslot" id="sceneTicket"></div>
   </div>
+  <!-- the finished drink waits on a tray on the bar; drop it on the customer (#custZone follows them) -->
+  <div class="cust-tray" id="custTray"><div class="slot cupslot handslot" id="slotHand"></div></div>
+  <div class="cust-zone" id="custZone" data-drop="customer" hidden></div>
 </section>
 
-<main class="bench idle" id="bench">
+<main class="bench view idle" id="bench">
   <div class="benchhead">
-    <div class="ticket" id="ticket">
-      <h4><span data-t="orderTicket">Order ticket</span><span id="ticketNo">#000</span></h4>
-      <p id="ticketText"></p>
+    <div class="ticketslot" id="benchTicket">
+      <div class="ticket" id="ticket">
+        <h4><span data-t="orderTicket">Order ticket</span><span id="ticketNo">#000</span></h4>
+        <p id="ticketText"></p>
+        <span class="patience ticket-pat" title="Patience"><i id="patBar2"></i></span>
+      </div>
     </div>
     <p class="draghint" id="dragHint" data-t="dragHint"></p>
     <div class="holding" id="holding" hidden></div>
+    <button class="btn" id="peekBtn" type="button" data-t="toCustomer">Look at the customer</button>
   </div>
 
   <div class="counter" id="counter">
@@ -73,13 +90,19 @@
       <h3><span class="step">2</span><span data-t="grinder">Grinder</span> <span class="hint" id="doseZoneTxt"></span></h3>
       <div class="grinder">
         <div class="hopper" id="hopper"><i></i></div>
-        <div class="grinder-body"><span class="chute"></span></div>
+        <!-- every control sits on the machine itself (issue #7): bean keys, a scale display and the grind button -->
+        <div class="grinder-body">
+          <div class="keys" id="beanChips"></div>
+          <div class="grind-row">
+            <span class="lcd" id="doseTxt">0.0 g</span>
+            <button class="mbtn round" id="grindBtn" type="button"><span class="led"></span><span class="cap" data-t="grindKey">Grind</span></button>
+          </div>
+          <span class="chute"></span>
+        </div>
         <div class="slot pfslot" data-drop="grinder" id="slotGrinder"></div>
       </div>
-      <div class="chips" id="beanChips"></div>
       <div class="meter" id="doseMeter"><div class="zone" id="doseZone"></div><div class="fill" id="doseFill"></div></div>
-      <div class="readout"><span id="doseTxt">0.0 g</span><span id="doseMsg"></span></div>
-      <button class="btn hold" id="grindBtn" type="button" data-t="holdGrindShort">Hold: grind</button>
+      <div class="readout"><span id="doseMsg"></span></div>
       <div class="rack">
         <div class="slot pfslot" data-drop="pfrack" id="slotPfRack">
           <div class="obj pf" id="pfObj" role="button" tabindex="0" data-drag="pf" data-drop="pf">
@@ -108,10 +131,21 @@
     <section class="zone z-machine">
       <h3><span class="step">3</span><span data-t="obj.machine">Espresso machine</span> <span class="hint" data-t="stopAt">stop at 25–30 s</span></h3>
       <div class="machine" id="machine">
+        <!-- control panel on the machine: brew button + shot display above the group, foam keys + steam button above the wand -->
+        <div class="mach-panel">
+          <div class="panel-left">
+            <span class="lcd" id="shotTxt">0 s</span>
+            <button class="mbtn brew" id="brewBtn" type="button"><span class="led"></span><span class="cap" id="brewCap">Brew</span></button>
+          </div>
+          <div class="panel-right">
+            <div class="keys foam" id="foamChips"></div>
+            <button class="mbtn steam" id="steamBtn" type="button"><span class="led"></span><span class="cap" data-t="steamKey">Steam</span></button>
+          </div>
+        </div>
         <div class="mach-head">
           <span class="mach-logo">C&amp;B</span>
           <div class="group"><span class="group-head"></span><div class="slot pfslot locked-in" data-drop="group" id="slotGroup"></div></div>
-          <button class="brew" id="brewBtn" type="button">Brew</button>
+          <span class="gauge-dial" aria-hidden="true"><i></i></span>
         </div>
         <div class="mach-tray">
           <div class="slot cupslot" data-drop="tray" id="slotTray"><span class="slotlabel" data-t="obj.tray">Drip tray</span></div>
@@ -122,7 +156,7 @@
         </div>
       </div>
       <div class="meter" id="shotMeter"><div class="zone" id="shotZone"></div><div class="needle" id="shotNeedle"></div></div>
-      <div class="readout"><span id="shotTxt">0 s</span><span id="shotMsg"></span></div>
+      <div class="readout"><span id="shotMsg"></span></div>
       <div class="shotlist" id="shotList"></div>
 </section>
 
@@ -147,16 +181,14 @@
         </div>
       </div>
       <div class="wandctl">
-        <div class="chips" id="foamChips"></div>
         <div class="meter temp" id="tempMeter">
           <div class="band warm" id="bandWarm"></div><div class="band normal" id="bandNormal"></div><div class="band hot" id="bandHot"></div>
           <div class="fill" id="tempFill"></div>
         </div>
         <div class="bandlabels" id="bandLabels"></div>
         <div class="readout"><span id="tempTxt">6 °C</span><span id="tempMsg"></span></div>
-        <button class="btn hold" id="steamBtn" type="button" data-t="holdSteamShort">Hold: steam</button>
       </div>
-        </section>
+    </section>
 
     <!-- prep mat -->
     <section class="zone z-prep">
@@ -181,11 +213,11 @@
       <div class="bottles" id="topShakers"></div>
     </section>
 
-    <!-- serve -->
-    <section class="zone z-serve" data-drop="serve" id="serveZone">
-      <h3><span data-t="obj.serve">Serve here</span></h3>
-      <div class="hatch"><span class="bell"></span></div>
-      <button class="btn primary" id="serveBtn" type="button" data-t="serveBtn">Serve</button>
+    <!-- serving tray: put the finished cup here, then ring the bell to take it out to the customer -->
+    <section class="zone z-serve" id="serveZone">
+      <h3><span data-t="obj.serving">Serving tray</span></h3>
+      <div class="slot cupslot servetray" data-drop="serving" id="slotServe"><span class="slotlabel" data-t="obj.serving">Serving tray</span></div>
+      <button class="mbtn bellbtn" id="serveBtn" type="button"><span class="bell"></span><span class="cap" data-t="serveBtn">Serve</span></button>
     </section>
 
     <!-- trash -->
@@ -195,6 +227,7 @@
     </section>
   </div>
 </main>
+</div>
 
 <div class="overlay menu" id="ovMenu" hidden>
   <div class="card">

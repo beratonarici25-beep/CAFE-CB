@@ -43,10 +43,21 @@ async function hold(page, sel, untilFn) {
 }
 const st = (page, fn) => page.evaluate(fn);
 
+// waits until the view slide is over, so drags hit things where they will stay
+const settled = (page, view) => page.waitForFunction(v => window.CB.view() === v && !window.CB.switching(), view, { timeout: 5000 });
 async function arrive(page) {
-  await page.waitForFunction(() => window.CB.G.state === 'ORDERING' && window.CB.G.cust && window.CB.G.cust.state === 'wait', null, { timeout: 10000 });
+  await page.waitForFunction(() => window.CB.G.state === 'ORDER_PENDING' && window.CB.G.cust && window.CB.G.cust.state === 'wait', null, { timeout: 10000 });
   await page.click('#takeBtn');
-  await page.waitForFunction(() => window.CB.G.state === 'BREWING');
+  await page.waitForFunction(() => window.CB.G.state === 'PREPARING');
+  await settled(page, 'barista');
+}
+// serving tray -> bell -> back in the customer view, drag the cup onto the customer
+async function handOver(page) {
+  await drag(page, '#cupObj', '#slotServe');
+  await page.click('#serveBtn');
+  await page.waitForFunction(() => window.CB.G.state === 'READY_TO_SERVE');
+  await settled(page, 'customer');
+  await drag(page, '#cupObj', '#custZone');
 }
 
 // brews whatever the current order asks for, using drags for every object move
@@ -82,7 +93,7 @@ async function brewOrder(page) {
     const tops = await st(page, () => window.CB.B.cup.tops.join(','));
     if (!tops.includes(k)) console.log('topping drag missed', k, tops, await page.textContent('#toast'));
   }
-  await drag(page, '#cupObj', '#serveZone');
+  await handOver(page);
   const floated = await page.locator('.float-money').count();
   await page.waitForFunction(() => window.CB.G.state === 'RESULT', null, { timeout: 5000 });
   return st(page, () => ({ stars: window.CB.G.result.stars, checks: window.CB.G.result.checks.filter(c => !c.ok).map(c => c.label) }))
@@ -100,8 +111,55 @@ async function brewOrder(page) {
   await page.waitForTimeout(300);
   ok('menu visible on load', await page.isVisible('#ovMenu'));
 
-  // full orders with drags
+  // issue #5: customer view first, ticket appears once the order is said, then the bench slides in
   await page.click('#startBtn');
+  await page.waitForFunction(() => window.CB.G.state === 'ORDER_PENDING' && window.CB.G.cust && window.CB.G.cust.state === 'wait', null, { timeout: 10000 });
+  ok('order starts in the customer view', await page.evaluate(() => CB.view() === 'customer' && document.querySelector('#bench').classList.contains('view-off')));
+  await page.waitForFunction(() => !document.querySelector('#ticket').hidden, null, { timeout: 8000 });
+  ok('order ticket shows in the customer view', await page.evaluate(() => !!document.querySelector('#scene #ticket') && document.querySelector('#ticketText').textContent.includes('\u201c')));
+  ok('go-to-barista button is offered', await page.isVisible('#takeBtn'));
+  await page.click('#takeBtn');
+  await settled(page, 'barista');
+  ok('barista view replaces the customer view', await page.evaluate(() => document.querySelector('#scene').classList.contains('view-off') && !!document.querySelector('#bench #ticket')));
+  ok('serve bell is off until a cup is on the tray', await page.isDisabled('#serveBtn'));
+  // issue #7: controls live on the machines, there are no loose hold buttons
+  ok('grind button is on the grinder', await page.evaluate(() => !!document.querySelector('.grinder-body #grindBtn') && !!document.querySelector('.grinder-body #beanChips')));
+  ok('brew + steam buttons are on the machine', await page.evaluate(() => !!document.querySelector('.machine #brewBtn') && !!document.querySelector('.machine #steamBtn') && !!document.querySelector('.machine #foamChips')));
+  ok('no loose hold buttons', (await page.locator('.btn.hold, .chip').count()) === 0);
+  await page.click('#peekBtn');
+  await settled(page, 'customer');
+  ok('peek shows the customer while preparing', await page.evaluate(() => CB.G.state === 'PREPARING' && CB.view() === 'customer'));
+  await page.click('#backBtn');
+  await settled(page, 'barista');
+  await drag(page, '[data-drag="newcup:S"]', '#slotPrep');
+  ok('cup cannot go to the customer before the bell', await page.evaluate(() => CB.drop('cup', 'customer') === 'notReady'));
+  await page.click('[data-drag="syrup:vanilla"] .pumphead');
+  ok('pressing a syrup pump head pumps into the cup', await page.evaluate(() => CB.B.cup.syrups.vanilla === 1));
+  await drag(page, '#cupObj', '#slotServe');
+  ok('cup sits on the serving tray', await page.evaluate(() => CB.B.cup.at === 'serving'));
+  ok('serve bell lights up', await page.evaluate(() => !document.querySelector('#serveBtn').disabled && document.querySelector('#serveBtn').classList.contains('ready')));
+  await page.click('#serveBtn');
+  await page.waitForFunction(() => window.CB.G.state === 'READY_TO_SERVE');
+  await settled(page, 'customer');
+  ok('cup waits on the tray at the bar', await page.evaluate(() => !!document.querySelector('#custTray #cupObj') && !document.querySelector('#cupObj').hidden));
+  ok('hint to drag the cup is shown', await page.isVisible('#handHint'));
+  // a slow, wobbly drag so the slosh redraw and the spill drops run
+  {
+    const a = await page.locator('#cupObj').boundingBox(), b = await page.locator('#custZone').boundingBox();
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await page.mouse.down();
+    for (let i = 1; i <= 24; i++) {
+      await page.mouse.move(a.x + a.width / 2 + (b.x + b.width / 2 - a.x - a.width / 2) * i / 24, a.y + a.height / 2 + (b.y + b.height / 2 - a.y - a.height / 2) * i / 24 + Math.sin(i) * 30);
+      await page.waitForTimeout(16);
+    }
+    ok('dragged cup is a live redrawn ghost', await page.evaluate(() => !!document.querySelector('.drag-ghost canvas')));
+    await page.mouse.up();
+  }
+  await page.waitForFunction(() => window.CB.G.state === 'COMPLETED' || window.CB.G.state === 'RESULT', null, { timeout: 3000 });
+  ok('dropping the cup on the customer serves it', await page.evaluate(() => !!CB.G.result && CB.G.cust.react != null));
+  await page.waitForFunction(() => window.CB.G.state === 'RESULT', null, { timeout: 5000 });
+  await page.click('#nextBtn');
+
+  // full orders with drags
   for (let i = 0; i < 3; i++) {
     await arrive(page);
     const r = await brewOrder(page);
@@ -140,11 +198,18 @@ async function brewOrder(page) {
   ok('Turkish error message', (await page.textContent('#toast')).includes('Portafiltre'));
   await page.click('#langBtn');
 
-  // mobile layout
+  // mobile layout, both views
   await page.setViewportSize({ width: 375, height: 812 });
   await page.waitForTimeout(300);
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-  ok('no horizontal scroll at 375px', overflow <= 0, 'overflow ' + overflow);
+  let overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  ok('no horizontal scroll at 375px (bench)', overflow <= 0, 'overflow ' + overflow);
+  await page.click('#peekBtn');
+  await settled(page, 'customer');
+  overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  ok('no horizontal scroll at 375px (customer)', overflow <= 0, 'overflow ' + overflow);
+  try { await page.screenshot({ path: path.join(process.env.SHOT_DIR || __dirname, 'shot-mobile-customer.png'), timeout: 8000 }); } catch (e) {}
+  await page.click('#backBtn');
+  await settled(page, 'barista');
   await page.setViewportSize({ width: 1366, height: 900 });
 
   try { await page.screenshot({ path: path.join(process.env.SHOT_DIR || __dirname, 'shot-desktop.png'), fullPage: true, timeout: 8000 }); }
@@ -170,15 +235,15 @@ async function brewOrder(page) {
     const stt = await rm.evaluate(() => window.CB.G.state);
     if (stt === 'DAY_END') break;
     await arrive(rm);
-    await rm.evaluate(() => { window.CB.drop('newcup:S', 'prep'); window.CB.drop('cup', 'serve'); });
+    await rm.evaluate(() => { CB.drop('newcup:S', 'prep'); CB.drop('cup', 'serving'); document.querySelector('#serveBtn').click(); CB.drop('cup', 'customer'); });
     await rm.waitForFunction(() => window.CB.G.state === 'RESULT');
     await rm.click('#nextBtn');
     await rm.waitForFunction(() => window.CB.G.state !== 'RESULT');
-    await rm.waitForFunction(() => ['ORDERING', 'DAY_END'].includes(window.CB.G.state), null, { timeout: 10000 });
+    await rm.waitForFunction(() => ['ORDER_PENDING', 'DAY_END'].includes(window.CB.G.state), null, { timeout: 10000 });
   }
   ok('day ends after the last guest', await rm.evaluate(() => window.CB.G.state === 'DAY_END'));
   await rm.click('#nextDayBtn');
-  ok('next day opens', await rm.evaluate(() => window.CB.G.state === 'ORDERING' && window.CB.G.day === 3));
+  ok('next day opens', await rm.evaluate(() => window.CB.G.state === 'ORDER_PENDING' && window.CB.G.day === 3));
   ok('full day: no page errors', rmErrors.length === 0, rmErrors.join(' | '));
   await browser.close();
   for (const r of results) console.log(r.join('  '));

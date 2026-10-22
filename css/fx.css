@@ -30,7 +30,7 @@ body.is-dragging, body.is-dragging * { cursor: grabbing !important; }
 /* brew button pulses while a shot runs; hold buttons glow while held */
 .brew.on { animation: brewing 1s ease-in-out infinite; }
 @keyframes brewing { 50% { box-shadow: 0 1px 0 var(--ink), 0 0 0 7px rgba(246,216,140,.45); } }
-.btn.hold.active { box-shadow: 0 0 0 var(--ink), 0 0 0 5px rgba(246,216,140,.5); }
+.mbtn.active { box-shadow: 0 1px 0 var(--ink), inset 0 2px 5px rgba(0,0,0,.25), 0 0 0 5px rgba(246,216,140,.5); }
 
 /* floating earnings */
 .float-money {

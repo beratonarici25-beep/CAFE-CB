@@ -62,7 +62,7 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 
 /* ---------- scene ---------- */
 .scene { position: relative; min-height: 236px; overflow: hidden; border-bottom: 3px solid var(--ink); }
-.scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#sceneCv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .talk {
   position: relative; z-index: 1;
   margin-left: max(150px, 34%);
@@ -98,8 +98,6 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 .btn.primary { background: var(--blush); }
 .btn.go { background: var(--mint); }
 .btn.big { font-size: 18px; padding: 10px 22px; font-family: var(--font-display); }
-.btn.hold { background: var(--butter); width: 100%; user-select: none; -webkit-user-select: none; touch-action: none; }
-.btn.hold.active { background: #f2c55a; }
 
 .ticket {
   background: #fff; border: 2px dashed var(--ink-soft); border-radius: 6px; padding: 10px 12px;
@@ -215,7 +213,6 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 }
 .bench.idle .counter { opacity: .6; pointer-events: none; filter: saturate(.8); }
 .benchhead { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
-.benchhead .ticket { flex: 1 1 420px; min-width: 0; }
 .draghint { flex: 0 1 280px; margin: 0; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
 .holding {
   font-weight: 800; font-size: 13px; background: var(--butter); border: 2px solid var(--ink); border-radius: 999px;
@@ -244,7 +241,6 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 .zone h3 { font-size: 15px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .zone h3 .step { width: 20px; height: 20px; font-size: 11px; }
 .zone .hint { font-size: 11px; color: var(--ink-soft); font-weight: 700; margin-left: auto; font-family: var(--font-body); }
-.btn.hold { padding: 6px 10px; font-size: 13.5px; }
 
 /* --- slots (drop spots) --- */
 .slot {
@@ -323,17 +319,10 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 }
 /* head and tray share columns so the group head sits right above the drip tray */
 .mach-head { position: relative; display: grid; grid-template-columns: 1fr 104px; align-items: center; gap: 8px; padding-inline: 8px 0; }
-.mach-head .brew { justify-self: center; }
 .mach-logo { position: absolute; left: 4px; top: -2px; font-family: var(--font-display); font-weight: 800; font-size: 15px; color: var(--paper); text-shadow: 0 2px 0 var(--ink); }
 .group { display: grid; justify-items: center; }
 .group-head { width: 66px; height: 18px; background: #c9d2d6; border: 3px solid var(--ink); border-radius: 6px 6px 14px 14px; }
 .group .slot { width: min(100%, 150px); min-height: 56px; border-color: rgba(255,250,243,.6); }
-.brew {
-  width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--ink); background: var(--mint);
-  font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 0 var(--ink); touch-action: manipulation;
-}
-.brew:active, .brew.on { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
-.brew.on { background: var(--butter); }
 .mach-tray {
   display: grid; grid-template-columns: 1fr 104px; gap: 8px; align-items: end;
   background: rgba(75,46,43,.18); border-radius: 12px; padding: 8px 0 8px 8px;
@@ -344,7 +333,6 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 .wandbox .slot { border-color: rgba(255,250,243,.7); }
 .wandctl { display: grid; gap: 6px; }
 .wandctl .readout { flex-wrap: wrap; }
-.wandctl .chips .chip, .z-grinder .chip { font-size: 12px; padding: 3px 9px; }
 
 /* pitcher & bottles */
 .pitcher svg { width: 74px; height: 80px; }
@@ -371,7 +359,6 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 /* prep, serve, trash */
 .cupinfo { font-size: 12px; font-weight: 700; color: var(--ink-soft); min-height: 2.9em; }
 .z-serve { justify-items: center; text-align: center; background: rgba(207,233,218,.7); }
-.hatch { width: 100%; min-height: 80px; border-radius: 12px; border: 2px dashed var(--good); display: grid; place-items: center; }
 .bell { width: 34px; height: 20px; background: var(--butter); border: 3px solid var(--ink); border-radius: 18px 18px 3px 3px; position: relative; }
 .bell::after { content: ""; position: absolute; left: -8px; right: -8px; bottom: -7px; height: 5px; background: var(--ink); border-radius: 3px; }
 .z-trash { justify-items: center; }
@@ -412,14 +399,11 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
   .cupslot { min-height: 150px; }
   .z-milk { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   .z-milk h3, .z-milk .bottles { grid-column: 1 / -1; }
-  .wandctl .chips .chip { font-size: 10.5px; padding: 3px 1px; overflow-wrap: anywhere; }
 }
 
 /* compact milk controls so the whole counter fits on a laptop screen */
 .bottle-obj.milk .n { display: none; }
 .bottle-obj .n { min-height: 1.2em; }
-.wandctl .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
-.wandctl .chips .chip { padding: 3px 2px; font-size: 11px; line-height: 1.15; text-align: center; }
 .wandctl .bandlabels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 4px; margin-top: 4px; font-size: 10px; }
 .wandctl .bandlabels span { white-space: normal; line-height: 1.15; align-items: flex-start; }
 .wandctl .bandlabels i { flex: none; margin-top: 1px; }
