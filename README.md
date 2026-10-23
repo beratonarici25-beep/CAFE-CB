@@ -44,6 +44,8 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `js/helper.js` | The helper character module: `Helper.say(key, { pose, target, buttons })`, reusable outside the tutorial |
 | `js/tutorial.js` | First-run tutorial: fixed latte order, step checks, highlights and hints |
 | `js/main.js` | Game flow and states, view switching, HUD, overlays, frame loop |
+| `assets/models/` | 3D models rendered in Blender (WebP, @2x): bench equipment and the customer layers |
+| `tools/blender/models.py` | Builds every 3D model from primitives in Blender and renders them (toon shading, ink outline, one upper-left light) |
 | `assets/` | Background SVGs (café wall, seating, back bar) and the icon; `assets/helper/art.js` is the helper's SVG; `assets/CREDITS.md` lists sources |
 | `tests/e2e.js` | End-to-end test that brews real orders by dragging, through both views |
 | `tests/fuzz.js` | Random-play monkey test with state invariants |
@@ -63,5 +65,10 @@ node tests/tutorial.js
 
 ## Credits
 
-All artwork (backgrounds, back bar, machines, customers, the helper character) is original and drawn in SVG, CSS and
-Canvas for this game; no third-party models, textures or brand logos are used. See [`assets/CREDITS.md`](assets/CREDITS.md).
+All artwork is original. The bench equipment and the customers are 3D models built from primitives in Blender by
+`tools/blender/models.py` and rendered with toon shading to `assets/models/`; backgrounds, the back bar and the helper
+character are SVG. No third-party models, textures or brand logos are used. Re-render the models with:
+
+```
+blender -b -P tools/blender/models.py -- assets/models
+``` See [`assets/CREDITS.md`](assets/CREDITS.md).

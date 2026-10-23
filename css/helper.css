@@ -23,9 +23,11 @@
 .hl-who { display: flex; align-items: baseline; gap: 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
 .hl-who b { font-family: var(--font-display); font-size: 15px; letter-spacing: .02em; text-transform: none; color: var(--blush-deep); }
 .hl-text { margin: 2px 0 0; font-weight: 700; font-size: 15px; line-height: 1.38; }
-.hl-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; pointer-events: auto; }
+.hl-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+.hl-btns .btn { pointer-events: auto; }   /* only the buttons take clicks, never the space around them */
 .hl-btns .btn { padding: 4px 12px; font-size: 13px; box-shadow: 0 2px 0 var(--ink); }
 .hl-btns .btn.skip { background: #f6ede6; font-weight: 700; }
+.hl-btns .btn.skip.sure { background: var(--butter); }
 .hl-btns .btn.go { font-size: 15px; padding: 6px 16px; }
 .helper.bubble-in .hl-bubble { animation: hlIn .3s var(--pop, ease-out); }
 @keyframes hlIn { from { transform: translateY(8px) scale(.96); opacity: .3; } }

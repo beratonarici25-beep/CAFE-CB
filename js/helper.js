@@ -46,7 +46,8 @@ const Helper = (() => {
   }
   // stand on the side away from what she is talking about, so she never covers it
   function place(target) {
-    const el = typeof target === 'string' ? document.querySelector(target) : target;
+    const all = (Array.isArray(target) ? target : [target]).map(x => typeof x === 'string' ? document.querySelector(x) : x).filter(Boolean);
+    const el = all[0];
     const r = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null;
     let s = side, v = vert;
     if (r && (r.width || r.height)) {
@@ -57,9 +58,21 @@ const Helper = (() => {
     if (v !== vert) { root.classList.toggle('at-top', v === 'top'); vert = v; }
     // on a narrow screen the bubble may still land on the thing she talks about: then stand at the other end
     if (r && !root.hidden) {
-      const b = $q('.hl-bubble').getBoundingClientRect();
-      if (b.left < r.right && b.right > r.left && b.top < r.bottom && b.bottom > r.top) {
-        vert = vert === 'top' ? 'bottom' : 'top'; root.classList.toggle('at-top', vert === 'top');
+      // how much of the highlighted things her bubble would cover; try the other end and keep the better one
+      const cover = () => {
+        const b = $q('.hl-bubble').getBoundingClientRect();
+        // the first target is the one to touch next: covering it costs far more than covering the others
+        return all.reduce((sum, x, i) => {
+          const q = x.getBoundingClientRect();
+          const a = Math.max(0, Math.min(q.right, b.right) - Math.max(q.left, b.left)) * Math.max(0, Math.min(q.bottom, b.bottom) - Math.max(q.top, b.top));
+          return sum + (a > 0 ? (i === 0 ? 1e6 : 1e3) + a : 0);
+        }, 0);
+      };
+      const here = cover();
+      if (here > 0) {
+        const flip = () => { vert = vert === 'top' ? 'bottom' : 'top'; root.classList.toggle('at-top', vert === 'top'); };
+        flip();
+        if (cover() > here) flip();
       }
     }
   }

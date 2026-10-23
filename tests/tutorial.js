@@ -88,7 +88,10 @@ async function playTutorial(page, tag, touch) {
   await shot('4-brew');
   for (let i = 0; i < 2; i++) {
     const b = await center(page, '#brewBtn'); await page.mouse.click(b.x, b.y);
-    await page.waitForFunction(() => CB.B.cup.shotT >= 26.5);
+    await page.waitForFunction(() => CB.B.cup.shotT >= 26.5, null, { timeout: 15000 }).catch(async e => {
+      console.log('brew failed:', await page.evaluate(([x, y]) => { const el = document.elementFromPoint(x, y); return JSON.stringify({ hit: el.tagName + '#' + el.id + '.' + el.className, toast: document.querySelector('#toast').textContent, cup: CB.B.cup.at, pf: CB.B.pf.at, view: CB.view() }); }, [b.x, b.y]));
+      throw e;
+    });
     await page.mouse.click(b.x, b.y);
   }
   ok(`${tag}: milk step`, await waitKey(page, 'milk'));
@@ -151,6 +154,8 @@ async function playTutorial(page, tag, touch) {
   ok('name follows the language (Jesica in English)', (await page.textContent('.helper .hl-name')) === 'Jesica' && (await page.textContent('#hlName')) === 'Jesica');
   await page.click('#langBtn');
   await page.click('.hl-btns .btn.skip');
+  ok('skip asks to confirm first', await page.waitForSelector('.hl-btns .btn.skip.sure', { timeout: 2000 }).then(() => true, () => false) && await page.evaluate(() => CB.tutorial()));
+  await page.click('.hl-btns .btn.skip.sure');
   ok('skip ends the tutorial', await page.evaluate(() => !CB.tutorial() && document.querySelector('.helper').hidden && JSON.parse(localStorage.getItem('cafe-cb-save-v1')).tutorialDone === true));
   await page.waitForTimeout(1500);
   ok('patience runs again after skipping', await page.evaluate(() => CB.G.patience < 1));

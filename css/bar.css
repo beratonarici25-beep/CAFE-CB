@@ -303,3 +303,70 @@
 @media (prefers-reduced-motion: reduce) {
   .machine.busy .gauge-dial i { animation: none; }
 }
+
+/* ======================================================================
+   Rendered models: the bench objects are 3D models built and rendered in Blender
+   (tools/blender/models.py -> assets/models/*.webp, @2x) with toon shading, ink outlines and the same upper-left light.
+   These rules size them and retire the flat CSS/SVG drawings they replace.
+   ====================================================================== */
+.spr { display: block; pointer-events: none; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; max-width: none; }
+.obj .spr, .bin .can, .knockbox .spr { filter: drop-shadow(3px 5px 3px rgba(40,20,10,.28)); }
+
+/* paper cup stacks */
+.cupspr { width: auto; }
+.cupspr.s { height: 58px; } .cupspr.m { height: 68px; } .cupspr.l { height: 78px; }
+
+/* grinder hopper full of beans; the bean keys tint it (decaf lighter, dark roast darker) */
+.hopper { width: 96px; height: auto; border: 0; clip-path: none; background: none; overflow: visible; margin-bottom: -4px; }
+.hopper::after { display: none; }
+.hopper .spr { width: 96px; height: auto; transition: filter .3s; }
+.hopper[data-bean="decaf"] .spr { filter: sepia(.25) brightness(1.2) saturate(.8); }
+.hopper[data-bean="dark"] .spr { filter: brightness(.7) contrast(1.1); }
+
+/* portafilter, tamper, pitcher */
+#pfImg { width: 122px; height: auto; }
+.tamper .spr { height: 62px; width: auto; }
+#pitcherImg { width: 86px; height: auto; }
+.pf svg, .tamper svg, .pitcher svg { display: none; }
+
+/* knock box */
+.knockbox { width: 72px; height: auto; border: 0; border-radius: 0; background: none; box-shadow: none; padding: 0; gap: 2px; place-items: center; }
+.knockbox .spr { width: 72px; height: auto; }
+.knockbox small { color: var(--ink); background: rgba(255,250,243,.85); border-radius: 5px; padding: 1px 4px; }
+
+/* bottles, syrup pumps, shakers: the model replaces the CSS bottle */
+.bottle-obj, .bottle-obj.syrup { width: auto; min-width: 50px; padding-top: 0; }
+.bottle-obj .glass, .bottle-obj.syrup .glass, .bottle-obj.milk .glass, .bottle-obj.shaker .glass {
+  width: auto; height: auto; border: 0; border-radius: 0; background: none; box-shadow: none; position: relative;
+}
+.bottle-obj .glass::before, .bottle-obj .glass::after { display: none; }
+.bottle-obj.milk .spr { height: 72px; width: auto; }
+.bottle-obj.syrup .spr { height: 108px; width: auto; }
+.bottle-obj.shaker .spr { height: 68px; width: auto; }
+.bottle-obj.shaker[data-drag="top:whip"] .spr { height: 80px; }
+/* the pump head is a press target over the model's pump */
+.bottle-obj.syrup .pumphead {
+  top: -2px; left: 0; right: 0; width: auto; height: 34px; margin: 0; background: none; border: 0; border-radius: 6px; transform: none;
+}
+.bottle-obj.syrup .pumphead::after { display: none; }
+.bottle-obj.syrup .pumphead:hover { background: rgba(255,214,140,.35); }
+.fridge .bottles { padding-top: 10px; }
+
+/* espresso machine parts */
+.mach-top { display: block; height: auto; border: 0; box-shadow: none; margin: -2px 6px -2px; }
+.mach-top .spr { width: 100%; height: auto; }
+img.group-head { width: 104px; height: auto; border: 0; background: none; box-shadow: none; border-radius: 0; margin-bottom: -8px; position: relative; z-index: 1; }
+.deco-group img.group-head { width: 80px; }
+.gauge-dial { background: url(../assets/models/gauge.webp) center / contain no-repeat; border: 0; outline: 0; box-shadow: none; width: 44px; height: 44px; }
+.gauge-dial::before { display: none; }
+img.wand-pipe { position: absolute; left: 50%; top: -66px; width: auto; height: 74px; background: none; border: 0; border-radius: 0; transform: none; margin-left: -6px; z-index: 1; }
+img.hotwater { position: absolute; left: 2px; top: -40px; width: auto; height: 34px; border: 0; background: none; border-radius: 0; }
+
+/* bin with a lid that flips open */
+.bin { width: 54px; height: 88px; }
+.bin .can { position: absolute; left: 0; right: auto; top: auto; bottom: 0; width: 54px; height: auto; border: 0; background: none; }
+.bin .lid { position: absolute; left: -2px; right: auto; top: 0; width: 58px; height: auto; border: 0; background: none; transform-origin: 8% 100%; }
+
+/* service bell */
+.mbtn.bellbtn img.bell { width: 40px; height: auto; border: 0; background: none; }
+.mbtn.bellbtn img.bell::after { display: none; }

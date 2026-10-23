@@ -10,6 +10,7 @@ No real brand names or logos are used (labels on bottles, bags and cartons are p
 | `backbar.svg` (shelves, jars, bags, syrups, cartons, chalk menu) | Original | Same as this repository |
 | `helper/art.js` (the head barista, Jesica / Ülkü) | Original; described from a reference photo that is **not** included | Same as this repository |
 | `icon.svg` | Original | Same as this repository |
+| `models/*.webp` (machine parts, grinder hopper, portafilter, tamper, pitcher, cups, bottles, shakers, knock box, bin, bell, customer layers) | Original 3D models built from primitives by `tools/blender/models.py`, rendered in Blender | Same as this repository |
 | Customers, cups, coins (`js/render.js`) | Drawn in code | Same as this repository |
 | Machines, bottles, bar mats (`css/bar.css`, `index.html` SVGs) | Drawn in code | Same as this repository |
 | Fonts: Grandstander, Nunito, Courier Prime, Pacifico | Google Fonts | SIL Open Font License 1.1 |

@@ -47,7 +47,7 @@ const Tutorial = (() => {
     { key: 'bell', show: ['#serveBtn'], done: () => false },
   ];
 
-  let active = false, cur = null, saidAt = -1, praiseUntil = 0, scrolledFor = null;
+  let active = false, cur = null, saidAt = -1, praiseUntil = 0, scrolledFor = null, skipArmed = 0;
   const els = sels => sels.map(s => document.querySelector(s)).filter(el => el && !el.hidden && el.getClientRects().length);
 
   // which step are we on right now?
@@ -102,7 +102,7 @@ const Tutorial = (() => {
   return {
     get active() { return active; },
     start() {
-      active = true; cur = null; saidAt = -1; scrolledFor = null;
+      active = true; cur = null; saidAt = -1; scrolledFor = null; skipArmed = 0;
     },
     // the order for the tutorial customer is always the same simple latte
     order: TUTORIAL_ORDER,
@@ -131,10 +131,12 @@ const Tutorial = (() => {
         scrolledFor = next.key;
       }
       drawDim(switching ? [] : list);
-      const skipBtn = { key: 'skip', cls: 'skip', onClick: () => Tutorial.skip() };
+      // skipping asks once more, so a stray tap near the bubble never ends the tutorial by accident
+      const skipBtn = skipArmed > T ? { key: 'skipSure', cls: 'skip sure', onClick: () => Tutorial.skip() }
+        : { key: 'skip', cls: 'skip', onClick: () => { skipArmed = T + 3; } };
       const buttons = next.buttons || [skipBtn];
-      if (T < praiseUntil) Helper.say('praise', { pose: 'cheer', target: list[0], buttons });
-      else Helper.say(next.key, { pose: next.pose, target: list[0], buttons });
+      if (T < praiseUntil) Helper.say('praise', { pose: 'cheer', target: list, buttons });
+      else Helper.say(next.key, { pose: next.pose, target: list, buttons });
     },
   };
 })();
