@@ -300,6 +300,7 @@ function render() {
   $('#ticketNo').textContent = '#' + String(G.ticket).padStart(3, '0');
   $('#ticketText').textContent = showTicket ? `${G.cust.name}: “${text}”` : (G.state === 'MENU' || G.state === 'DAY_END' ? L.ticketIdle : L.ticketWait);
   renderBench();
+  placeCustZone();
 }
 
 /* ---------------- canvases ---------------- */
@@ -373,15 +374,17 @@ function update(dt) {
     if (c.reactT != null) c.reactT += dt;
     const col = G.patience > 0.55 ? 'var(--mint)' : G.patience > 0.25 ? 'var(--butter)' : 'var(--blush-deep)';
     for (const pb of [$('#patBar'), $('#patBar2')]) { pb.style.width = (G.patience * 100) + '%'; pb.style.background = col; }
-    // the hand-over drop zone covers the customer standing at the bar
-    const z = $('#custZone');
-    if (!z.hidden) {
-      const k = dims.k, cy = dims.sh - dims.counterH;
-      z.style.left = (c.x - 62 * k) + 'px'; z.style.top = (cy - 178 * k) + 'px';
-      z.style.width = (124 * k) + 'px'; z.style.height = (178 * k + dims.topD) + 'px';
-    }
+    placeCustZone();
   }
   updateBench(dt);
+}
+// the hand-over drop zone covers the customer standing at the bar; placed every frame and as soon as it is shown
+function placeCustZone() {
+  const z = $('#custZone'), c = G.cust;
+  if (z.hidden || !c) return;
+  const k = dims.k, cy = dims.sh - dims.counterH;
+  z.style.left = (c.x - 62 * k) + 'px'; z.style.top = (cy - 178 * k) + 'px';
+  z.style.width = (124 * k) + 'px'; z.style.height = (178 * k + dims.topD) + 'px';
 }
 let last = performance.now(), dtLast = 0.016;
 function frame(now) {
