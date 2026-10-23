@@ -1,11 +1,13 @@
 # Yarın yapılacaklar / Next session (2026-10-24)
 
 ## 1. Boyut hataları (önce bu)
-- **Tamper dokununca çok büyüyor** (kullanıcı bildirdi). 2026-10-23'te headless Edge'de 1366 ve 375 px'te
-  denendi, büyüme görülmedi: duruyor 48×62, üstüne gelince 50×65, sürüklerken 51×65 px.
-  En olası sebep: tarayıcı yeni `index.html` ile **eski önbellekteki `css/bar.css`'i** birleştiriyor. O zaman
-  `<img>`'lerin boyut kuralı yok, model doğal boyutunda (tamper 171×220) açılıyor.
-  - Kullanıcıya sor: hangi cihaz/tarayıcı, ne zaman büyüyor (dokununca mı, sürükleyince mi, portafiltreye bırakınca mı)?
+- **Telve ile ilgili bir şey dokununca çok büyüyor** (kullanıcı bildirdi; önce "tamper" dedim, kullanıcı düzeltti:
+  sorun **telvede**). Hangi nesne olduğu henüz net değil: telve kutusu mu, portafiltredeki telve mi, başka bir şey mi?
+  2026-10-23'te headless Edge'de 1366 ve 375 px'te ölçüldü, büyüme görülmedi: telve kutusu 72×87, portafiltre
+  122×63 (dokunma animasyonunda en fazla %5). Tamper da normal (48×62 → 51×65).
+  Olası sebep: tarayıcı yeni `index.html` ile **eski önbellekteki `css/bar.css`'i** birleştiriyor. O zaman
+  `<img>`'lerin boyut kuralı yok, model doğal boyutunda açılıyor.
+  - Kullanıcıya sor: tam olarak hangi nesne büyüyor, hangi cihaz/tarayıcıda ve ne zaman (dokununca mı, sürükleyince mi, bırakınca mı)? Mümkünse ekran görüntüsü iste.
   - Düzeltme: CSS/JS linklerine sürüm ekle (`style.css?v=…`), her sprite `<img>`'e `width`/`height` attribute ver
     ki CSS gelmese bile taşmasın.
   - Bütün sprite'ların (pf, pitcher, bardak, şişe, hazne, zil, çöp) dokunma/sürükleme/bırakma boyutlarını ölçen bir test
