@@ -1,0 +1,305 @@
+/* The barista bar (issues #9, #10, #11): a real café bar seen from the barista's side, in the "cartoon but realistic"
+   look. One light for the whole game: warm, from the upper left. So every object is lit on its top/left edge, darkens
+   toward the lower right and drops a soft shadow down-right onto the counter. Outlines stay thick and soft (cartoon),
+   materials read as what they are: brushed steel, glass, wood, marble, black rubber. */
+:root {
+  --steel-hi: #f6f9fa; --steel: #c9d2d7; --steel-lo: #8b979e; --steel-dk: #5b666d;
+  --rubber: #2b2422; --rubber-dot: #3d3330;
+  --walnut: #6a3f25; --walnut-hi: #9a6440; --walnut-lo: #4a2716;
+  --marble-hi: #fdfbf7; --marble-lo: #e6ded3;
+  /* light from the upper left: shadows fall down and to the right */
+  --drop: 4px 7px 9px rgba(40,20,10,.28);
+  --drop-sm: 2px 4px 5px rgba(40,20,10,.25);
+  --steel-grad: linear-gradient(100deg, var(--steel-lo) 0%, var(--steel-hi) 16%, var(--steel) 42%, #dfe5e8 60%, var(--steel-lo) 100%);
+}
+
+/* ---------- back bar: shelves behind the barista ---------- */
+.backbar {
+  height: 168px; margin: -6px 6px -30px; position: relative; z-index: 0; pointer-events: none;
+  background: url(../assets/backbar.svg) center bottom / cover no-repeat;
+  filter: saturate(.92);
+}
+.counter { position: relative; z-index: 1; }
+
+/* ---------- the counter: marble top, walnut front, everything sits on it ---------- */
+.counter {
+  margin-bottom: 30px;
+  background:
+    radial-gradient(ellipse 60% 80% at 12% 0%, rgba(255,246,225,.55), transparent 70%),
+    linear-gradient(168deg, transparent 0 18%, rgba(150,140,130,.16) 18.4%, transparent 19.2% 52%, rgba(150,140,130,.12) 52.4%, transparent 53.4%),
+    linear-gradient(24deg, transparent 0 34%, rgba(150,140,130,.12) 34.3%, transparent 35% 78%, rgba(150,140,130,.14) 78.3%, transparent 79%),
+    linear-gradient(var(--marble-hi), var(--marble-lo));
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.9), inset 0 -6px 10px rgba(120,100,80,.12);
+}
+/* the walnut front panel under the slab's lip */
+.counter::after {
+  content: ""; position: absolute; left: -3px; right: -3px; top: calc(100% + 3px); height: 26px; pointer-events: none;
+  border: 3px solid var(--ink); border-top: 0; border-radius: 0 0 16px 16px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(30,15,8,.35) 46px 48px, transparent 48px 50px),
+    repeating-linear-gradient(90deg, rgba(255,220,180,.07) 0 3px, transparent 3px 11px),
+    linear-gradient(var(--walnut-hi), var(--walnut) 40%, var(--walnut-lo));
+  box-shadow: 0 8px 12px rgba(40,20,10,.25);
+}
+
+/* stations are areas of the counter, not cards: only a small label plate marks each one */
+.zone { background: transparent; border: 0; box-shadow: none; padding: 6px 4px; }
+.zone h3 {
+  justify-self: start; width: fit-content; max-width: 100%;
+  background: linear-gradient(#fffaf3, #f1e6da); border: 2px solid rgba(75,46,43,.55); border-radius: 9px;
+  padding: 2px 9px 2px 4px; font-size: 14px; box-shadow: var(--drop-sm), inset 0 1px 0 #fff;
+}
+.zone h3 .hint { margin-left: 4px; }
+.z-serve { background: transparent; }
+
+/* black rubber bar mats under the machines */
+.barmat {
+  background: radial-gradient(circle, var(--rubber-dot) 1.6px, transparent 2px) 0 0 / 9px 9px, var(--rubber);
+  border-radius: 14px; padding: 10px 8px 12px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.7), var(--drop-sm);
+}
+
+/* ---------- cups: paper cup stacks, lids, sleeves ---------- */
+.z-cups { justify-items: center; }
+.cupstand { gap: 10px; }
+.newcup b { background: rgba(255,250,243,.9); border-radius: 6px; padding: 0 5px; box-shadow: 0 1px 0 rgba(75,46,43,.25); }
+.papercup {
+  /* a stack of cups: the rims of the ones below peek out under the top cup */
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.14), rgba(255,255,255,.65) 22%, rgba(255,255,255,0) 45%, rgba(0,0,0,.16)),
+    linear-gradient(transparent 36%, #b88a5c 36% 62%, transparent 62%),
+    #fbf7f0;
+  box-shadow: 0 4px 0 -1px #efe6da, 0 7px 0 -2px #e2d6c7;
+  filter: drop-shadow(3px 5px 3px rgba(40,20,10,.25));
+}
+.lids { position: relative; width: 74px; height: 30px; margin-top: 4px; }
+.lids i {
+  position: absolute; left: 4px; width: 40px; height: 7px; border-radius: 50% 50% 4px 4px;
+  background: linear-gradient(#5a5452, #2a2523); border: 1.5px solid var(--ink);
+}
+.lids i:nth-child(1) { bottom: 0; } .lids i:nth-child(2) { bottom: 5px; } .lids i:nth-child(3) { bottom: 10px; }
+.lids .sleeves {
+  position: absolute; right: 2px; bottom: 0; width: 26px; height: 22px; border: 1.5px solid var(--ink); border-radius: 3px;
+  background: repeating-linear-gradient(0deg, #b88a5c 0 4px, #a57549 4px 5px); box-shadow: var(--drop-sm);
+}
+
+/* ---------- grinder on its mat, tamp station, knock box ---------- */
+.grinder-mat { padding-bottom: 8px; }
+.hopper {
+  width: 82px; height: 56px; border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, rgba(255,255,255,.1), rgba(255,255,255,.55) 20%, rgba(255,255,255,.05) 40%, rgba(160,200,210,.25));
+}
+.hopper::after { content: ""; position: absolute; left: 10px; top: 4px; width: 6px; bottom: 6px; border-radius: 3px; background: rgba(255,255,255,.55); z-index: 1; }
+.hopper i {
+  height: 70%;
+  background: radial-gradient(ellipse 4px 3px at 50% 50%, #8a5a3a 0 60%, transparent 70%) 0 0 / 8px 7px,
+    radial-gradient(ellipse 4px 3px at 50% 50%, #8a5a3a 0 60%, transparent 70%) 4px 3.5px / 8px 7px, var(--bean, #5b3423);
+}
+.hopper-lid { position: absolute; left: -3px; right: -3px; top: -1px; height: 8px; background: linear-gradient(#4a3532, #241614); border-radius: 4px; z-index: 2; }
+.grinder-body {
+  background: linear-gradient(100deg, #7a5650 0%, #4b2e2b 30%, #33201e 75%, #241614);
+  border: 3px solid var(--ink); border-radius: 14px 14px 8px 8px;
+  box-shadow: inset 3px 3px 0 rgba(255,255,255,.12), var(--drop);
+}
+.grinder-body .chute { background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi) 35%, var(--steel-lo)); border: 2px solid var(--ink); border-top: 0; height: 14px; bottom: -14px; }
+.grinder .slot { border-color: rgba(255,250,243,.35); }
+.grinder-foot { width: min(100%, 200px); height: 12px; margin-top: 4px; border: 3px solid var(--ink); border-radius: 6px; background: linear-gradient(#4b2e2b, #241614); }
+
+.tampstation { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+.tampstation > .slot { background: linear-gradient(rgba(255,255,255,.35), rgba(255,255,255,0)); }
+.tampmat { display: grid; gap: 6px; justify-items: center; }
+.tamperslot {
+  width: 64px; border: 0;
+  background: radial-gradient(circle, #3d3330 1.4px, transparent 1.8px) 0 0 / 7px 7px, #2e2725; border-radius: 12px;
+  box-shadow: inset 0 2px 3px rgba(0,0,0,.5), var(--drop-sm);
+}
+.knockbox {
+  position: relative; width: 64px; height: 50px; border: 3px solid var(--ink); border-radius: 8px 8px 10px 10px; cursor: default;
+  background: linear-gradient(100deg, #4a4442, #26201f 60%, #171211); box-shadow: inset 2px 2px 0 rgba(255,255,255,.12), var(--drop-sm);
+  display: grid; place-items: end center; padding: 0 2px 3px;
+}
+.knockbox .kb-bar { position: absolute; left: 4px; right: 4px; top: 10px; height: 7px; border-radius: 4px; background: linear-gradient(#d7dee2, #7d8990); border: 1.5px solid var(--ink); }
+.knockbox .kb-pucks { position: absolute; left: 10px; right: 10px; top: 3px; height: 6px; border-radius: 50%; background: radial-gradient(ellipse at 40% 40%, #6b4430, #2e1a12); }
+.knockbox small { position: relative; font-size: 8.5px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: #e9ded4; line-height: 1; text-align: center; overflow-wrap: anywhere; }
+
+/* portafilter & tamper: chrome, wood and real grounds */
+.pf-neck { fill: url(#pfSteel); stroke: var(--ink); stroke-width: 2; }
+.pf-handle { fill: url(#pfWood); stroke: var(--ink); stroke-width: 2.5; }
+.pf-gloss { stroke: rgba(255,230,200,.45); stroke-width: 3; stroke-linecap: round; fill: none; }
+.pf-ring { fill: url(#pfSteel); }
+.pf-basket { fill: #7d8990; }
+.pf-grounds { fill: url(#pfGrounds); }
+.pf.tamped .pf-grounds { fill: #3e2318; }
+.pf-rim { fill: none; stroke: rgba(255,255,255,.8); stroke-width: 3; stroke-linecap: round; }
+.tp-knob { fill: url(#tpWood); }
+.tp-shaft, .tp-base { fill: url(#tpSteel); }
+.tp-gloss { fill: none; stroke: rgba(255,255,255,.6); stroke-width: 2.5; stroke-linecap: round; }
+.pf svg, .tamper svg, .pitcher svg { filter: drop-shadow(3px 5px 3px rgba(40,20,10,.28)); }
+
+/* ---------- espresso machine: two-group commercial machine in brushed steel with brand side panels ---------- */
+.machine-mat { padding: 8px 8px 10px; }
+.machine {
+  position: relative; gap: 7px; padding: 6px 16px 10px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0) 0, rgba(255,255,255,.55) 14%, rgba(255,255,255,0) 30%, rgba(0,0,0,0) 72%, rgba(0,0,0,.14) 100%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.09) 0 1px, rgba(0,0,0,.025) 1px 3px),
+    linear-gradient(#eef2f4, #bcc6cc);
+  border-radius: 16px 16px 8px 8px;
+  /* brand-coloured side panels, lit on the left */
+  box-shadow: inset 9px 0 0 #f0a79e, inset 12px 0 0 rgba(75,46,43,.35), inset -9px 0 0 #c96f66, inset -12px 0 0 rgba(75,46,43,.35),
+    inset 0 3px 0 rgba(255,255,255,.85), 5px 9px 12px rgba(20,10,5,.45);
+}
+/* cup warmer on top with a few ceramic cups upside down */
+.mach-top {
+  display: flex; justify-content: center; align-items: flex-end; gap: 5px; height: 20px; margin: 0 4px;
+  border-bottom: 4px solid #8b979e; box-shadow: 0 1px 0 rgba(255,255,255,.8);
+}
+.mach-top i {
+  width: 18px; height: 13px; border: 2px solid var(--ink); border-bottom-width: 3px; border-radius: 5px 5px 2px 2px;
+  background: linear-gradient(90deg, #d9d2c8, #fffdf9 35%, #e9e2d8);
+}
+.mach-top i.cup2 { width: 22px; height: 15px; background: linear-gradient(90deg, #c96f66, #f4b9b2 35%, #e8968c); }
+.mach-panel {
+  background: linear-gradient(#4a4f53, #2c3033); border: 2px solid var(--ink);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -2px 4px rgba(0,0,0,.4);
+}
+.mach-logo { color: #fffaf3; text-shadow: 0 2px 0 var(--ink); top: 2px; left: 6px; }
+.mach-head { grid-template-columns: 1fr 104px; align-items: start; padding-top: 4px; }
+.group-head {
+  width: 76px; height: 20px; border-radius: 6px 6px 16px 16px;
+  background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi) 30%, var(--steel) 60%, var(--steel-lo));
+  box-shadow: 0 3px 0 rgba(0,0,0,.18);
+}
+.group .slot { border-color: rgba(75,46,43,.3); }
+.mach-right { display: grid; gap: 8px; justify-items: center; }
+.gauges { display: flex; gap: 6px; }
+.gauge-dial {
+  width: 38px; height: 38px;
+  background: radial-gradient(circle at 40% 35%, #fff 0 50%, #ece6dc 70%), #fff;
+  border: 3px solid #5b666d; outline: 2px solid var(--ink); box-shadow: inset 0 0 0 2px #fff, var(--drop-sm);
+}
+.gauge-dial::before {
+  content: ""; position: absolute; inset: 3px; border-radius: 50%;
+  background: conic-gradient(from 210deg, transparent 0 200deg, #e8968c 200deg 240deg, transparent 240deg);
+  -webkit-mask: radial-gradient(circle, transparent 58%, #000 60%); mask: radial-gradient(circle, transparent 58%, #000 60%);
+}
+.gauge-dial i { height: 13px; }
+.gauge-dial.boiler i { transform: rotate(20deg); background: var(--ink); }
+.machine.busy .gauge-dial.boiler i { animation: none; transform: rotate(28deg); }
+.deco-group { display: grid; justify-items: center; }
+.deco-group .group-head { width: 64px; }
+.parked-pf {
+  width: 58px; height: 14px; margin-top: 3px; border-radius: 50% 8px 8px 50%; border: 2px solid var(--ink);
+  background: linear-gradient(90deg, var(--steel) 0 30%, #6e3d22 30%, #9a5e3a 60%, #4a2716);
+}
+.mach-tray {
+  position: relative; background: linear-gradient(#a9b3b9, #7f8b92); border: 2px solid var(--ink); border-radius: 12px;
+  padding: 8px 6px 18px 8px; box-shadow: inset 0 3px 6px rgba(0,0,0,.35);
+}
+/* drip tray grill along the bottom */
+.mach-tray::after {
+  content: ""; position: absolute; left: 8px; right: 8px; bottom: 5px; height: 9px; border-radius: 4px; border: 2px solid var(--ink);
+  background: repeating-linear-gradient(90deg, #4b555b 0 3px, #d7dee2 3px 6px, #9aa4aa 6px 8px);
+}
+.mach-tray .cupslot, .wandbox .slot { background: none; border-color: rgba(255,255,255,.55); }
+.wandbox { position: relative; }
+.wand-pipe { background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi) 40%, var(--steel-lo)); top: -46px; height: 52px; }
+.hotwater {
+  position: absolute; left: 4px; top: -34px; width: 14px; height: 26px; z-index: 1;
+  background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi) 45%, var(--steel-lo)); border: 2px solid var(--ink); border-radius: 3px 3px 7px 7px;
+}
+
+/* ---------- milk: under-counter fridge with a glass door, steel pitcher ---------- */
+.fridge {
+  position: relative; padding: 7px; border: 3px solid var(--ink); border-radius: 10px;
+  background: var(--steel-grad); box-shadow: var(--drop);
+}
+.fridge::before {
+  content: ""; position: absolute; right: 9px; top: 12px; bottom: 12px; width: 5px; border-radius: 3px; z-index: 2;
+  background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi), var(--steel-lo)); border: 1.5px solid var(--ink);
+}
+.fridge .bottles {
+  position: relative; padding: 8px 14px 6px 6px; border: 2px solid var(--ink); border-radius: 6px; overflow: hidden;
+  background: linear-gradient(#cfe4ea, #a9c9d2); box-shadow: inset 0 0 12px rgba(30,60,80,.35);
+}
+/* the glass door's reflection */
+.fridge .bottles::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 0 20%, rgba(255,255,255,.4) 22% 30%, transparent 32% 60%, rgba(255,255,255,.22) 62% 66%, transparent 68%);
+}
+.bottle-obj.milk .glass { width: 30px; height: 56px; border-radius: 9px 9px 7px 7px; }
+.bottle-obj.milk .glass::before { left: 7px; right: 7px; top: -11px; height: 9px; background: var(--cap, #4f9ec8); }
+.bottle-obj.milk .glass::after { top: 20px; height: 15px; }
+.bottle-obj.milk[data-drag="milk:oat"] { --cap: #d9b45a; }
+.bottle-obj.milk[data-drag="milk:almond"] { --cap: #b5754b; }
+.bottle-obj.milk .nm { background: rgba(255,250,243,.88); border-radius: 5px; padding: 0 3px; }
+.pt-body { fill: url(#ptSteel); }
+.pt-shine { fill: rgba(255,255,255,.55); }
+.pt-thermo path { stroke: var(--ink); stroke-width: 3; fill: none; stroke-linecap: round; }
+.pt-thermo circle { fill: #fff; stroke: var(--ink); stroke-width: 2.5; }
+#slotPitcherRack { background: radial-gradient(circle, var(--rubber-dot) 1.4px, transparent 1.8px) 0 0 / 8px 8px, rgba(43,36,34,.92); border: 0; box-shadow: inset 0 2px 4px rgba(0,0,0,.5); }
+#slotPitcherRack .objtag, .tampstation .objtag { color: #f1e6da; }
+
+/* ---------- glass bottles, labels and pumps (syrups), steel-topped shakers ---------- */
+.bottle-obj .glass {
+  border-width: 2.5px;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.2), rgba(255,255,255,.5) 18%, rgba(255,255,255,0) 38%, rgba(0,0,0,0) 70%, rgba(0,0,0,.22)),
+    var(--c, #fff);
+  box-shadow: 3px 6px 5px -2px rgba(40,20,10,.32);
+}
+.bottle-obj.syrup { width: 58px; padding-top: 26px; }
+.bottle-obj.syrup .glass { width: 34px; height: 70px; border-radius: 12px 12px 8px 8px; }
+.bottle-obj.syrup .glass::before { background: linear-gradient(90deg, #111, #4a4442 40%, #111); top: -16px; height: 14px; }
+/* plain paper label, no brands */
+.bottle-obj.syrup .glass::after {
+  top: 22px; height: 24px; left: 2px; right: 2px; background: linear-gradient(#fffaf3, #efe4d6);
+  border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  box-shadow: inset 0 6px 0 -4px var(--c), inset 0 -6px 0 -4px var(--c);
+}
+.bottle-obj.syrup .pumphead {
+  top: -26px; width: 26px; height: 8px; margin-left: -7px;
+  background: linear-gradient(#5a5452, #111); border: 1.5px solid var(--ink); cursor: pointer;
+}
+.bottle-obj.syrup .pumphead::after { content: ""; position: absolute; right: -9px; top: 1px; width: 10px; height: 4px; border-radius: 2px; background: #2a2523; }
+.bottle-obj.shaker .glass::before { background: radial-gradient(circle, var(--ink) 1.2px, transparent 1.6px) 0 0 / 6px 5px, var(--steel-grad); }
+.bottle-obj .nm { font-weight: 800; }
+
+/* ---------- prep mat, the pass, trash ---------- */
+.cupslot.mat {
+  background: radial-gradient(circle, var(--rubber-dot) 1.6px, transparent 2px) 0 0 / 9px 9px, var(--rubber);
+  border: 0; box-shadow: inset 0 2px 4px rgba(0,0,0,.55), var(--drop-sm);
+}
+.cupslot.mat .slotlabel { color: rgba(241,230,218,.6); }
+.cupobj canvas { filter: drop-shadow(3px 6px 4px rgba(40,20,10,.3)); }
+.z-prep .cupinfo { background: rgba(255,250,243,.85); border-radius: 8px; padding: 2px 6px; }
+.servetray {
+  background: radial-gradient(ellipse 46% 18px at 50% calc(100% - 18px), #c98b62 0 70%, #8c5a35 88%, transparent 92%);
+  border: 2px dashed rgba(79,158,112,.6);
+}
+.pass-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.mbtn.bellbtn { background: linear-gradient(#fff3cf, #f2c46a); }
+.mbtn.bellbtn .bell { background: radial-gradient(circle at 35% 30%, #fff4c9, #e0a52c 70%); }
+.pass-deco { display: inline-flex; align-items: flex-end; gap: 5px; }
+.napkins { width: 26px; height: 26px; border: 2px solid var(--ink); border-radius: 4px; background: repeating-linear-gradient(0deg, #fff 0 3px, #ece5db 3px 4px); box-shadow: var(--drop-sm); }
+.sugar { width: 18px; height: 22px; border: 2px solid var(--ink); border-radius: 4px 4px 3px 3px; background: linear-gradient(90deg, #d9b45a, #f6d88c 40%, #c98b4f); box-shadow: var(--drop-sm); }
+.bin .can { background: var(--steel-grad); }
+.bin .lid { background: linear-gradient(var(--steel-hi), var(--steel-lo)); }
+.bin { filter: drop-shadow(3px 5px 3px rgba(40,20,10,.28)); }
+
+/* ---------- smaller screens ---------- */
+@media (max-width: 1240px) {
+  .backbar { height: 130px; }
+}
+@media (max-width: 760px) {
+  .backbar { height: 92px; margin-bottom: -18px; }
+  .machine { padding-inline: 12px; }
+  .mach-head { grid-template-columns: 1fr 92px; }
+  .deco-group { display: none; }
+  .tampstation { grid-template-columns: 1fr; }
+  .tampmat { grid-template-columns: auto auto; justify-content: center; }
+  .pass-deco { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .machine.busy .gauge-dial i { animation: none; }
+}

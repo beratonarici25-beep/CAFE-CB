@@ -95,7 +95,8 @@ async function brewOrder(page) {
   }
   await handOver(page);
   const floated = await page.locator('.float-money').count();
-  await page.waitForFunction(() => window.CB.G.state === 'RESULT', null, { timeout: 5000 });
+  await page.waitForFunction(() => window.CB.G.state === 'RESULT', null, { timeout: 5000 })
+    .catch(async e => { console.log('no result:', await page.evaluate(() => JSON.stringify({ st: CB.G.state, cup: CB.cupState(), at: CB.B.cup.at, view: CB.view(), toast: document.querySelector('#toast').textContent }))); throw e; });
   return st(page, () => ({ stars: window.CB.G.result.stars, checks: window.CB.G.result.checks.filter(c => !c.ok).map(c => c.label) }))
     .then(r => ({ ...r, floated }));
 }
@@ -106,7 +107,7 @@ async function brewOrder(page) {
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error' && !/fonts\.g|ERR_|favicon/.test(m.text())) errors.push(m.text()); });
-  await page.addInitScript(() => localStorage.setItem('cafe-cb-save-v1', JSON.stringify({ lang: 'en', day: 3, cash: 0 })));
+  await page.addInitScript(() => localStorage.setItem('cafe-cb-save-v1', JSON.stringify({ lang: 'en', day: 3, cash: 0, tutorialDone: true })));
   await page.goto(URL);
   await page.waitForTimeout(300);
   ok('menu visible on load', await page.isVisible('#ovMenu'));
@@ -221,7 +222,7 @@ async function brewOrder(page) {
   const rm = await browser.newPage({ viewport: { width: 1366, height: 900 }, reducedMotion: 'reduce' });
   const rmErrors = [];
   rm.on('pageerror', e => rmErrors.push(e.message));
-  await rm.addInitScript(() => localStorage.setItem('cafe-cb-save-v1', JSON.stringify({ lang: 'tr', day: 2, cash: 0 })));
+  await rm.addInitScript(() => localStorage.setItem('cafe-cb-save-v1', JSON.stringify({ lang: 'tr', day: 2, cash: 0, tutorialDone: true })));
   await rm.goto(URL);
   await rm.click('#startBtn');
   await arrive(rm);

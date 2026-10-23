@@ -32,7 +32,7 @@ function deny(key, el) {
 const TARGETS = {
   newcup: ['prep', 'tray'],
   cup: ['prep', 'tray', 'serving', 'trash', 'customer'],
-  pf: ['grinder', 'group', 'pfrack', 'trash'],
+  pf: ['grinder', 'group', 'pfrack', 'knockbox', 'trash'],
   tamper: ['pf'],
   milk: ['pitcher'],
   pitcher: ['wand', 'pitcherrack', 'cup', 'trash'],
@@ -51,7 +51,7 @@ function check(spec, target) {
   switch (kind) {
     case 'newcup': return Rules.placeNewCup(B);
     case 'cup': return target === 'trash' ? Rules.trashCup(B) : Rules.moveCup(B, target);
-    case 'pf': return target === 'trash' ? Rules.dumpPf(B) : Rules.movePf(B, PF_SPOT[target]);
+    case 'pf': return target === 'trash' || target === 'knockbox' ? Rules.dumpPf(B) : Rules.movePf(B, PF_SPOT[target]);
     case 'tamper': return Rules.tamp(B);
     case 'milk': return Rules.fillPitcher(B);
     case 'pitcher': return target === 'cup' ? Rules.pour(B) : target === 'trash' ? Rules.dumpPitcher(B) : Rules.movePitcher(B, PITCHER_SPOT[target]);
@@ -77,10 +77,12 @@ function apply(spec, target, from) {
       c.at = target; sfx.clack(); layout({ cup: from }); fx('land', $('#cupObj'));
       break;
     case 'pf':
-      if (target === 'trash') {
+      if (target === 'trash' || target === 'knockbox') {
+        // knocking the puck out: into the knock box (or the trash), the portafilter stays where it was
         if (B.pf.grinding) grindEnd();
         B.pf.dose = 0; B.pf.doseQ = 0; B.pf.tamped = false;
-        sfx.trash(); fx('lid'); fx('dust', $('#trashZone'), '#5b3423');
+        if (target === 'knockbox') { sfx.tamp(); fx('dust', $('#knockBox'), '#5b3423'); fx('land', $('#knockBox')); }
+        else { sfx.trash(); fx('lid'); fx('dust', $('#trashZone'), '#5b3423'); }
         break;
       }
       if (B.pf.grinding) grindEnd();
@@ -341,7 +343,7 @@ function onPointerUp(e) {
   const tgt = d.hover;
   const kind = kindOf(d.spec);
   const ok = tgt && canDrag(d.spec) ? attempt(d.spec, tgt, from, d.src) : false;
-  if (ok && ['cup', 'pf', 'pitcher', 'newcup'].includes(kind) && !(tgt.name === 'trash' || tgt.name === 'customer' || (kind === 'pitcher' && tgt.name === 'cup'))) {
+  if (ok && ['cup', 'pf', 'pitcher', 'newcup'].includes(kind) && !(tgt.name === 'trash' || tgt.name === 'knockbox' || tgt.name === 'customer' || (kind === 'pitcher' && tgt.name === 'cup'))) {
     g.el.remove();                       // the real object glides in from the ghost (FLIP)
   } else if (ok && tgt.name === 'trash' && kind === 'cup') {
     fx('intoTrash', g.el, $('#bin'));
@@ -470,7 +472,7 @@ function buildBench() {
   document.addEventListener('keydown', onKey);
   ctr.addEventListener('dragstart', e => e.preventDefault());
   // drop spots become keyboard-reachable
-  views.querySelectorAll('.slot[data-drop], .zone[data-drop], #custZone').forEach(n => n.tabIndex = 0);
+  views.querySelectorAll('.slot[data-drop], .zone[data-drop], #knockBox, #custZone').forEach(n => n.tabIndex = 0);
   // thermometer bands (0–90 °C) and the shot window (0–45 s)
   const map = { warm: '#bandWarm', normal: '#bandNormal', hot: '#bandHot' };
   for (const [k, b] of Object.entries(TEMPS)) {

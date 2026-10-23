@@ -13,6 +13,9 @@
 <link rel="stylesheet" href="css/scene.css">
 <link rel="stylesheet" href="css/fx.css">
 <link rel="stylesheet" href="css/views.css">
+<link rel="stylesheet" href="css/bar.css">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/helper.css">
 </head>
 <body>
 
@@ -39,6 +42,7 @@
   <div class="layer bulbs" id="bulbs" data-depth="5" aria-hidden="true"></div>
   <div class="neon" data-depth="4" aria-hidden="true">Cafe C<span>&amp;</span>B</div>
   <canvas id="sceneCv" aria-hidden="true"></canvas>
+  <div class="layer front" data-depth="12" aria-hidden="true"></div>
   <div class="talk">
     <div class="talk-main">
       <div class="bubble" id="bubble" hidden>
@@ -74,8 +78,13 @@
     <button class="btn" id="peekBtn" type="button" data-t="toCustomer">Look at the customer</button>
   </div>
 
+  <!-- the back bar behind the barista (issue #10): shelves with cups, bean jars, syrups and milk, a chalk menu (decor only) -->
+  <div class="backbar" aria-hidden="true"></div>
+
+  <!-- the bar, left to right in the order a real barista works: cups → grinder & tamp station → espresso machine
+       → milk → syrups & toppings → the pass (serving tray). Rubber bar mats sit under the machines. -->
   <div class="counter" id="counter">
-    <!-- 1 cups -->
+    <!-- 1 cups: paper cup stacks with lids and sleeves -->
     <section class="zone z-cups">
       <h3><span class="step">1</span><span data-t="obj.cups">Cups</span></h3>
       <div class="cupstand" id="cupStand">
@@ -83,99 +92,134 @@
         <button class="obj newcup" type="button" data-drag="newcup:M"><span class="papercup m"></span><b data-size="M"></b></button>
         <button class="obj newcup" type="button" data-drag="newcup:L"><span class="papercup l"></span><b data-size="L"></b></button>
       </div>
+      <div class="lids" aria-hidden="true"><i></i><i></i><i></i><span class="sleeves"></span></div>
     </section>
 
-    <!-- 2 grinder -->
+    <!-- 2 grinder + tamp station + knock box -->
     <section class="zone z-grinder">
       <h3><span class="step">2</span><span data-t="grinder">Grinder</span> <span class="hint" id="doseZoneTxt"></span></h3>
-      <div class="grinder">
-        <div class="hopper" id="hopper"><i></i></div>
-        <!-- every control sits on the machine itself (issue #7): bean keys, a scale display and the grind button -->
-        <div class="grinder-body">
-          <div class="keys" id="beanChips"></div>
-          <div class="grind-row">
-            <span class="lcd" id="doseTxt">0.0 g</span>
-            <button class="mbtn round" id="grindBtn" type="button"><span class="led"></span><span class="cap" data-t="grindKey">Grind</span></button>
+      <div class="barmat grinder-mat">
+        <div class="grinder">
+          <div class="hopper" id="hopper"><i></i><span class="hopper-lid"></span></div>
+          <!-- every control sits on the machine itself (issue #7): bean keys, a scale display and the grind button -->
+          <div class="grinder-body">
+            <div class="keys" id="beanChips"></div>
+            <div class="grind-row">
+              <span class="lcd" id="doseTxt">0.0 g</span>
+              <button class="mbtn round" id="grindBtn" type="button"><span class="led"></span><span class="cap" data-t="grindKey">Grind</span></button>
+            </div>
+            <span class="chute"></span>
           </div>
-          <span class="chute"></span>
+          <div class="slot pfslot" data-drop="grinder" id="slotGrinder"></div>
+          <span class="grinder-foot" aria-hidden="true"></span>
         </div>
-        <div class="slot pfslot" data-drop="grinder" id="slotGrinder"></div>
       </div>
       <div class="meter" id="doseMeter"><div class="zone" id="doseZone"></div><div class="fill" id="doseFill"></div></div>
       <div class="readout"><span id="doseMsg"></span></div>
-      <div class="rack">
+      <div class="tampstation">
         <div class="slot pfslot" data-drop="pfrack" id="slotPfRack">
           <div class="obj pf" id="pfObj" role="button" tabindex="0" data-drag="pf" data-drop="pf">
             <svg viewBox="0 0 130 54" aria-hidden="true">
-              <rect x="58" y="20" width="66" height="14" rx="7" class="pf-handle"/>
+              <defs>
+                <linearGradient id="pfSteel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f7f8"/><stop offset=".45" stop-color="#c3ccd1"/><stop offset="1" stop-color="#8b979e"/></linearGradient>
+                <linearGradient id="pfWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9a5e3a"/><stop offset=".5" stop-color="#6e3d22"/><stop offset="1" stop-color="#4a2716"/></linearGradient>
+                <radialGradient id="pfGrounds" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#7a4a30"/><stop offset="1" stop-color="#3e2318"/></radialGradient>
+              </defs>
+              <rect x="56" y="22" width="14" height="10" rx="2" class="pf-neck"/>
+              <rect x="66" y="19" width="60" height="16" rx="8" class="pf-handle"/>
+              <path d="M74 23 h44" class="pf-gloss"/>
               <ellipse cx="32" cy="27" rx="30" ry="22" class="pf-ring"/>
               <ellipse cx="32" cy="27" rx="22" ry="15" class="pf-basket"/>
               <ellipse cx="32" cy="27" rx="20" ry="13" class="pf-grounds"/>
+              <path d="M10 18 Q20 8 40 7" class="pf-rim"/>
             </svg>
             <small class="objtag" id="pfTag"></small>
           </div>
         </div>
-        <div class="slot tamperslot" id="slotTamper">
-          <div class="obj tamper" id="tamperObj" role="button" tabindex="0" data-drag="tamper">
-            <svg viewBox="0 0 44 64" aria-hidden="true">
-              <circle cx="22" cy="13" r="11" class="tp-knob"/>
-              <rect x="17" y="22" width="10" height="22" rx="3" class="tp-shaft"/>
-              <rect x="4" y="44" width="36" height="14" rx="4" class="tp-base"/>
-            </svg>
+        <div class="tampmat">
+          <div class="slot tamperslot" id="slotTamper">
+            <div class="obj tamper" id="tamperObj" role="button" tabindex="0" data-drag="tamper">
+              <svg viewBox="0 0 44 64" aria-hidden="true">
+                <defs>
+                  <radialGradient id="tpWood" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#c98b62"/><stop offset="1" stop-color="#6e3d22"/></radialGradient>
+                  <linearGradient id="tpSteel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8b979e"/><stop offset=".3" stop-color="#f4f7f8"/><stop offset="1" stop-color="#8b979e"/></linearGradient>
+                </defs>
+                <circle cx="22" cy="13" r="11" class="tp-knob"/>
+                <rect x="17" y="22" width="10" height="22" rx="3" class="tp-shaft"/>
+                <rect x="4" y="44" width="36" height="14" rx="4" class="tp-base"/>
+                <path d="M15 8 q4 -4 9 -3" class="tp-gloss"/>
+              </svg>
+            </div>
           </div>
+          <!-- the knock box takes the used puck out of the portafilter -->
+          <div class="knockbox" data-drop="knockbox" id="knockBox"><span class="kb-bar"></span><span class="kb-pucks"></span><small data-t="obj.knock">Knock box</small></div>
         </div>
       </div>
     </section>
 
-    <!-- 3 espresso machine -->
+    <!-- 3 espresso machine: a two-group commercial machine on a rubber mat -->
     <section class="zone z-machine">
       <h3><span class="step">3</span><span data-t="obj.machine">Espresso machine</span> <span class="hint" data-t="stopAt">stop at 25–30 s</span></h3>
-      <div class="machine" id="machine">
-        <!-- control panel on the machine: brew button + shot display above the group, foam keys + steam button above the wand -->
-        <div class="mach-panel">
-          <div class="panel-left">
-            <span class="lcd" id="shotTxt">0 s</span>
-            <button class="mbtn brew" id="brewBtn" type="button"><span class="led"></span><span class="cap" id="brewCap">Brew</span></button>
+      <div class="barmat machine-mat">
+        <div class="machine" id="machine">
+          <!-- cup warmer on top (decor) -->
+          <div class="mach-top" aria-hidden="true"><i></i><i></i><i class="cup2"></i><i></i><i class="cup2"></i><i></i></div>
+          <!-- control panel on the machine: brew button + shot display above the group, foam keys + steam button above the wand -->
+          <div class="mach-panel">
+            <div class="panel-left">
+              <span class="lcd" id="shotTxt">0 s</span>
+              <button class="mbtn brew" id="brewBtn" type="button"><span class="led"></span><span class="cap" id="brewCap">Brew</span></button>
+            </div>
+            <div class="panel-right">
+              <div class="keys foam" id="foamChips"></div>
+              <button class="mbtn steam" id="steamBtn" type="button"><span class="led"></span><span class="cap" data-t="steamKey">Steam</span></button>
+            </div>
           </div>
-          <div class="panel-right">
-            <div class="keys foam" id="foamChips"></div>
-            <button class="mbtn steam" id="steamBtn" type="button"><span class="led"></span><span class="cap" data-t="steamKey">Steam</span></button>
+          <div class="mach-head">
+            <span class="mach-logo">C&amp;B</span>
+            <div class="group"><span class="group-head"></span><div class="slot pfslot locked-in" data-drop="group" id="slotGroup"></div></div>
+            <!-- right side: the boiler and pump gauges over the second group head (decor) -->
+            <div class="mach-right" aria-hidden="true">
+              <div class="gauges"><span class="gauge-dial"><i></i></span><span class="gauge-dial boiler"><i></i></span></div>
+              <div class="group deco-group"><span class="group-head"></span><span class="parked-pf"></span></div>
+            </div>
           </div>
-        </div>
-        <div class="mach-head">
-          <span class="mach-logo">C&amp;B</span>
-          <div class="group"><span class="group-head"></span><div class="slot pfslot locked-in" data-drop="group" id="slotGroup"></div></div>
-          <span class="gauge-dial" aria-hidden="true"><i></i></span>
-        </div>
-        <div class="mach-tray">
-          <div class="slot cupslot" data-drop="tray" id="slotTray"><span class="slotlabel" data-t="obj.tray">Drip tray</span></div>
-          <div class="wandbox">
-            <span class="wand-pipe"></span>
-            <div class="slot pitcherslot" data-drop="wand" id="slotWand"><span class="slotlabel" data-t="obj.wand">Steam wand</span></div>
+          <div class="mach-tray">
+            <div class="slot cupslot" data-drop="tray" id="slotTray"><span class="slotlabel" data-t="obj.tray">Drip tray</span></div>
+            <div class="wandbox">
+              <span class="hotwater" aria-hidden="true"></span>
+              <span class="wand-pipe"></span>
+              <div class="slot pitcherslot" data-drop="wand" id="slotWand"><span class="slotlabel" data-t="obj.wand">Steam wand</span></div>
+            </div>
           </div>
         </div>
       </div>
       <div class="meter" id="shotMeter"><div class="zone" id="shotZone"></div><div class="needle" id="shotNeedle"></div></div>
       <div class="readout"><span id="shotMsg"></span></div>
       <div class="shotlist" id="shotList"></div>
-</section>
+    </section>
 
-    <!-- 4 milk -->
+    <!-- 4 milk: an under-counter milk fridge, the pitcher on its mat and a pitcher thermometer -->
     <section class="zone z-milk">
       <h3><span class="step">4</span><span data-t="obj.milk">Milk</span></h3>
-      <div class="bottles" id="milkBottles"></div>
+      <div class="fridge"><div class="bottles" id="milkBottles"></div></div>
       <div class="slot pitcherslot" data-drop="pitcherrack" id="slotPitcherRack">
         <div class="obj pitcher" id="pitcherObj" role="button" tabindex="0" data-drag="pitcher" data-drop="pitcher">
           <svg viewBox="0 0 80 86" aria-hidden="true">
-            <defs><clipPath id="pitcherClip"><path d="M14 14 L58 14 L64 80 Q64 84 60 84 L12 84 Q8 84 8 80 Z"/></clipPath></defs>
+            <defs>
+              <clipPath id="pitcherClip"><path d="M14 14 L58 14 L64 80 Q64 84 60 84 L12 84 Q8 84 8 80 Z"/></clipPath>
+              <linearGradient id="ptSteel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9aa6ad"/><stop offset=".22" stop-color="#f6f9fa"/><stop offset=".5" stop-color="#cdd5da"/><stop offset=".85" stop-color="#8b979e"/><stop offset="1" stop-color="#a9b4ba"/></linearGradient>
+            </defs>
             <path d="M14 14 L58 14 L64 80 Q64 84 60 84 L12 84 Q8 84 8 80 Z" class="pt-body"/>
             <g clip-path="url(#pitcherClip)">
               <rect id="ptMilk" x="0" y="84" width="80" height="0" class="pt-milk"/>
               <rect id="ptFoam" x="0" y="84" width="80" height="0" class="pt-foam"/>
+              <path d="M19 14 L24 14 L22 84 L17 84 Z" class="pt-shine"/>
             </g>
             <path d="M14 14 L58 14 L64 80 Q64 84 60 84 L12 84 Q8 84 8 80 Z" class="pt-line"/>
             <path d="M58 14 L74 8 L62 22" class="pt-spout"/>
             <path d="M10 30 Q-6 44 10 62" class="pt-handle"/>
+            <g class="pt-thermo"><path d="M48 16 v22"/><circle cx="48" cy="11" r="5.5"/></g>
           </svg>
           <small class="objtag" id="pitcherTag"></small>
         </div>
@@ -201,7 +245,7 @@
       <div class="cupinfo" id="cupInfo"></div>
     </section>
 
-    <!-- 5 syrups -->
+    <!-- 5 syrups: pump bottles with plain paper labels -->
     <section class="zone z-syrups">
       <h3><span class="step">5</span><span data-t="syrups">Syrups</span></h3>
       <div class="bottles" id="syrupBottles"></div>
@@ -213,11 +257,14 @@
       <div class="bottles" id="topShakers"></div>
     </section>
 
-    <!-- serving tray: put the finished cup here, then ring the bell to take it out to the customer -->
+    <!-- the pass: put the finished cup on the serving tray, then ring the bell to take it out to the customer -->
     <section class="zone z-serve" id="serveZone">
       <h3><span data-t="obj.serving">Serving tray</span></h3>
       <div class="slot cupslot servetray" data-drop="serving" id="slotServe"><span class="slotlabel" data-t="obj.serving">Serving tray</span></div>
-      <button class="mbtn bellbtn" id="serveBtn" type="button"><span class="bell"></span><span class="cap" data-t="serveBtn">Serve</span></button>
+      <div class="pass-row">
+        <button class="mbtn bellbtn" id="serveBtn" type="button"><span class="bell"></span><span class="cap" data-t="serveBtn">Serve</span></button>
+        <span class="pass-deco" aria-hidden="true"><span class="napkins"></span><span class="sugar"></span></span>
+      </div>
     </section>
 
     <!-- trash -->
@@ -230,8 +277,15 @@
 </div>
 
 <div class="overlay menu" id="ovMenu" hidden>
-  <div class="card">
-    <div class="logo"><div class="big">CAFE C<b>&amp;</b>B</div><div class="sub" data-t="sub">Barista Simulator</div></div>
+  <!-- the café itself behind the menu (issue #8): the same wall and seating, bulbs, a steaming cup and drifting beans -->
+  <div class="menu-bg" aria-hidden="true">
+    <div class="mb-wall"></div><div class="mb-seat"></div>
+    <div class="mb-bulbs bulbs"><i style="--x:10%;--h:60px;--d:0s"></i><i style="--x:27%;--h:90px;--d:-1.2s"></i><i style="--x:73%;--h:70px;--d:-2.1s"></i><i style="--x:90%;--h:96px;--d:-.6s"></i></div>
+    <div class="mb-cup"><span class="steam"><i></i><i></i><i></i></span><span class="mug"></span><span class="saucer"></span></div>
+    <div class="mb-beans"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div class="card menu-card">
+    <div class="logo"><div class="sign"><div class="big">CAFE C<b>&amp;</b>B</div></div><div class="sub" data-t="sub">Barista Simulator</div></div>
     <div class="stats">
       <div><b id="mCash">$0</b><span data-t="savings">Savings</span></div>
       <div><b id="mDay">1</b><span data-t="nextDay">Next day</span></div>
@@ -241,6 +295,7 @@
       <button class="btn primary big" id="startBtn" type="button">Open the café</button>
       <button class="btn big" id="howBtn" type="button" data-t="howTo">How to brew</button>
       <button class="btn big" id="langBtn2" type="button">Türkçe</button>
+      <button class="btn" id="tutBtn" type="button" data-t="tutorialBtn">Play the tutorial</button>
     </div>
     <div class="shop" id="menuShop"></div>
     <div class="menu-actions"><button class="btn" id="resetBtn" type="button" data-t="reset">Reset progress</button></div>
@@ -274,11 +329,11 @@
   </div>
 </div>
 
-<div class="overlay" id="ovBook" hidden>
+<div class="overlay book-ov" id="ovBook" hidden>
   <div class="card book">
     <h2 data-t="recipeBook">Recipe book</h2>
     <div id="bookBody"></div>
-    <div class="menu-actions"><button class="btn go" id="closeBookBtn" type="button" data-t="backToBar">Back to the bar</button></div>
+    <div class="menu-actions"><button class="btn go" id="closeBookBtn" type="button">Back to the bar</button></div>
   </div>
 </div>
 
@@ -292,6 +347,9 @@
 <script src="js/scene.js"></script>
 <script src="js/fx.js"></script>
 <script src="js/station.js"></script>
+<script src="assets/helper/art.js"></script>
+<script src="js/helper.js"></script>
+<script src="js/tutorial.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

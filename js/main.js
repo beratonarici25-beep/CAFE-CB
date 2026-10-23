@@ -70,11 +70,12 @@ function startDay() {
   G.day = save.day; G.idx = 0; G.total = Math.min(4 + G.day, 9); G.earned = 0; G.stars = [];
   G.patMax = 70 * (has('stools') ? 1.25 : 1);
   G.cust = null;
+  if (!save.tutorialDone) Tutorial.start();
   nextCustomer();
 }
 function nextCustomer() {
   G.cust = makeCustomer();
-  G.order = makeOrder(G.day);
+  G.order = Tutorial.active && G.idx === 0 ? Tutorial.order() : makeOrder(G.day);
   G.typed = 0; G.patience = 1; G.served = null; G.result = null; G.ticket++;
   resetBench();
   $('#say').textContent = '';
@@ -135,6 +136,7 @@ function showResult() {
 function afterResult() {
   if (G.state !== 'RESULT') return;
   sfx.click();
+  if (Tutorial.active) Tutorial.complete();
   G.idx++;
   G.cust.state = 'leave';
   $('#bubble').hidden = true;
@@ -169,11 +171,28 @@ $('#peekBtn').addEventListener('click', () => peek(true));
 $('#backBtn').addEventListener('click', () => peek(false));
 $('#nextBtn').addEventListener('click', afterResult);
 $('#startBtn').addEventListener('click', startDay);
+// replay the tutorial from the main menu: it runs on the first guest of the day
+$('#tutBtn').addEventListener('click', () => { save.tutorialDone = false; persist(); startDay(); });
 $('#nextDayBtn').addEventListener('click', startDay);
 $('#toMenuBtn').addEventListener('click', () => setState('MENU'));
-$('#howBtn').addEventListener('click', () => { $('#ovBook').hidden = false; });
-$('#bookBtn').addEventListener('click', () => { $('#ovBook').hidden = false; });
-$('#closeBookBtn').addEventListener('click', () => { $('#ovBook').hidden = true; });
+// the recipe book opens over the main menu or over the bar; its close button says where it goes back to (issue #8)
+let bookFrom = 'bar';
+function openBook(from) {
+  sfx.init(); sfx.click();
+  bookFrom = from;
+  $('#closeBookBtn').textContent = t(from === 'menu' ? 'backToMenu' : 'backToBar');
+  $('#ovBook').hidden = false;
+  $('#closeBookBtn').focus({ preventScroll: true });
+}
+function closeBook() {
+  if ($('#ovBook').hidden) return;
+  $('#ovBook').hidden = true;
+  const back = bookFrom === 'menu' ? $('#howBtn') : $('#bookBtn');
+  if (back && back.offsetParent) back.focus({ preventScroll: true });
+}
+$('#howBtn').addEventListener('click', () => openBook('menu'));
+$('#bookBtn').addEventListener('click', () => openBook(G.state === 'MENU' ? 'menu' : 'bar'));
+$('#closeBookBtn').addEventListener('click', closeBook);
 $('#menuBtn').addEventListener('click', () => {
   if (G.state === 'MENU') return;
   if (['ORDER_PENDING', 'PREPARING', 'READY_TO_SERVE', 'COMPLETED', 'RESULT'].includes(G.state)) toast(t('paused'));
@@ -201,7 +220,7 @@ $('#resetBtn').addEventListener('click', () => {
   save = { ...DEFAULT_SAVE, muted: save.muted, lang: save.lang }; persist();
   $('#resetBtn').textContent = t('reset'); renderMenu(); render();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#ovBook').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBook(); });
 
 let toastTimer;
 function toast(msg) {
@@ -241,6 +260,7 @@ function applyLang() {
   $('#langBtn').textContent = L.otherLang;
   $('#langBtn2').textContent = L.otherLangLong;
   $('#bookBody').innerHTML = L.howSteps + L.book;
+  $('#closeBookBtn').textContent = t(bookFrom === 'menu' ? 'backToMenu' : 'backToBar');
   document.querySelectorAll('.patience').forEach(el => { el.title = L.patience; });
   applyBenchLang();
   if (resetArmed) $('#resetBtn').textContent = t('resetConfirm');
@@ -256,6 +276,7 @@ function applyLang() {
   }
   if (G.state === 'DAY_END') fillDay();
   if (G.state === 'MENU') renderMenu();
+  Helper.refresh();
   render();
 }
 
@@ -343,7 +364,8 @@ function update(dt) {
           if (G.typed >= text.length) render();
         }
       }
-      if (G.state === 'ORDER_PENDING' || G.state === 'PREPARING' || G.state === 'READY_TO_SERVE') {
+      // no patience lost while the tutorial runs (issue #12)
+      if ((G.state === 'ORDER_PENDING' || G.state === 'PREPARING' || G.state === 'READY_TO_SERVE') && !Tutorial.active) {
         G.patience = Math.max(0, G.patience - dt / G.patMax);
         c.mood = G.patience > 0.55 ? 'happy' : G.patience > 0.25 ? 'neutral' : 'annoyed';
       }
@@ -364,13 +386,13 @@ function update(dt) {
 let last = performance.now(), dtLast = 0.016;
 function frame(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; T += dt; dtLast = dt;
-  try { update(dt); drawScene(); drawCupObj(); fx('frame', dt); } catch (e) { console.error(e); }
+  try { update(dt); drawScene(); drawCupObj(); fx('frame', dt); Tutorial.tick(); } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
 }
 
 // small debug/test hook
 window.CB = { G, B, drop: (spec, target) => { const e = check(spec, target); if (!e) apply(spec, target); return e; }, cupState: () => cupSnapshot(B.cup),
-  view: () => curView, switching: () => !!viewAnim };
+  view: () => curView, switching: () => !!viewAnim, dragging: () => !!(drag && drag.started), tutorial: () => Tutorial.active };
 
 function start() {
   buildBench();

@@ -148,6 +148,7 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   overflow-y: auto;
 }
+.overlay.book-ov { z-index: 28; }  /* above the main menu (26) so 'How to brew' shows from the menu too */
 .overlay.menu { z-index: 26; background: var(--wall); background-image: repeating-linear-gradient(90deg, var(--wall) 0 22px, var(--wall-2) 22px 36px); }
 .card {
   width: min(560px, 100%); background: var(--paper); border: 3px solid var(--ink); border-radius: 26px;
@@ -221,10 +222,11 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 
 .counter {
   display: grid; gap: 12px;
-  grid-template-columns: 96px minmax(200px, 1fr) minmax(290px, 1.35fr) minmax(150px, .75fr) minmax(180px, .95fr) minmax(170px, .9fr);
+  /* left to right like a real bar: cups, grinder, machine, milk, syrups, the pass */
+  grid-template-columns: minmax(150px, .7fr) minmax(200px, 1fr) minmax(300px, 1.45fr) minmax(160px, .8fr) minmax(150px, .75fr) minmax(150px, .75fr);
   grid-template-areas:
-    "cups  grinder machine prep  milk syrups"
-    "trash grinder machine serve milk tops";
+    "cups grinder machine milk syrups serve"
+    "prep grinder machine milk tops   trash";
   background: linear-gradient(#f1e4d6, #ead9c7);
   border: 3px solid var(--ink); border-radius: 22px; padding: 12px;
   box-shadow: 0 5px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.6);
@@ -296,7 +298,6 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 .grinder-body { width: 92px; height: 40px; background: var(--ink); border-radius: 10px 10px 4px 4px; position: relative; }
 .chute { position: absolute; left: 50%; bottom: -8px; width: 16px; height: 12px; margin-left: -8px; background: #2f1d1b; border-radius: 0 0 4px 4px; }
 .grinder .slot { width: 100%; margin-top: 10px; }
-.rack { display: grid; grid-template-columns: 1fr 64px; gap: 8px; }
 
 /* portafilter & tamper */
 .pf svg { width: 112px; height: 46px; }
@@ -394,11 +395,10 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
   .brand { font-size: 17px; }
   .draghint { display: none; }
   .mach-head, .mach-tray { grid-template-columns: 1fr 92px; }
-  .rack { grid-template-columns: 1fr; }
   .cupobj canvas { width: 116px; height: 148px; }
   .cupslot { min-height: 150px; }
   .z-milk { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .z-milk h3, .z-milk .bottles { grid-column: 1 / -1; }
+  .z-milk h3, .z-milk .fridge { grid-column: 1 / -1; }
 }
 
 /* compact milk controls so the whole counter fits on a laptop screen */
