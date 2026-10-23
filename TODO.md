@@ -1,17 +1,17 @@
 # Yarın yapılacaklar / Next session (2026-10-24)
 
 ## 1. Boyut hataları (önce bu)
-- **Telve ile ilgili bir şey dokununca çok büyüyor** (kullanıcı bildirdi; önce "tamper" dedim, kullanıcı düzeltti:
-  sorun **telvede**). Hangi nesne olduğu henüz net değil: telve kutusu mu, portafiltredeki telve mi, başka bir şey mi?
-  2026-10-23'te headless Edge'de 1366 ve 375 px'te ölçüldü, büyüme görülmedi: telve kutusu 72×87, portafiltre
-  122×63 (dokunma animasyonunda en fazla %5). Tamper da normal (48×62 → 51×65).
-  Olası sebep: tarayıcı yeni `index.html` ile **eski önbellekteki `css/bar.css`'i** birleştiriyor. O zaman
-  `<img>`'lerin boyut kuralı yok, model doğal boyutunda açılıyor.
-  - Kullanıcıya sor: tam olarak hangi nesne büyüyor, hangi cihaz/tarayıcıda ve ne zaman (dokununca mı, sürükleyince mi, bırakınca mı)? Mümkünse ekran görüntüsü iste.
-  - Düzeltme: CSS/JS linklerine sürüm ekle (`style.css?v=…`), her sprite `<img>`'e `width`/`height` attribute ver
-    ki CSS gelmese bile taşmasın.
-  - Bütün sprite'ların (pf, pitcher, bardak, şişe, hazne, zil, çöp) dokunma/sürükleme/bırakma boyutlarını ölçen bir test
-    ekle (`tests/sizes.js`), masaüstü + telefon.
+- **Portafiltre sürüklenince çok büyüyor** (kullanıcı bildirdi). **Sebep bulundu (2026-10-23):**
+  `makeGhost()` (`js/station.js`) sürükleme kopyasındaki tüm `id`'leri siliyor. Portafiltre resminin boyutu ise
+  CSS'te id'ye bağlı (`#pfImg { width: 122px }`, `css/bar.css`). Kopyada id yok, kural uymuyor ve resim doğal
+  boyutunda çiziliyor: **551×210 px yerine 122×46** (masaüstü ve telefonda ölçüldü). Süt potunda da aynı hata var
+  (`#pitcherImg`).
+  - Düzeltme: resimlere sınıf ver (`class="spr pf-img"`, `class="spr pitcher-img"`), CSS'i sınıfa bağla
+    (`.pf-img`, `.pitcher-img`). `setSprite` id ile bulmaya devam edebilir.
+  - Ek güvenlik: her sprite `<img>`'e `width`/`height` attribute ver, CSS/JS linklerine sürüm ekle (`?v=…`),
+    önbellekte eski CSS kalsa bile taşmasın.
+  - Test ekle (`tests/sizes.js`): her sürüklenebilir nesnenin sürükleme kopyası, orijinal boyutunun en fazla ~%20
+    fazlası olmalı. Masaüstü + telefon.
 - Diğer boyut kontrolleri: telefonda öğretici balonu, tezgâh sprite oranları, müşteri sprite'ı (k=1.7'de bulanıklık?).
 
 ## 2. Her şey Blender'dan, gerçekçiye yakın
