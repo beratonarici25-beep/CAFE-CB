@@ -16,7 +16,8 @@ const C = {
 
 /* ---------------- save ---------------- */
 const SAVE_KEY = 'cafe-cb-save-v1';
-const DEFAULT_SAVE = { cash: 0, day: 1, best: 0, served: 0, upgrades: [], muted: false, lang: null };
+// tutorialDone (issue #12): old saves without it get the tutorial once, like a fresh save
+const DEFAULT_SAVE = { cash: 0, day: 1, best: 0, served: 0, upgrades: [], muted: false, lang: null, tutorialDone: false };
 let save = { ...DEFAULT_SAVE };
 try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && typeof s === 'object') save = { ...save, ...s }; } catch (e) {}
 if (save.lang !== 'en' && save.lang !== 'tr') save.lang = /^tr/i.test(navigator.language || '') ? 'tr' : 'en';

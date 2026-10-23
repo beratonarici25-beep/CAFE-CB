@@ -5,6 +5,7 @@ const path = require('path');
 const pw = require(process.env.PW_CORE || 'playwright-core');
 const URL = 'file:///' + path.resolve(__dirname, '..', 'index.html').replace(/\\/g, '/');
 const STEPS = +process.argv[2] || 1500;
+const TUT = !!process.env.FUZZ_TUT;   // FUZZ_TUT=1: random play while the tutorial runs
 
 (async () => {
   const browser = await pw.chromium.launch({ channel: 'msedge', headless: true });
@@ -12,13 +13,13 @@ const STEPS = +process.argv[2] || 1500;
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error' && !/fonts\.g|ERR_|favicon/.test(m.text())) errors.push(m.text()); });
-  await page.addInitScript(() => localStorage.setItem('cafe-cb-save-v1', JSON.stringify({ lang: 'tr', day: 4, cash: 500 })));
+  await page.addInitScript(tut => localStorage.setItem('cafe-cb-save-v1', JSON.stringify({ lang: 'tr', day: 4, cash: 500, tutorialDone: !tut })), TUT);
   await page.goto(URL);
   await page.waitForTimeout(300);
 
   const bad = await page.evaluate(async (steps) => {
     const SPECS = ['newcup:S', 'newcup:M', 'newcup:L', 'cup', 'pf', 'tamper', 'milk:whole', 'milk:oat', 'pitcher', 'syrup:vanilla', 'syrup:caramel', 'top:whip', 'top:cinnamon'];
-    const TGT = ['prep', 'tray', 'serving', 'serving', 'customer', 'trash', 'grinder', 'group', 'pfrack', 'pf', 'pitcher', 'wand', 'pitcherrack', 'cup'];
+    const TGT = ['prep', 'tray', 'serving', 'serving', 'customer', 'trash', 'knockbox', 'grinder', 'group', 'pfrack', 'pf', 'pitcher', 'wand', 'pitcherrack', 'cup'];
     const BTN = ['#brewBtn', '#brewBtn', '#langBtn', '#serveBtn', '#serveBtn', '#bookBtn', '#closeBookBtn', '#peekBtn', '#backBtn'];
     const press = sel => { const b = document.querySelector(sel); if (b && !b.disabled && b.offsetParent !== null) b.click(); };
     const stats = { serves: 0, days: 0, menus: 0, bells: 0 };

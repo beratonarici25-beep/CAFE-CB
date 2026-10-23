@@ -11,6 +11,13 @@ themselves (grinder keys and grind button, the espresso machine's brew/steam but
 Put the finished cup on the **serving tray**, ring the **Serve** bell, and back at the bar drag the cup onto the customer.
 Game states: `ORDER_PENDING → PREPARING → READY_TO_SERVE → COMPLETED`.
 
+The bar is laid out like a real café bar, left to right in working order: paper cup stacks → grinder with tamp
+station and knock box → two-group espresso machine on a rubber mat → milk fridge and steel pitcher → syrup pumps and
+toppings → the pass with the serving tray and bell, with shelves and a chalk menu behind.
+The whole game shares one look, "cartoon but realistic": soft thick outlines, real proportions and materials, one warm
+light from the upper left. New players get a short tutorial (one latte, start to finish) from the head barista,
+**Jesica** (EN) / **Ülkü** (TR); it can be skipped and replayed from the main menu.
+
 Development will continue. Open to contributions.
 Geliştirmeye devam edicem, katkılara açığım.
 
@@ -23,6 +30,9 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `css/scene.css` | Layered café background (parallax, bulbs, neon) |
 | `css/fx.css` | Hover, drop-target and pop animations |
 | `css/views.css` | View switching, machine buttons/keys/displays, serving tray, contact shadows |
+| `css/bar.css` | The barista bar: back shelves, rubber mats, steel machine, grinder, fridge, bottles (2.5D shading) |
+| `css/theme.css` | Shared theme: walnut top bar, paper cards, notebook recipe book, main menu café backdrop |
+| `css/helper.css` | Helper character poses and the tutorial spotlight |
 | `js/util.js` | Helpers, palette, save file |
 | `js/i18n.js` | All text (`STR` UI, `PH` customer phrases); every key needs `en` and `tr` |
 | `js/audio.js` | Synthesised sound effects |
@@ -31,10 +41,15 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `js/scene.js` | Edison bulbs and parallax |
 | `js/fx.js` | Particles (espresso, steam, grounds, drops) and one-shot animations |
 | `js/station.js` | Drag & drop / tap-to-place interactions on the counter |
+| `js/helper.js` | The helper character module: `Helper.say(key, { pose, target, buttons })`, reusable outside the tutorial |
+| `js/tutorial.js` | First-run tutorial: fixed latte order, step checks, highlights and hints |
 | `js/main.js` | Game flow and states, view switching, HUD, overlays, frame loop |
-| `assets/` | Background SVGs and the icon |
+| `assets/models/` | 3D models rendered in Blender (WebP, @2x): bench equipment and the customer layers |
+| `tools/blender/models.py` | Builds every 3D model from primitives in Blender and renders them (toon shading, ink outline, one upper-left light) |
+| `assets/` | Background SVGs (café wall, seating, back bar) and the icon; `assets/helper/art.js` is the helper's SVG; `assets/CREDITS.md` lists sources |
 | `tests/e2e.js` | End-to-end test that brews real orders by dragging, through both views |
 | `tests/fuzz.js` | Random-play monkey test with state invariants |
+| `tests/tutorial.js` | Plays the tutorial with drags (desktop) and taps (phone); skip, replay, language, old saves |
 
 Plain scripts, no build step: open `index.html` directly or serve the folder.
 `CAFECB.html` redirects to `index.html` for old links.
@@ -44,4 +59,16 @@ Run the tests (needs `playwright-core` and Microsoft Edge):
 ```
 node tests/e2e.js
 node tests/fuzz.js 3000   # random play, checks for errors and broken state
+FUZZ_TUT=1 node tests/fuzz.js 1500   # the same while the tutorial runs
+node tests/tutorial.js
 ```
+
+## Credits
+
+All artwork is original. The bench equipment and the customers are 3D models built from primitives in Blender by
+`tools/blender/models.py` and rendered with toon shading to `assets/models/`; backgrounds, the back bar and the helper
+character are SVG. No third-party models, textures or brand logos are used. Re-render the models with:
+
+```
+blender -b -P tools/blender/models.py -- assets/models
+``` See [`assets/CREDITS.md`](assets/CREDITS.md).

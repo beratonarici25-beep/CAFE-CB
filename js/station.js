@@ -32,7 +32,7 @@ function deny(key, el) {
 const TARGETS = {
   newcup: ['prep', 'tray'],
   cup: ['prep', 'tray', 'serving', 'trash', 'customer'],
-  pf: ['grinder', 'group', 'pfrack', 'trash'],
+  pf: ['grinder', 'group', 'pfrack', 'knockbox', 'trash'],
   tamper: ['pf'],
   milk: ['pitcher'],
   pitcher: ['wand', 'pitcherrack', 'cup', 'trash'],
@@ -51,7 +51,7 @@ function check(spec, target) {
   switch (kind) {
     case 'newcup': return Rules.placeNewCup(B);
     case 'cup': return target === 'trash' ? Rules.trashCup(B) : Rules.moveCup(B, target);
-    case 'pf': return target === 'trash' ? Rules.dumpPf(B) : Rules.movePf(B, PF_SPOT[target]);
+    case 'pf': return target === 'trash' || target === 'knockbox' ? Rules.dumpPf(B) : Rules.movePf(B, PF_SPOT[target]);
     case 'tamper': return Rules.tamp(B);
     case 'milk': return Rules.fillPitcher(B);
     case 'pitcher': return target === 'cup' ? Rules.pour(B) : target === 'trash' ? Rules.dumpPitcher(B) : Rules.movePitcher(B, PITCHER_SPOT[target]);
@@ -77,10 +77,12 @@ function apply(spec, target, from) {
       c.at = target; sfx.clack(); layout({ cup: from }); fx('land', $('#cupObj'));
       break;
     case 'pf':
-      if (target === 'trash') {
+      if (target === 'trash' || target === 'knockbox') {
+        // knocking the puck out: into the knock box (or the trash), the portafilter stays where it was
         if (B.pf.grinding) grindEnd();
         B.pf.dose = 0; B.pf.doseQ = 0; B.pf.tamped = false;
-        sfx.trash(); fx('lid'); fx('dust', $('#trashZone'), '#5b3423');
+        if (target === 'knockbox') { sfx.tamp(); fx('dust', $('#knockBox'), '#5b3423'); fx('land', $('#knockBox')); }
+        else { sfx.trash(); fx('lid'); fx('dust', $('#trashZone'), '#5b3423'); }
         break;
       }
       if (B.pf.grinding) grindEnd();
@@ -341,7 +343,7 @@ function onPointerUp(e) {
   const tgt = d.hover;
   const kind = kindOf(d.spec);
   const ok = tgt && canDrag(d.spec) ? attempt(d.spec, tgt, from, d.src) : false;
-  if (ok && ['cup', 'pf', 'pitcher', 'newcup'].includes(kind) && !(tgt.name === 'trash' || tgt.name === 'customer' || (kind === 'pitcher' && tgt.name === 'cup'))) {
+  if (ok && ['cup', 'pf', 'pitcher', 'newcup'].includes(kind) && !(tgt.name === 'trash' || tgt.name === 'knockbox' || tgt.name === 'customer' || (kind === 'pitcher' && tgt.name === 'cup'))) {
     g.el.remove();                       // the real object glides in from the ghost (FLIP)
   } else if (ok && tgt.name === 'trash' && kind === 'cup') {
     fx('intoTrash', g.el, $('#bin'));
@@ -425,8 +427,10 @@ function sloshGhost(g, vx) {
 const MILK_COLORS = { whole: '#ffffff', oat: '#efe0c0', almond: '#f5e9da' };
 const TOP_COLORS = { whip: '#ffffff', cocoa: '#6b3b26', cinnamon: '#b5652e' };
 const BEAN_COLORS = { esp: '#5b3423', decaf: '#8a6a4a', dark: '#2e1a12' };
+// bottles, syrups and shakers are rendered models (tools/blender/models.py -> assets/models)
 function bottle(spec, cls, color, extra = '') {
-  return `<button class="obj bottle-obj ${cls}" type="button" data-drag="${spec}" style="--c:${color}"><span class="glass">${extra}</span><span class="nm"></span><span class="n"></span></button>`;
+  const img = `assets/models/${spec.replace(':', '-')}.webp`;
+  return `<button class="obj bottle-obj ${cls}" type="button" data-drag="${spec}" style="--c:${color}"><span class="glass"><img class="spr" src="${img}" alt="" draggable="false">${extra}</span><span class="nm"></span><span class="n"></span></button>`;
 }
 function makeChips(el, keys, fn) {
   el.innerHTML = '';
@@ -470,7 +474,7 @@ function buildBench() {
   document.addEventListener('keydown', onKey);
   ctr.addEventListener('dragstart', e => e.preventDefault());
   // drop spots become keyboard-reachable
-  views.querySelectorAll('.slot[data-drop], .zone[data-drop], #custZone').forEach(n => n.tabIndex = 0);
+  views.querySelectorAll('.slot[data-drop], .zone[data-drop], #knockBox, #custZone').forEach(n => n.tabIndex = 0);
   // thermometer bands (0–90 °C) and the shot window (0–45 s)
   const map = { warm: '#bandWarm', normal: '#bandNormal', hot: '#bandHot' };
   for (const [k, b] of Object.entries(TEMPS)) {
@@ -494,12 +498,18 @@ function applyBenchLang() {
   if (held) $('#holding').textContent = t('obj.hold', objName(held.spec));
 }
 
+// swaps a rendered model image only when it changes (called every frame)
+function setSprite(img, name) {
+  if (img && img.dataset.spr !== name) { img.dataset.spr = name; img.src = `assets/models/${name}.webp`; }
+}
+// load every state of the models up front so swapping never flickers
+['pf-empty', 'pf-ground', 'pf-tamped', 'pitcher-empty', 'pitcher-milk', 'pitcher-foam'].forEach(n => { const i = new Image(); i.src = `assets/models/${n}.webp`; });
 const setPressed = (el, fn) => el.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', fn(b.dataset.k) ? 'true' : 'false'));
 function renderBench() {
   const L = S(), c = B.cup, p = B.pf, pt = B.pitcher;
   setPressed($('#beanChips'), k => p.bean === k);
   $('#beanChips').querySelectorAll('button').forEach(b => { b.disabled = p.dose > 0; });
-  $('#hopper').style.setProperty('--bean', BEAN_COLORS[p.bean]);
+  $('#hopper').dataset.bean = p.bean;
   const [lo, hi] = doseZone();
   $('#doseZoneTxt').textContent = t('sweetSpot', lo, hi);
   $('#doseZone').style.left = (lo / 25 * 100) + '%';
@@ -507,6 +517,7 @@ function renderBench() {
   const pfEl = $('#pfObj');
   pfEl.classList.toggle('has-grounds', p.dose > 0);
   pfEl.classList.toggle('tamped', p.tamped);
+  setSprite($('#pfImg'), p.dose <= 0 ? 'pf-empty' : p.tamped ? 'pf-tamped' : 'pf-ground');
   $('#pfTag').textContent = p.dose > 0 ? fmt(p.tamped ? L.pfState.tamped : L.pfState.ground, p.dose.toFixed(1)) : L.pfState.empty;
 
   $('#brewCap').textContent = c.shotting ? L.stopBtn : L.brewBtn;
@@ -570,11 +581,8 @@ function updateBench(dt) {
   $('#tempTxt').textContent = Math.round(pt.temp) + ' °C';
   $('#tempMsg').textContent = !pt.milk ? t('err.pitcherEmpty') : pt.scorched ? L.scorched : pt.steaming ? L.steaming : pt.temp >= 30 ? L.pourReady : L.holdSteam;
   if (p.grinding || pt.steaming) $(p.grinding ? '#pfTag' : '#pitcherTag').textContent = p.grinding ? p.dose.toFixed(1) + ' g' : `${L.milks[pt.milk]}, ${Math.round(pt.temp)} °C`;
-  // pitcher contents: milk level, foam grows while steaming
-  const milkH = pt.milk ? 34 : 0;
-  const foamH = pt.milk ? { none: 2, light: 8, thick: 18 }[pt.foam] * clamp((pt.temp - 6) / 54, 0, 1) : 0;
-  const mEl = $('#ptMilk'), fEl = $('#ptFoam');
-  mEl.setAttribute('y', 84 - milkH); mEl.setAttribute('height', milkH);
-  fEl.setAttribute('y', 84 - milkH - foamH); fEl.setAttribute('height', foamH);
+  // the pitcher model shows what is inside: empty, cold milk, or milk with foam on top once it is steamed
+  setSprite($('#pitcherImg'), !pt.milk ? 'pitcher-empty' : pt.foam !== 'none' && pt.temp >= 30 ? 'pitcher-foam' : 'pitcher-milk');
+  setSprite($('#pfImg'), p.dose <= 0 ? 'pf-empty' : p.tamped ? 'pf-tamped' : 'pf-ground');
   updateDrag();
 }

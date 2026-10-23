@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1600 200" preserveAspectRatio="xMidYMax slice">
+  <!-- Back bar behind the barista (issue #10): two walnut shelves with cups, bean jars, coffee bags, syrups and
+       milk cartons, and a chalk menu in the middle. Original artwork. Light comes from the upper left. -->
+  <defs>
+    <linearGradient id="plank" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a36a44"/><stop offset=".45" stop-color="#7a4a2c"/><stop offset="1" stop-color="#4a2716"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity=".15"/><stop offset=".2" stop-color="#ffffff" stop-opacity=".6"/><stop offset=".45" stop-color="#ffffff" stop-opacity=".08"/><stop offset="1" stop-color="#5a7f88" stop-opacity=".25"/></linearGradient>
+    <linearGradient id="cer" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fffdf9"/><stop offset=".6" stop-color="#ece5db"/><stop offset="1" stop-color="#cfc5b8"/></linearGradient>
+    <linearGradient id="kraft" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d6a874"/><stop offset=".7" stop-color="#b88a5c"/><stop offset="1" stop-color="#94673f"/></linearGradient>
+    <linearGradient id="slate" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3f4744"/><stop offset="1" stop-color="#262b29"/></linearGradient>
+    <radialGradient id="beans" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#7a4a30"/><stop offset="1" stop-color="#2e1a12"/></radialGradient>
+    <pattern id="beanDots" width="9" height="7" patternUnits="userSpaceOnUse"><ellipse cx="4" cy="3" rx="3.4" ry="2.4" fill="#5b3423"/><path d="M4 1 v4" stroke="#2e1a12" stroke-width="1"/></pattern>
+    <g id="shelf">
+      <rect x="0" y="0" width="620" height="13" fill="url(#plank)" stroke="#4b2e2b" stroke-width="3"/>
+      <rect x="0" y="13" width="620" height="9" fill="#2e1a12" opacity=".22"/>
+    </g>
+    <g id="bracket"><path d="M0 0 h10 v26 q-10 -4 -10 -14z" fill="#3a2f2a"/></g>
+    <!-- a ceramic cup upside down -->
+    <g id="cup"><path d="M0 0 h34 l-4 -24 q-1 -4 -5 -4 h-16 q-4 0 -5 4z" fill="url(#cer)" stroke="#4b2e2b" stroke-width="3" stroke-linejoin="round"/><path d="M8 -20 v14" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/></g>
+    <g id="cupPink"><path d="M0 0 h34 l-4 -24 q-1 -4 -5 -4 h-16 q-4 0 -5 4z" fill="#e8968c" stroke="#4b2e2b" stroke-width="3" stroke-linejoin="round"/><path d="M8 -20 v14" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".6"/></g>
+    <!-- glass jar of coffee beans -->
+    <g id="jar">
+      <rect x="0" y="-56" width="46" height="56" rx="8" fill="url(#beans)"/>
+      <rect x="0" y="-42" width="46" height="42" rx="8" fill="url(#beanDots)" opacity=".9"/>
+      <rect x="0" y="-56" width="46" height="56" rx="8" fill="url(#glass)" stroke="#4b2e2b" stroke-width="3"/>
+      <rect x="-3" y="-66" width="52" height="12" rx="4" fill="#9a6440" stroke="#4b2e2b" stroke-width="3"/>
+      <rect x="9" y="-34" width="28" height="14" rx="2" fill="#fffaf3" stroke="#4b2e2b" stroke-width="2"/>
+    </g>
+    <!-- kraft coffee bag, plain label -->
+    <g id="bag">
+      <path d="M0 0 v-58 l6 -8 h30 l6 8 v58z" fill="url(#kraft)" stroke="#4b2e2b" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M6 -66 h30" stroke="#4b2e2b" stroke-width="3"/>
+      <rect x="9" y="-44" width="24" height="20" rx="3" fill="#fffaf3" stroke="#4b2e2b" stroke-width="2"/>
+      <ellipse cx="21" cy="-34" rx="5" ry="7" fill="#5b3423"/><path d="M21 -40 q-3 6 0 12" stroke="#fffaf3" stroke-width="1.5" fill="none"/>
+    </g>
+    <!-- syrup bottle with a pump -->
+    <g id="syrup">
+      <rect x="0" y="-62" width="24" height="62" rx="7" style="fill:var(--c)"/>
+      <rect x="0" y="-62" width="24" height="62" rx="7" fill="url(#glass)" stroke="#4b2e2b" stroke-width="3"/>
+      <rect x="2" y="-42" width="20" height="18" fill="#fffaf3" stroke="#4b2e2b" stroke-width="2"/>
+      <rect x="7" y="-74" width="10" height="12" fill="#2a2523" stroke="#4b2e2b" stroke-width="2"/>
+      <path d="M5 -76 h18 v-4 h-18z" fill="#2a2523" stroke="#4b2e2b" stroke-width="2"/>
+    </g>
+    <!-- milk carton, unbranded -->
+    <g id="carton">
+      <path d="M0 0 v-52 l8 -12 h24 l8 12 v52z" fill="url(#cer)" stroke="#4b2e2b" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M0 -52 h40 M8 -64 l4 12 M32 -64 l-4 12" stroke="#4b2e2b" stroke-width="2" fill="none"/>
+      <rect x="5" y="-40" width="30" height="20" rx="3" style="fill:var(--c)"/>
+      <path d="M20 -36 q-6 8 0 12 q6 -4 0 -12z" fill="#fff"/>
+    </g>
+    <!-- trailing pothos in a pot -->
+    <g id="plant">
+      <path d="M0 0 h44 l-5 -36 h-34z" fill="#e8968c" stroke="#4b2e2b" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M0 -36 h44" stroke="#c06f66" stroke-width="5"/>
+      <g fill="#5f9c58" stroke="#2f5a30" stroke-width="2">
+        <ellipse cx="10" cy="-44" rx="11" ry="7" transform="rotate(-30 10 -44)"/><ellipse cx="32" cy="-48" rx="12" ry="7" transform="rotate(25 32 -48)"/>
+        <ellipse cx="22" cy="-56" rx="10" ry="7"/><ellipse cx="-6" cy="-26" rx="10" ry="6" transform="rotate(60 -6 -26)"/>
+        <ellipse cx="-10" cy="-4" rx="9" ry="6" transform="rotate(80 -10 -4)"/><ellipse cx="50" cy="-22" rx="10" ry="6" transform="rotate(-60 50 -22)"/>
+        <ellipse cx="54" cy="4" rx="9" ry="6" transform="rotate(-80 54 4)"/>
+      </g>
+      <path d="M2 -36 q-12 14 -12 40 M42 -36 q14 14 12 42" stroke="#2f5a30" stroke-width="2" fill="none"/>
+    </g>
+  </defs>
+
+  <!-- warm light from the upper left -->
+  <rect width="1600" height="200" fill="url(#plank)" opacity="0"/>
+  <radialGradient id="lamp" cx=".15" cy="0" r=".9"><stop offset="0" stop-color="#ffe6b5" stop-opacity=".35"/><stop offset="1" stop-color="#ffe6b5" stop-opacity="0"/></radialGradient>
+  <rect width="1600" height="200" fill="url(#lamp)"/>
+
+  <!-- chalk menu board -->
+  <g transform="translate(640 6)">
+    <rect x="6" y="8" width="320" height="132" rx="10" fill="#000" opacity=".18"/>
+    <rect x="0" y="0" width="320" height="132" rx="10" fill="#7a4a2c" stroke="#4b2e2b" stroke-width="3"/>
+    <rect x="10" y="10" width="300" height="112" rx="5" fill="url(#slate)" stroke="#4b2e2b" stroke-width="2"/>
+    <g font-family="'Courier Prime','Courier New',monospace" font-weight="700" fill="#f5efe6" font-size="15">
+      <text x="160" y="34" text-anchor="middle" font-family="'Pacifico','Brush Script MT',cursive" font-size="20" fill="#ffd6dc">Cafe C&amp;B</text>
+      <text x="26" y="58">Espresso</text><text x="294" y="58" text-anchor="end">2.50</text>
+      <text x="26" y="76">Latte</text><text x="294" y="76" text-anchor="end">4.00</text>
+      <text x="26" y="94">Cappuccino</text><text x="294" y="94" text-anchor="end">4.25</text>
+      <text x="26" y="112">Mocha</text><text x="294" y="112" text-anchor="end">5.00</text>
+    </g>
+    <path d="M118 54 h120 M80 72 h170 M136 90 h104 M88 108 h160" stroke="#f5efe6" stroke-width="1.5" stroke-dasharray="2 5" opacity=".5"/>
+    <path d="M20 118 q30 -6 60 0" stroke="#f6d88c" stroke-width="2" fill="none" opacity=".6"/>
+  </g>
+
+  <!-- upper shelf -->
+  <g transform="translate(0 84)">
+    <g transform="translate(70 0)"><use href="#cup"/><use href="#cup" x="38"/><use href="#cupPink" x="76"/><use href="#cup" x="19" y="-28"/><use href="#cupPink" x="57" y="-28"/><use href="#cup" x="38" y="-56"/></g>
+    <g transform="translate(250 0)"><use href="#jar"/><use href="#jar" x="56"/><use href="#jar" x="112"/></g>
+    <g transform="translate(450 0)"><use href="#bag"/><use href="#bag" x="50"/></g>
+    <use href="#plant" x="560" y="0"/>
+    <use href="#plant" x="1010" y="0"/>
+    <g transform="translate(1100 0)"><use href="#bag"/><use href="#bag" x="50"/></g>
+    <g transform="translate(1220 0)"><use href="#jar"/><use href="#jar" x="56"/></g>
+    <g transform="translate(1350 0)"><use href="#cupPink"/><use href="#cup" x="38"/><use href="#cup" x="76"/><use href="#cup" x="114"/><use href="#cup" x="19" y="-28"/><use href="#cupPink" x="57" y="-28"/><use href="#cup" x="95" y="-28"/></g>
+  </g>
+  <use href="#shelf" y="84"/><use href="#shelf" x="980" y="84"/>
+  <use href="#bracket" x="120" y="97"/><use href="#bracket" x="590" y="97"/><use href="#bracket" x="1010" y="97"/><use href="#bracket" x="1470" y="97"/>
+
+  <!-- lower shelf -->
+  <g transform="translate(0 176)">
+    <g transform="translate(40 0)">
+      <use href="#syrup" style="--c:#f3e2a8"/><use href="#syrup" x="32" style="--c:#d9964a"/><use href="#syrup" x="64" style="--c:#a9714a"/>
+      <use href="#syrup" x="96" style="--c:#e8968c"/><use href="#syrup" x="128" style="--c:#8cc7ae"/><use href="#syrup" x="160" style="--c:#f3e2a8"/>
+    </g>
+    <g transform="translate(260 0)"><use href="#carton" style="--c:#4f9ec8"/><use href="#carton" x="48" style="--c:#4f9ec8"/><use href="#carton" x="96" style="--c:#d9b45a"/><use href="#carton" x="144" style="--c:#b5754b"/></g>
+    <g transform="translate(470 0)"><use href="#jar"/></g>
+    <g transform="translate(1000 0)"><use href="#carton" style="--c:#d9b45a"/><use href="#carton" x="48" style="--c:#4f9ec8"/></g>
+    <g transform="translate(1120 0)">
+      <use href="#syrup" style="--c:#d9964a"/><use href="#syrup" x="32" style="--c:#a9714a"/><use href="#syrup" x="64" style="--c:#f3e2a8"/>
+      <use href="#syrup" x="96" style="--c:#d9964a"/><use href="#syrup" x="128" style="--c:#e8968c"/>
+    </g>
+    <g transform="translate(1320 0)"><use href="#jar"/><use href="#jar" x="56"/></g>
+    <use href="#plant" x="1460" y="0"/>
+  </g>
+  <use href="#shelf" y="176"/><use href="#shelf" x="980" y="176"/>
+</svg>

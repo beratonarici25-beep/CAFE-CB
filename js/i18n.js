@@ -22,7 +22,7 @@ const STR = {
     openCafe: 'Open the café', openDay: 'Open day {0}', howTo: 'How to brew', reset: 'Reset progress', resetConfirm: 'Tap again to erase everything',
     upgrades: 'Upgrades', owned: 'Owned',
     nextCustomer: 'Next customer', closeShop: 'Close up shop', dayDone: 'Day {0} done!', earned: 'Earned', avgStars: 'Avg stars', toMenu: 'Main menu',
-    tip: 'tip {0}', backToBar: 'Back to the bar', recipeBook: 'Recipe book', starsOf: '{0} of 5 stars',
+    tip: 'tip {0}', backToBar: 'Back to the bar', backToMenu: 'Back to the menu', recipeBook: 'Recipe book', starsOf: '{0} of 5 stars',
     pickFirst: 'Pick a cup first.', plenty: 'That is plenty of syrup.', paused: 'Day paused. Open the café to start a fresh day.',
     sizes: { S: 'Small', M: 'Medium', L: 'Large' },
     beans: { esp: 'House Espresso', decaf: 'Decaf', dark: 'Dark Roast' },
@@ -96,7 +96,7 @@ const STR = {
     openCafe: 'Kafeyi aç', openDay: '{0}. günü aç', howTo: 'Nasıl yapılır', reset: 'İlerlemeyi sıfırla', resetConfirm: 'Her şeyi silmek için tekrar dokun',
     upgrades: 'Geliştirmeler', owned: 'Sahipsin',
     nextCustomer: 'Sıradaki müşteri', closeShop: 'Dükkânı kapat', dayDone: '{0}. gün bitti!', earned: 'Kazanç', avgStars: 'Ort. yıldız', toMenu: 'Ana menü',
-    tip: 'bahşiş {0}', backToBar: 'Tezgâha dön', recipeBook: 'Tarif defteri', starsOf: '5 üzerinden {0} yıldız',
+    tip: 'bahşiş {0}', backToBar: 'Tezgâha dön', backToMenu: 'Menüye dön', recipeBook: 'Tarif defteri', starsOf: '5 üzerinden {0} yıldız',
     pickFirst: 'Önce bir bardak seç.', plenty: 'Bu kadar şurup yeter.', paused: 'Gün durduruldu. Yeni bir gün için kafeyi aç.',
     sizes: { S: 'Küçük', M: 'Orta', L: 'Büyük' },
     beans: { esp: 'Ev Espressosu', decaf: 'Kafeinsiz', dark: 'Koyu Kavrum' },
@@ -233,7 +233,7 @@ const fmt = (s, ...args) => s.replace(/\{(\d)\}/g, (_, i) => args[i]);
 Object.assign(STR.en, {
   obj: {
     cups: 'Cups', grinder: 'Grinder', machine: 'Espresso machine', group: 'Group head', tray: 'Drip tray', wand: 'Steam wand',
-    milk: 'Milk', pitcher: 'Pitcher', syrups: 'Syrups', tops: 'Toppings', prep: 'Prep mat', serve: 'Serve here', trash: 'Trash', serving: 'Serving tray',
+    milk: 'Milk', pitcher: 'Pitcher', syrups: 'Syrups', tops: 'Toppings', prep: 'Prep mat', serve: 'Serve here', trash: 'Trash', serving: 'Serving tray', knock: 'Knock box',
     pf: 'Portafilter', tamper: 'Tamper', rack: 'Rack', cup: 'Cup', brew: 'Brew', hold: 'Holding: {0}', drop: 'Drop',
   },
   brewBtn: 'Brew', stopBtn: 'Stop!', holdGrindShort: 'Hold: grind', holdSteamShort: 'Hold: steam', serveBtn: 'Serve',
@@ -246,7 +246,7 @@ Object.assign(STR.en, {
   pitcherState: { empty: 'empty', milk: '{0}, {1} °C' },
   err: {
     cupAlready: 'There is already a cup on the bench.', noCup: 'Put a cup on the bench first.', same: 'It is already there.',
-    pfToGrinder: 'Put the portafilter under the grinder.', dumpOld: 'Knock the old grounds into the trash first.',
+    pfToGrinder: 'Put the portafilter under the grinder.', dumpOld: 'Knock the old grounds into the knock box first.',
     pfEmpty: 'The portafilter is empty. Grind some coffee.', tampedAlready: 'Already tamped.', pfLocked: 'Take the portafilter out of the machine first.',
     tampFirst: 'Tamp the grounds before locking them in.', shotRunning: 'Wait, the shot is still running!',
     pfToGroup: 'Lock the portafilter into the group head.', cupToTray: 'Put the cup on the drip tray under the group head.',
@@ -260,7 +260,7 @@ Object.assign(STR.en, {
 Object.assign(STR.tr, {
   obj: {
     cups: 'Bardaklar', grinder: 'Öğütücü', machine: 'Espresso makinesi', group: 'Grup başlığı', tray: 'Damlalık', wand: 'Buhar çubuğu',
-    milk: 'Süt', pitcher: 'Süt potu', syrups: 'Şuruplar', tops: 'Süslemeler', prep: 'Hazırlık alanı', serve: 'Servis', trash: 'Çöp', serving: 'Servis tepsisi',
+    milk: 'Süt', pitcher: 'Süt potu', syrups: 'Şuruplar', tops: 'Süslemeler', prep: 'Hazırlık alanı', serve: 'Servis', trash: 'Çöp', serving: 'Servis tepsisi', knock: 'Telve kutusu',
     pf: 'Portafiltre', tamper: 'Tamper', rack: 'Askı', cup: 'Bardak', brew: 'Demle', hold: 'Elinde: {0}', drop: 'Bırak',
   },
   brewBtn: 'Demle', stopBtn: 'Dur!', holdGrindShort: 'Basılı tut: öğüt', holdSteamShort: 'Basılı tut: ısıt', serveBtn: 'Servis et',
@@ -273,7 +273,7 @@ Object.assign(STR.tr, {
   pitcherState: { empty: 'boş', milk: '{0}, {1} °C' },
   err: {
     cupAlready: 'Tezgâhta zaten bir bardak var.', noCup: 'Önce tezgâha bir bardak koy.', same: 'Zaten orada.',
-    pfToGrinder: 'Portafiltreyi öğütücünün altına koy.', dumpOld: 'Önce eski telveyi çöpe dök.',
+    pfToGrinder: 'Portafiltreyi öğütücünün altına koy.', dumpOld: 'Önce eski telveyi telve kutusuna vur.',
     pfEmpty: 'Portafiltre boş. Önce kahve öğüt.', tampedAlready: 'Zaten sıkıştırıldı.', pfLocked: 'Önce portafiltreyi makineden çıkar.',
     tampFirst: 'Takmadan önce kahveyi tamper ile sıkıştır.', shotRunning: 'Bekle, shot hâlâ akıyor!',
     pfToGroup: 'Portafiltreyi grup başlığına tak.', cupToTray: 'Bardağı grup başlığının altındaki damlalığa koy.',
@@ -292,7 +292,7 @@ STR.en.howSteps = `<ol class="steps">
   <li><b>Brew:</b> lock the portafilter into the group head, put the cup on the drip tray, press the machine's <b>Brew</b> button and stop at <b>25–30 s</b>. Press again for another shot.</li>
   <li><b>Milk:</b> drag a milk bottle onto the pitcher, put the pitcher under the steam wand, pick the foam with the keys on the machine, hold <b>Steam</b>, then drag the pitcher onto the cup.</li>
   <li><b>Extras:</b> press a syrup bottle's pump (or drag the bottle onto the cup) and drag topping shakers onto the cup.</li>
-  <li><b>Serve:</b> put the cup on the <b>serving tray</b> and ring the <b>Serve</b> bell. Back at the bar, drag the cup onto the customer. Messed up? Drag it into the trash. The trash also empties the portafilter and the pitcher.</li>
+  <li><b>Serve:</b> put the cup on the <b>serving tray</b> and ring the <b>Serve</b> bell. Back at the bar, drag the cup onto the customer. Messed up? Drag it into the trash. Knock old grounds out of the portafilter into the <b>knock box</b>; the trash also empties the pitcher.</li>
 </ol>`;
 STR.tr.howSteps = `<ol class="steps">
   <li><b>Bardak:</b> standdan bir bardağı hazırlık alanına ya da damlalığa sürükle.</li>
@@ -302,5 +302,73 @@ STR.tr.howSteps = `<ol class="steps">
   <li><b>Demle:</b> portafiltreyi grup başlığına tak, bardağı damlalığa koy, makinedeki <b>Demle</b> düğmesine bas ve <b>25–30 sn</b>’de durdur. Bir shot daha için tekrar bas.</li>
   <li><b>Süt:</b> bir süt şişesini potaya sürükle, potayı buhar çubuğunun altına koy, köpüğü makinedeki tuşlardan seç, <b>Buhar</b>’ı basılı tut, sonra potayı bardağın üstüne sürükle.</li>
   <li><b>Ekstralar:</b> şurup şişesinin pompasına bas (ya da şişeyi bardağa sürükle), süsleme kaplarını bardağın üstüne sürükle.</li>
-  <li><b>Servis:</b> bardağı <b>servis tepsisine</b> koy ve <b>Servis et</b> ziline bas. Tezgâha dönünce bardağı müşterinin üstüne sürükle. Hata mı yaptın? Çöpe at. Çöp ayrıca portafiltreyi ve potayı da boşaltır.</li>
+  <li><b>Servis:</b> bardağı <b>servis tepsisine</b> koy ve <b>Servis et</b> ziline bas. Tezgâha dönünce bardağı müşterinin üstüne sürükle. Hata mı yaptın? Çöpe at. Portafiltredeki eski telveyi <b>telve kutusuna</b> vur; çöp ayrıca potayı da boşaltır.</li>
 </ol>`;
+
+/* ---- helper character + tutorial (issue #12); {0} is the helper's name ---- */
+STR.en.tutorialBtn = 'Play the tutorial';
+STR.tr.tutorialBtn = 'Öğreticiyi oynat';
+STR.en.helper = {
+  name: 'Jesica', role: 'head barista',
+  welcome: "Hi, I'm {0}! Let's make your very first drink together. Here comes a guest.",
+  ticket: 'Listen to the order. It gets pinned on this ticket, so you can check it any time.',
+  toBench: 'Now press “Go to the barista bench”. No rush, nobody gets impatient while I show you around.',
+  peekBack: 'Head back to the bench when you are ready.',
+  cup: 'A medium latte, so: drag the Medium cup onto the drip tray of the espresso machine.',
+  pfGrinder: 'Grab the portafilter (the handle with the basket) and put it under the grinder.',
+  grind: 'Hold the Grind button until the scale shows 17–19 g. Aim for the green zone.',
+  tamp: 'Drag the tamper onto the portafilter to press the coffee flat.',
+  lock: 'Lock the portafilter into the group head of the machine.',
+  brew: 'Press Brew and stop it between 25 and 30 seconds. A latte gets two shots, so do it twice.',
+  milk: 'Milk time! Drag the whole milk bottle from the fridge onto the pitcher.',
+  wand: 'Put the pitcher under the steam wand.',
+  steam: 'A latte has light foam, and that key is already lit. Hold Steam until 60–67 °C.',
+  pour: 'Now drag the pitcher onto the cup to pour the milk.',
+  serveTray: 'Lovely! Put the cup on the serving tray.',
+  bell: 'Ring the Serve bell to take it out to the bar.',
+  hand: 'Last step: drag the cup onto the customer.',
+  wait: "Let's see what they think…",
+  finish: 'Your first latte! The other drinks are in the recipe book, you will learn them as you go. Welcome to the café!',
+  finishBtn: "Let's go!", skip: 'Skip tutorial', skipSure: 'Sure? Tap to skip', skipped: 'Tutorial skipped. You can replay it from the main menu.',
+  praise: ['Nice!', 'Perfect!', 'Great job!', "That's it!"],
+  hintCupSize: "That's not a medium cup. Drag it into the trash and take a Medium one.",
+  hintCupTray: 'Almost! The cup goes on the drip tray, right under the group head.',
+  hintDose: 'Not quite 17–19 g. Knock the coffee into the knock box and grind again.',
+  hintShot: 'Try to stop between 25 and 30 seconds. Keep going!',
+  hintMilk: "Oops, that's a different milk. Empty the pitcher into the trash and use whole milk.",
+  hintScorched: 'Too hot, the milk burnt! Empty the pitcher into the trash and start again.',
+  hintFoam: 'A latte needs light foam: press the Light key on the machine.',
+  hintSteamMore: 'A bit warmer: hold Steam until it reaches 60 °C.',
+};
+STR.tr.helper = {
+  name: 'Ülkü', role: 'baş barista',
+  welcome: 'Merhaba, ben {0}! İlk içeceğini birlikte hazırlayalım. Bak, bir misafir geliyor.',
+  ticket: 'Siparişi dinle. Sipariş bu fişe iğnelenir, istediğin zaman bakabilirsin.',
+  toBench: 'Şimdi “Barista alanına geç”e bas. Acele yok, ben gösterirken kimse sabırsızlanmaz.',
+  peekBack: 'Hazır olunca tezgâha dön.',
+  cup: 'Orta boy latte istendi: Orta bardağı espresso makinesinin damlalığına sürükle.',
+  pfGrinder: 'Portafiltreyi (sepetli sap) al ve öğütücünün altına koy.',
+  grind: 'Terazide 17–19 g görünene kadar Öğüt düğmesini basılı tut. Yeşil bölgeyi hedefle.',
+  tamp: 'Kahveyi düzleştirmek için tamper’ı portafiltrenin üstüne sürükle.',
+  lock: 'Portafiltreyi makinenin grup başlığına tak.',
+  brew: 'Demle’ye bas ve 25 ile 30 saniye arasında durdur. Latte iki shot ister, iki kez yap.',
+  milk: 'Süt zamanı! Buzdolabındaki tam yağlı süt şişesini potaya sürükle.',
+  wand: 'Potayı buhar çubuğunun altına koy.',
+  steam: 'Latte az köpüklü olur, o tuş zaten yanıyor. 60–67 °C olana kadar Buhar’ı basılı tut.',
+  pour: 'Şimdi sütü dökmek için potayı bardağın üstüne sürükle.',
+  serveTray: 'Harika! Bardağı servis tepsisine koy.',
+  bell: 'Tezgâha çıkarmak için Servis zilini çal.',
+  hand: 'Son adım: bardağı müşterinin üstüne sürükle.',
+  wait: 'Bakalım beğenecek mi…',
+  finish: 'İlk latten hazır! Diğer içecekler tarif defterinde, oynadıkça öğreneceksin. Kafeye hoş geldin!',
+  finishBtn: 'Hadi başlayalım!', skip: 'Öğreticiyi geç', skipSure: 'Emin misin? Geçmek için dokun', skipped: 'Öğretici geçildi. Ana menüden tekrar oynatabilirsin.',
+  praise: ['Güzel!', 'Mükemmel!', 'Harika iş!', 'İşte bu!'],
+  hintCupSize: 'Bu orta boy değil. Çöpe sürükle ve Orta bardağı al.',
+  hintCupTray: 'Az kaldı! Bardak damlalığa, tam grup başlığının altına gidecek.',
+  hintDose: 'Tam 17–19 g olmadı. Kahveyi telve kutusuna vur ve yeniden öğüt.',
+  hintShot: '25 ile 30 saniye arasında durdurmaya çalış. Devam!',
+  hintMilk: 'Hop, bu başka bir süt. Potayı çöpe boşalt ve tam yağlı süt kullan.',
+  hintScorched: 'Çok ısındı, süt yandı! Potayı çöpe boşalt ve baştan başla.',
+  hintFoam: 'Latte az köpük ister: makinedeki Az tuşuna bas.',
+  hintSteamMore: 'Biraz daha sıcak: 60 °C olana kadar Buhar’ı basılı tut.',
+};

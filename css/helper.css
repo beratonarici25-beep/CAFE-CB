@@ -1,0 +1,90 @@
+/* The helper character and the tutorial spotlight (issue #12). She stands in a bottom (or top) corner, away from
+   what she talks about; only her bubble's buttons take clicks, so she never blocks the game. */
+.helper {
+  position: fixed; z-index: 29; bottom: max(10px, env(safe-area-inset-bottom, 0px)); left: 10px; right: auto;
+  display: flex; align-items: flex-end; gap: 4px; pointer-events: none; max-width: calc(100vw - 20px);
+}
+.helper.side-right { left: auto; right: 10px; flex-direction: row-reverse; }
+.helper.at-top { bottom: auto; top: calc(var(--top-h, 46px) + 8px); align-items: flex-start; }
+.hl-figure { flex: none; width: 128px; filter: drop-shadow(4px 8px 8px rgba(40,20,10,.35)); }
+.helper-art { display: block; width: 100%; height: auto; overflow: visible; }
+.hl-bubble {
+  position: relative; max-width: 330px; margin-bottom: 92px; padding: 9px 13px 11px;
+  background: var(--paper-grad, #fffaf3); border: 3px solid var(--ink); border-radius: 18px;
+  box-shadow: 0 4px 0 var(--ink), 4px 10px 18px rgba(40,20,10,.3);
+}
+.helper.at-top .hl-bubble { margin: 70px 0 0; }
+.hl-bubble::before {
+  content: ""; position: absolute; left: -13px; bottom: 26px; width: 18px; height: 18px;
+  background: #fffaf3; border-left: 3px solid var(--ink); border-bottom: 3px solid var(--ink); transform: rotate(45deg);
+}
+.helper.side-right .hl-bubble::before { left: auto; right: -13px; transform: rotate(-135deg); }
+.helper.at-top .hl-bubble::before { bottom: auto; top: 26px; }
+.hl-who { display: flex; align-items: baseline; gap: 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.hl-who b { font-family: var(--font-display); font-size: 15px; letter-spacing: .02em; text-transform: none; color: var(--blush-deep); }
+.hl-text { margin: 2px 0 0; font-weight: 700; font-size: 15px; line-height: 1.38; }
+.hl-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+.hl-btns .btn { pointer-events: auto; }   /* only the buttons take clicks, never the space around them */
+.hl-btns .btn { padding: 4px 12px; font-size: 13px; box-shadow: 0 2px 0 var(--ink); }
+.hl-btns .btn.skip { background: #f6ede6; font-weight: 700; }
+.hl-btns .btn.skip.sure { background: var(--butter); }
+.hl-btns .btn.go { font-size: 15px; padding: 6px 16px; }
+.helper.bubble-in .hl-bubble { animation: hlIn .3s var(--pop, ease-out); }
+@keyframes hlIn { from { transform: translateY(8px) scale(.96); opacity: .3; } }
+
+/* ---- poses: arms turn at the shoulder ---- */
+.helper-art .arm { transform-box: view-box; transition: transform .35s var(--pop, ease-out); }
+.helper-art .arm-a { transform-origin: 39px 149px; }
+.helper-art .arm-b { transform-origin: 121px 149px; }
+.helper-art .finger, .helper-art .eyes-happy, .helper-art .m-open, .helper-art .m-o { display: none; }
+.helper-art .hl-body { transform-box: view-box; transform-origin: 80px 222px; animation: hlSway 4s ease-in-out infinite; }
+@keyframes hlSway { 50% { transform: rotate(1.2deg) translateY(-1px); } }
+.helper-art .eyes { transform-box: view-box; transform-origin: 80px 83px; animation: hlBlink 4.2s infinite; }
+@keyframes hlBlink { 0%, 95%, 100% { transform: none; } 97% { transform: scaleY(.1); } }
+.helper-art .brows path { transform-box: fill-box; transform-origin: center; transition: transform .3s; }
+
+/* pointing: the arm on the side facing the screen reaches out toward the highlighted thing */
+.helper.side-left.pose-point .arm-b { transform: rotate(-115deg); }
+.helper.side-right.pose-point .arm-a { transform: rotate(115deg); }
+.helper.at-top.side-left.pose-point .arm-b { transform: rotate(-55deg); }
+.helper.at-top.side-right.pose-point .arm-a { transform: rotate(55deg); }
+.helper.side-left.pose-point .arm-b .finger, .helper.side-right.pose-point .arm-a .finger { display: inline; }
+/* cheering: both arms up, happy eyes, open smile */
+.helper.pose-cheer .arm-a { transform: rotate(148deg); }
+.helper.pose-cheer .arm-b { transform: rotate(-148deg); }
+.helper.pose-cheer .eyes { display: none; }
+.helper.pose-cheer .eyes-happy, .helper.pose-cheer .m-open { display: inline; }
+.helper.pose-cheer .m-smile { display: none; }
+.helper.pose-cheer .hl-figure { animation: hlHop .5s var(--pop, ease-out); }
+@keyframes hlHop { 40% { transform: translateY(-10px); } }
+/* thinking / warning: hand to the chin, worried brows, a small "o" */
+.helper.pose-warn .arm-a { transform: rotate(-158deg); }
+.helper.pose-warn .brow-a { transform: rotate(-12deg) translateY(-1px); }
+.helper.pose-warn .brow-b { transform: rotate(12deg) translateY(-1px); }
+.helper.pose-warn .m-smile { display: none; }
+.helper.pose-warn .m-o { display: inline; }
+/* waving hello */
+.helper.pose-wave .arm-b { transform: rotate(-150deg); animation: hlWave .9s ease-in-out infinite; }
+@keyframes hlWave { 50% { transform: rotate(-168deg); } }
+/* talking: the mouth opens and closes for a moment after each new line */
+.helper.talking:not(.pose-cheer):not(.pose-warn) .m-open { display: inline; animation: hlTalk .28s steps(1) infinite; }
+.helper.talking:not(.pose-cheer):not(.pose-warn) .m-smile { animation: hlTalk .28s steps(1) infinite reverse; }
+@keyframes hlTalk { 0% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ---- tutorial spotlight ---- */
+#tutDim { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 16; pointer-events: none; }
+#tutDim .shade { fill: rgba(30,15,8,.46); }
+#tutDim .rings rect { fill: none; stroke: #ffd36b; stroke-width: 4; stroke-dasharray: 12 8; animation: ringMarch 1s linear infinite; filter: drop-shadow(0 0 6px rgba(255,211,107,.9)); }
+@keyframes ringMarch { to { stroke-dashoffset: -20; } }
+
+@media (max-width: 760px) {
+  .hl-figure { width: 82px; }
+  .hl-bubble { max-width: min(250px, calc(100vw - 112px)); margin-bottom: 58px; padding: 7px 10px 9px; }
+  .helper.at-top .hl-bubble { margin-top: 40px; }
+  .hl-text { font-size: 13.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .helper-art .hl-body, .helper-art .eyes, .helper.pose-wave .arm-b, .helper.talking .m-open, .helper.talking .m-smile,
+  .helper.bubble-in .hl-bubble, .helper.pose-cheer .hl-figure, #tutDim .rings rect { animation: none; }
+  .helper-art .arm { transition: none; }
+}

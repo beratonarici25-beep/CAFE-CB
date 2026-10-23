@@ -20,6 +20,7 @@ const SURPRISE_KEYS = ['decaf', 'oat', 'almond', 'vanilla', 'cinnamon', 'L'];
 const NAMES = ['Mira', 'Theo', 'Ada', 'Jun', 'Rosa', 'Felix', 'Noor', 'Kai', 'Lena', 'Omar', 'Ivy', 'Bastian', 'Yuki', 'Sam', 'Priya', 'Elif', 'Mateo', 'Hana', 'Leo', 'Zara', 'Deniz', 'Ola', 'Can', 'Ayşe', 'Mert', 'Zeynep'];
 const SKIN = ['#f6d3b8', '#ecbd98', '#c98b62', '#9b6544', '#6e4630', '#f2c9a5'];
 const HAIR = ['#3b2a24', '#6b4430', '#d9a35b', '#1f1b1a', '#b5533c', '#9aa0a8', '#e8d2a0'];
+const EYES = ['#5b3a24', '#3b6a8a', '#4f7a4a', '#2e1f17', '#7a5a2e'];
 const SHIRT = ['#f2b5b8', '#a9c7ea', '#f6d88c', '#b9dcb0', '#d5b8ea', '#f4c095', '#9fd3cf'];
 
 /* ---------------- bench state ---------------- */
@@ -74,7 +75,8 @@ const Rules = {
 function makeCustomer() {
   return {
     name: pick(NAMES), skin: pick(SKIN), hair: pick(HAIR), shirt: pick(SHIRT), hat: pick(SHIRT),
-    hairStyle: ri(5), glasses: Math.random() < 0.3, seed: rand(0, 6),
+    hairStyle: ri(6), glasses: Math.random() < 0.3, seed: rand(0, 6),
+    eye: pick(EYES), collar: Math.random() < 0.5, acc: pick(['none', 'none', 'scarf', 'earrings', 'beard', 'cap']),
     x: -90, state: 'enter', mood: 'happy',
   };
 }
