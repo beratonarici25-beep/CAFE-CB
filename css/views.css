@@ -109,7 +109,7 @@ body.view-barista {
 .key {
   position: relative; border: 2px solid var(--ink); border-radius: 6px; cursor: pointer;
   background: linear-gradient(#fffaf3, #e7d8ca); box-shadow: 0 3px 0 var(--ink);
-  font-weight: 800; font-size: 10.5px; line-height: 1.1; padding: 8px 2px 3px; overflow-wrap: anywhere;
+  font-weight: 800; font-size: 10.5px; line-height: 1.1; padding: 8px 1px 3px; white-space: nowrap; overflow: hidden; min-width: 0;
   transition: transform .07s, box-shadow .07s;
 }
 .key::before {

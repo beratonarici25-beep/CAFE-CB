@@ -9,13 +9,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grandstander:wght@500;700;800&family=Nunito:wght@400;600;700;800&family=Courier+Prime:wght@400;700&family=Pacifico&display=swap">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="css/scene.css">
-<link rel="stylesheet" href="css/fx.css">
-<link rel="stylesheet" href="css/views.css">
-<link rel="stylesheet" href="css/bar.css">
-<link rel="stylesheet" href="css/theme.css">
-<link rel="stylesheet" href="css/helper.css">
+<link rel="stylesheet" href="style.css?v=15">
+<link rel="stylesheet" href="css/scene.css?v=15">
+<link rel="stylesheet" href="css/fx.css?v=15">
+<link rel="stylesheet" href="css/views.css?v=15">
+<link rel="stylesheet" href="css/bar.css?v=15">
+<link rel="stylesheet" href="css/theme.css?v=15">
+<link rel="stylesheet" href="css/helper.css?v=15">
 </head>
 <body>
 
@@ -88,9 +88,9 @@
     <section class="zone z-cups">
       <h3><span class="step">1</span><span data-t="obj.cups">Cups</span></h3>
       <div class="cupstand" id="cupStand">
-        <button class="obj newcup" type="button" data-drag="newcup:S"><img class="spr cupspr s" src="assets/models/cup-S.webp" alt="" draggable="false"><b data-size="S"></b></button>
-        <button class="obj newcup" type="button" data-drag="newcup:M"><img class="spr cupspr m" src="assets/models/cup-M.webp" alt="" draggable="false"><b data-size="M"></b></button>
-        <button class="obj newcup" type="button" data-drag="newcup:L"><img class="spr cupspr l" src="assets/models/cup-L.webp" alt="" draggable="false"><b data-size="L"></b></button>
+        <button class="obj newcup" type="button" data-drag="newcup:S"><img class="spr cupspr s" src="assets/models/cup-S.webp" width="115" height="168" alt="" draggable="false"><b data-size="S"></b></button>
+        <button class="obj newcup" type="button" data-drag="newcup:M"><img class="spr cupspr m" src="assets/models/cup-M.webp" width="124" height="192" alt="" draggable="false"><b data-size="M"></b></button>
+        <button class="obj newcup" type="button" data-drag="newcup:L"><img class="spr cupspr l" src="assets/models/cup-L.webp" width="133" height="216" alt="" draggable="false"><b data-size="L"></b></button>
       </div>
       <div class="lids" aria-hidden="true"><i></i><i></i><i></i><span class="sleeves"></span></div>
     </section>
@@ -100,7 +100,7 @@
       <h3><span class="step">2</span><span data-t="grinder">Grinder</span> <span class="hint" id="doseZoneTxt"></span></h3>
       <div class="barmat grinder-mat">
         <div class="grinder">
-          <div class="hopper" id="hopper"><img class="spr" src="assets/models/hopper.webp" alt="" draggable="false"></div>
+          <div class="hopper" id="hopper"><img class="spr" src="assets/models/hopper.webp" width="265" height="340" alt="" draggable="false"></div>
           <!-- every control sits on the machine itself (issue #7): bean keys, a scale display and the grind button -->
           <div class="grinder-body">
             <div class="keys" id="beanChips"></div>
@@ -119,18 +119,18 @@
       <div class="tampstation">
         <div class="slot pfslot" data-drop="pfrack" id="slotPfRack">
           <div class="obj pf" id="pfObj" role="button" tabindex="0" data-drag="pf" data-drop="pf">
-            <img class="spr" id="pfImg" src="assets/models/pf-empty.webp" alt="" draggable="false">
+            <img class="spr pf-img" id="pfImg" src="assets/models/pf-empty.webp" width="520" height="198" alt="" draggable="false">
             <small class="objtag" id="pfTag"></small>
           </div>
         </div>
         <div class="tampmat">
           <div class="slot tamperslot" id="slotTamper">
             <div class="obj tamper" id="tamperObj" role="button" tabindex="0" data-drag="tamper">
-              <img class="spr" src="assets/models/tamper.webp" alt="" draggable="false">
+              <img class="spr" src="assets/models/tamper.webp" width="171" height="220" alt="" draggable="false">
             </div>
           </div>
           <!-- the knock box takes the used puck out of the portafilter -->
-          <div class="knockbox" data-drop="knockbox" id="knockBox"><img class="spr" src="assets/models/knockbox.webp" alt="" draggable="false"><small data-t="obj.knock">Knock box</small></div>
+          <div class="knockbox" data-drop="knockbox" id="knockBox"><img class="spr" src="assets/models/knockbox.webp" width="280" height="259" alt="" draggable="false"><small data-t="obj.knock">Knock box</small></div>
         </div>
       </div>
     </section>
@@ -141,7 +141,7 @@
       <div class="barmat machine-mat">
         <div class="machine" id="machine">
           <!-- cup warmer on top (decor) -->
-          <div class="mach-top" aria-hidden="true"><img class="spr" src="assets/models/warmer.webp" alt="" draggable="false"></div>
+          <div class="mach-top" aria-hidden="true"><img class="spr" src="assets/models/warmer.webp" width="720" height="135" alt="" draggable="false"></div>
           <!-- control panel on the machine: brew button + shot display above the group, foam keys + steam button above the wand -->
           <div class="mach-panel">
             <div class="panel-left">
@@ -155,18 +155,18 @@
           </div>
           <div class="mach-head">
             <span class="mach-logo">C&amp;B</span>
-            <div class="group"><img class="spr group-head" src="assets/models/grouphead.webp" alt="" draggable="false"><div class="slot pfslot locked-in" data-drop="group" id="slotGroup"></div></div>
+            <div class="group"><img class="spr group-head" src="assets/models/grouphead.webp" width="300" height="219" alt="" draggable="false"><div class="slot pfslot locked-in" data-drop="group" id="slotGroup"></div></div>
             <!-- right side: the boiler and pump gauges over the second group head (decor) -->
             <div class="mach-right" aria-hidden="true">
               <div class="gauges"><span class="gauge-dial"><i></i></span><span class="gauge-dial boiler"><i></i></span></div>
-              <div class="group deco-group"><img class="spr group-head" src="assets/models/grouphead.webp" alt="" draggable="false"><span class="parked-pf"></span></div>
+              <div class="group deco-group"><img class="spr group-head" src="assets/models/grouphead.webp" width="300" height="219" alt="" draggable="false"><span class="parked-pf"></span></div>
             </div>
           </div>
           <div class="mach-tray">
             <div class="slot cupslot" data-drop="tray" id="slotTray"><span class="slotlabel" data-t="obj.tray">Drip tray</span></div>
             <div class="wandbox">
-              <img class="spr hotwater" src="assets/models/hotwater.webp" alt="" aria-hidden="true" draggable="false">
-              <img class="spr wand-pipe" src="assets/models/wand.webp" alt="" draggable="false">
+              <img class="spr hotwater" src="assets/models/hotwater.webp" width="23" height="80" alt="" aria-hidden="true" draggable="false">
+              <img class="spr wand-pipe" src="assets/models/wand.webp" width="22" height="128" alt="" draggable="false">
               <div class="slot pitcherslot" data-drop="wand" id="slotWand"><span class="slotlabel" data-t="obj.wand">Steam wand</span></div>
             </div>
           </div>
@@ -183,7 +183,7 @@
       <div class="fridge"><div class="bottles" id="milkBottles"></div></div>
       <div class="slot pitcherslot" data-drop="pitcherrack" id="slotPitcherRack">
         <div class="obj pitcher" id="pitcherObj" role="button" tabindex="0" data-drag="pitcher" data-drop="pitcher">
-          <img class="spr" id="pitcherImg" src="assets/models/pitcher-empty.webp" alt="" draggable="false">
+          <img class="spr pitcher-img" id="pitcherImg" src="assets/models/pitcher-empty.webp" width="340" height="313" alt="" draggable="false">
           <small class="objtag" id="pitcherTag"></small>
         </div>
       </div>
@@ -225,7 +225,7 @@
       <h3><span data-t="obj.serving">Serving tray</span></h3>
       <div class="slot cupslot servetray" data-drop="serving" id="slotServe"><span class="slotlabel" data-t="obj.serving">Serving tray</span></div>
       <div class="pass-row">
-        <button class="mbtn bellbtn" id="serveBtn" type="button"><img class="spr bell" src="assets/models/bell.webp" alt="" draggable="false"><span class="cap" data-t="serveBtn">Serve</span></button>
+        <button class="mbtn bellbtn" id="serveBtn" type="button"><img class="spr bell" src="assets/models/bell.webp" width="200" height="171" alt="" draggable="false"><span class="cap" data-t="serveBtn">Serve</span></button>
         <span class="pass-deco" aria-hidden="true"><span class="napkins"></span><span class="sugar"></span></span>
       </div>
     </section>
@@ -233,7 +233,7 @@
     <!-- trash -->
     <section class="zone z-trash" data-drop="trash" id="trashZone">
       <h3><span data-t="obj.trash">Trash</span></h3>
-      <div class="bin" id="bin"><img class="spr can" src="assets/models/bin.webp" alt="" draggable="false"><img class="spr lid" src="assets/models/binlid.webp" alt="" draggable="false"></div>
+      <div class="bin" id="bin"><img class="spr can" src="assets/models/bin.webp" width="82" height="116" alt="" draggable="false"><img class="spr lid" src="assets/models/binlid.webp" width="124" height="48" alt="" draggable="false"></div>
     </section>
   </div>
 </main>
@@ -302,17 +302,17 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="js/util.js"></script>
-<script src="js/i18n.js"></script>
-<script src="js/audio.js"></script>
-<script src="js/recipe.js"></script>
-<script src="js/render.js"></script>
-<script src="js/scene.js"></script>
-<script src="js/fx.js"></script>
-<script src="js/station.js"></script>
-<script src="assets/helper/art.js"></script>
-<script src="js/helper.js"></script>
-<script src="js/tutorial.js"></script>
-<script src="js/main.js"></script>
+<script src="js/util.js?v=15"></script>
+<script src="js/i18n.js?v=15"></script>
+<script src="js/audio.js?v=15"></script>
+<script src="js/recipe.js?v=15"></script>
+<script src="js/render.js?v=15"></script>
+<script src="js/scene.js?v=15"></script>
+<script src="js/fx.js?v=15"></script>
+<script src="js/station.js?v=15"></script>
+<script src="assets/helper/art.js?v=15"></script>
+<script src="js/helper.js?v=15"></script>
+<script src="js/tutorial.js?v=15"></script>
+<script src="js/main.js?v=15"></script>
 </body>
 </html>

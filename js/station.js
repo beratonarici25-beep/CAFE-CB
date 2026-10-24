@@ -428,9 +428,12 @@ const MILK_COLORS = { whole: '#ffffff', oat: '#efe0c0', almond: '#f5e9da' };
 const TOP_COLORS = { whip: '#ffffff', cocoa: '#6b3b26', cinnamon: '#b5652e' };
 const BEAN_COLORS = { esp: '#5b3423', decaf: '#8a6a4a', dark: '#2e1a12' };
 // bottles, syrups and shakers are rendered models (tools/blender/models.py -> assets/models)
+// their pixel sizes, so the <img> keeps its shape before it loads and in the drag ghost
+const BOTTLE_PX = { milk: [69, 152], syrup: [66, 184], 'top:whip': [56, 140], top: [76, 132] };
 function bottle(spec, cls, color, extra = '') {
   const img = `assets/models/${spec.replace(':', '-')}.webp`;
-  return `<button class="obj bottle-obj ${cls}" type="button" data-drag="${spec}" style="--c:${color}"><span class="glass"><img class="spr" src="${img}" alt="" draggable="false">${extra}</span><span class="nm"></span><span class="n"></span></button>`;
+  const [w, h] = BOTTLE_PX[spec] || BOTTLE_PX[spec.split(':')[0]];
+  return `<button class="obj bottle-obj ${cls}" type="button" data-drag="${spec}" style="--c:${color}"><span class="glass"><img class="spr" src="${img}" width="${w}" height="${h}" alt="" draggable="false">${extra}</span><span class="nm"></span><span class="n"></span></button>`;
 }
 function makeChips(el, keys, fn) {
   el.innerHTML = '';
@@ -485,11 +488,25 @@ function buildBench() {
   layout();
 }
 
+// machine keys are narrow: a label that does not fit gets a smaller font instead of breaking mid-word (issue #15)
+function fitKeys() {
+  document.querySelectorAll('.key').forEach(k => {
+    k.style.fontSize = '';
+    if (!k.clientWidth) return;
+    let fs = parseFloat(getComputedStyle(k).fontSize);
+    while (k.scrollWidth > k.clientWidth && fs > 7) { fs -= 0.5; k.style.fontSize = fs + 'px'; }
+  });
+}
+// again whenever the keys change size: a view coming back, a resize, the web fonts arriving
+if (window.ResizeObserver) { const ro = new ResizeObserver(fitKeys); document.querySelectorAll('.keys').forEach(k => ro.observe(k)); }
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitKeys);
+
 function applyBenchLang() {
   const L = S();
   document.querySelectorAll('#cupStand b[data-size]').forEach(b => { b.textContent = L.sizes[b.dataset.size]; });
   $('#beanChips').querySelectorAll('button').forEach(b => { b.textContent = L.beanKey[b.dataset.k]; b.title = L.beans[b.dataset.k]; });
   $('#foamChips').querySelectorAll('button').forEach(b => { b.textContent = L.foamKey[b.dataset.k]; b.title = L.foams[b.dataset.k]; });
+  fitKeys();
   document.querySelectorAll('[data-drag^="milk:"] .nm').forEach(n => { n.textContent = L.milks[n.parentElement.dataset.drag.split(':')[1]]; });
   document.querySelectorAll('[data-drag^="syrup:"] .nm').forEach(n => { n.textContent = L.syrupNames[n.parentElement.dataset.drag.split(':')[1]]; });
   document.querySelectorAll('[data-drag^="top:"] .nm').forEach(n => { n.textContent = L.tops[n.parentElement.dataset.drag.split(':')[1]]; });

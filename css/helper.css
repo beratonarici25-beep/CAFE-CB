@@ -29,6 +29,15 @@
 .hl-btns .btn.skip { background: #f6ede6; font-weight: 700; }
 .hl-btns .btn.skip.sure { background: var(--butter); }
 .hl-btns .btn.go { font-size: 15px; padding: 6px 16px; }
+/* no free corner for her at full size (small screens): a smaller figure and bubble, so she covers no button */
+.helper.compact .hl-figure { width: 72px; }
+.helper.compact .hl-bubble { max-width: 250px; margin-bottom: 44px; padding: 6px 10px 8px; border-width: 2px; border-radius: 14px; }
+.helper.compact.at-top .hl-bubble { margin: 36px 0 0; }
+.helper.compact .hl-who { font-size: 10px; }
+.helper.compact .hl-who b { font-size: 13px; }
+.helper.compact .hl-text { font-size: 13px; line-height: 1.3; }
+.helper.compact .hl-btns { margin-top: 5px; }
+.helper.compact .hl-btns .btn { padding: 3px 10px; font-size: 12px; }
 .helper.bubble-in .hl-bubble { animation: hlIn .3s var(--pop, ease-out); }
 @keyframes hlIn { from { transform: translateY(8px) scale(.96); opacity: .3; } }
 

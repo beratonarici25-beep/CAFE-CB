@@ -44,37 +44,60 @@ const Helper = (() => {
     }
     box.hidden = !box.children.length;
   }
-  // stand on the side away from what she is talking about, so she never covers it
+  const setSpot = (s, v) => {
+    if (s !== side) { root.classList.toggle('side-left', s === 'left'); root.classList.toggle('side-right', s === 'right'); side = s; }
+    if (v !== vert) { root.classList.toggle('at-top', v === 'top'); vert = v; }
+  };
+  const visible = q => q.width > 0 && q.height > 0 && q.right > 0 && q.bottom > 0 && q.left < window.innerWidth && q.top < window.innerHeight;
+  // stand in the corner where she covers nothing: not what she talks about, and no other button either (issue #15)
+  let placedFor = null, placedAt = 0;
   function place(target) {
     const all = (Array.isArray(target) ? target : [target]).map(x => typeof x === 'string' ? document.querySelector(x) : x).filter(Boolean);
+    // called every frame: only look again when the line or the targets change, or a few times a second (scrolling)
+    const sig = cur && cur.key + '|' + all.length + '|' + window.innerWidth + 'x' + window.innerHeight;
+    const now = performance.now();
+    if (sig === placedFor && now - placedAt < 250) return;
+    placedFor = sig; placedAt = now;
     const el = all[0];
     const r = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null;
-    let s = side, v = vert;
+    // first guess: the side away from the thing she talks about
+    let s = 'left', v = 'bottom';
     if (r && (r.width || r.height)) {
       s = r.left + r.width / 2 < window.innerWidth / 2 ? 'right' : 'left';
       v = r.top + r.height / 2 > window.innerHeight * 0.58 ? 'top' : 'bottom';
-    } else { s = 'left'; v = 'bottom'; }
-    if (s !== side) { root.classList.toggle('side-left', s === 'left'); root.classList.toggle('side-right', s === 'right'); side = s; }
-    if (v !== vert) { root.classList.toggle('at-top', v === 'top'); vert = v; }
-    // on a narrow screen the bubble may still land on the thing she talks about: then stand at the other end
-    if (r && !root.hidden) {
-      // how much of the highlighted things her bubble would cover; try the other end and keep the better one
-      const cover = () => {
-        const b = $q('.hl-bubble').getBoundingClientRect();
-        // the first target is the one to touch next: covering it costs far more than covering the others
-        return all.reduce((sum, x, i) => {
-          const q = x.getBoundingClientRect();
-          const a = Math.max(0, Math.min(q.right, b.right) - Math.max(q.left, b.left)) * Math.max(0, Math.min(q.bottom, b.bottom) - Math.max(q.top, b.top));
-          return sum + (a > 0 ? (i === 0 ? 1e6 : 1e3) + a : 0);
-        }, 0);
-      };
-      const here = cover();
-      if (here > 0) {
-        const flip = () => { vert = vert === 'top' ? 'bottom' : 'top'; root.classList.toggle('at-top', vert === 'top'); };
-        flip();
-        if (cover() > here) flip();
-      }
     }
+    if (root.hidden) { setSpot(s, v); return; }
+    // grown by the tutorial spotlight's ring around them
+    const tgt = all.map(x => { const q = x.getBoundingClientRect(); return { left: q.left - 9, top: q.top - 9, right: q.right + 9, bottom: q.bottom + 9 }; });
+    const others = [...document.querySelectorAll('button, [data-drag]')]
+      .filter(b => !root.contains(b) && !all.includes(b) && b.offsetParent && !b.closest('[hidden]'))
+      .map(b => b.getBoundingClientRect()).filter(visible);
+    const parts = [$q('.hl-figure'), $q('.hl-bubble')];
+    // the first target is the one to touch next: covering it costs far more than the other targets, which cost more
+    // than any other button
+    const cost = () => {
+      const ps = parts.map(p => p.getBoundingClientRect());
+      const over = q => ps.reduce((a, b) => a + Math.max(0, Math.min(q.right, b.right) - Math.max(q.left, b.left) - 2) * Math.max(0, Math.min(q.bottom, b.bottom) - Math.max(q.top, b.top) - 2), 0);
+      let sum = 0;
+      tgt.forEach((q, i) => { const a = over(q); if (a > 0) sum += (i === 0 ? 1e7 : 1e5) + a; });
+      for (const q of others) { const a = over(q); if (a > 0) sum += 1e3 + a; }
+      return sum;
+    };
+    const flip = x => x === 'left' ? 'right' : x === 'right' ? 'left' : x === 'top' ? 'bottom' : 'top';
+    // every corner at full size, then every corner smaller (a small screen may have no room for her otherwise)
+    let best = null;
+    for (const small of [false, true]) {
+      root.classList.toggle('compact', small);
+      for (const [cs, cv] of [[s, v], [s, flip(v)], [flip(s), v], [flip(s), flip(v)]]) {
+        setSpot(cs, cv);
+        const c = cost();
+        if (!best || c < best.c) best = { c, s: cs, v: cv, small };
+        if (c === 0) break;
+      }
+      if (best.c === 0) break;
+    }
+    root.classList.toggle('compact', best.small);
+    setSpot(best.s, best.v);
   }
   root.classList.add('side-left');
 

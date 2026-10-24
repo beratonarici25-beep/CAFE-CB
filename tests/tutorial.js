@@ -56,35 +56,82 @@ const lit = (page, sel) => page.evaluate(s => {
   return [...d.querySelectorAll('.rings rect')].some(q => Math.abs(+q.getAttribute('x') + 7 - r.left) < 3 && Math.abs(+q.getAttribute('y') + 7 - r.top) < 3);
 }, sel);
 
+// buttons the helper (her figure or bubble) is drawn over: she must never hide a control (issue #15)
+const covered = page => page.evaluate(() => {
+  const h = document.querySelector('.helper');
+  if (!h || h.hidden) return [];
+  const parts = [...h.querySelectorAll('.hl-figure, .hl-bubble')].map(e => e.getBoundingClientRect());
+  const hit = r => parts.some(q => Math.min(q.right, r.right) - Math.max(q.left, r.left) > 2 && Math.min(q.bottom, r.bottom) - Math.max(q.top, r.top) > 2);
+  // what the spotlight lights up (the thing to touch next)
+  const d = document.querySelector('#tutDim');
+  const lit = d.style.display === 'none' ? [] : [...d.querySelectorAll('.rings rect')]
+    .map(q => ({ left: +q.getAttribute('x'), top: +q.getAttribute('y'), right: +q.getAttribute('x') + +q.getAttribute('width'), bottom: +q.getAttribute('y') + +q.getAttribute('height') }));
+  // a big target (the customer) may lose an edge, but its middle stays free and most of it shows
+  const hidden = r => {
+    const cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2, area = (r.right - r.left) * (r.bottom - r.top);
+    const a = parts.reduce((s, q) => s + Math.max(0, Math.min(q.right, r.right) - Math.max(q.left, r.left)) * Math.max(0, Math.min(q.bottom, r.bottom) - Math.max(q.top, r.top)), 0);
+    return a > area * 0.25 || parts.some(q => cx > q.left && cx < q.right && cy > q.top && cy < q.bottom);
+  };
+  const out = lit.filter(hidden).map(r => `LIT@${Math.round(r.left)},${Math.round(r.top)}`);
+  for (const b of document.querySelectorAll('button')) {
+    if (h.contains(b) || b.closest('[hidden]') || !b.offsetParent) continue;
+    const st = getComputedStyle(b);
+    if (st.visibility === 'hidden' || +st.opacity === 0) continue;
+    const r = b.getBoundingClientRect();
+    if (!r.width || r.right <= 0 || r.bottom <= 0 || r.left >= innerWidth || r.top >= innerHeight) continue;
+    // bench objects ([data-drag]) are kept apart: on a phone the bench does not fit yet (#14)
+    if (hit(r)) out.push((b.dataset.drag ? 'obj:' : '') + (b.id || b.dataset.drag || b.dataset.k || b.className));
+  }
+  return out;
+});
+// on a phone the bench scrolls and is crowded until #14 makes it fit and #23 sizes her for it: there a cover is only
+// noted (NOTE lines), on desktop it fails
+const clear = async (page, tag, step, touch) => {
+  await page.waitForTimeout(350);   // her bubble pops in
+  const c = await covered(page);
+  if (touch) { if (c.length) results.push(['NOTE', `${tag}: helper covers (${step}), see #14/#23`, c.join(' ')]); return; }
+  ok(`${tag}: helper covers no button (${step})`, c.length === 0, c.join(' '));
+};
+
 async function playTutorial(page, tag, touch) {
   const shot = async n => { if (SHOTS) await page.screenshot({ path: path.join(SHOTS, `tut-${tag}-${n}.png`), timeout: 10000 }).catch(() => {}); };
   await page.click('#startBtn');
   ok(`${tag}: tutorial starts on a fresh save`, await page.evaluate(() => CB.tutorial()));
   ok(`${tag}: helper waves hello`, await waitKey(page, 'welcome') && await page.evaluate(() => document.querySelector('.helper').classList.contains('pose-wave')));
+  await clear(page, tag, 'welcome', touch);
   ok(`${tag}: helper is called Ülkü in Turkish`, (await page.textContent('.helper .hl-name')) === 'Ülkü' && (await page.textContent('#hlName')) === 'Ülkü');
   ok(`${tag}: fixed latte order`, await page.evaluate(() => CB.G.order.drink === 'latte' && CB.G.order.size === 'M' && CB.G.order.milk === 'whole'));
   ok(`${tag}: ticket step points at the ticket`, await waitKey(page, 'ticket', 10000) && await lit(page, '#ticket'));
+  await clear(page, tag, 'ticket', touch);
   await shot('1-ticket');
   ok(`${tag}: then the go-to-bench button`, await waitKey(page, 'toBench', 8000) && await lit(page, '#takeBtn'));
+  await clear(page, tag, 'toBench', touch);
   await page.click('#takeBtn');
   await page.waitForFunction(() => CB.view() === 'barista' && !CB.switching());
   ok(`${tag}: cup step highlights the medium cup`, await waitKey(page, 'cup') && await lit(page, '[data-drag="newcup:M"]'));
+  await clear(page, tag, 'cup', touch);
   await shot('2-cup');
   // a wrong cup gets a gentle hint
   await place(page, '[data-drag="newcup:L"]', '#slotTray', touch);
   ok(`${tag}: wrong cup size shows a hint`, await waitKey(page, 'hintCupSize') && await page.evaluate(() => document.querySelector('.helper').classList.contains('pose-warn')));
+  await clear(page, tag, 'hintCupSize', touch);
   await shot('3-hint');
   await place(page, '#cupObj', '#trashZone', touch);
   await place(page, '[data-drag="newcup:M"]', '#slotTray', touch);
   ok(`${tag}: correct cup moves on (with praise)`, await waitKey(page, 'pfGrinder', 3000));
+  await clear(page, tag, 'pfGrinder', touch);
   await place(page, '#pfObj', '#slotGrinder', touch);
   ok(`${tag}: grind step`, await waitKey(page, 'grind'));
+  await clear(page, tag, 'grind', touch);
   await hold(page, '#grindBtn', () => CB.B.pf.dose >= 17.6);
   ok(`${tag}: tamp step`, await waitKey(page, 'tamp'));
+  await clear(page, tag, 'tamp', touch);
   await place(page, '#tamperObj', '#pfObj', touch);
   ok(`${tag}: lock step`, await waitKey(page, 'lock'));
+  await clear(page, tag, 'lock', touch);
   await place(page, '#pfObj', '#slotGroup', touch);
   ok(`${tag}: brew step`, await waitKey(page, 'brew') && await lit(page, '#brewBtn'));
+  await clear(page, tag, 'brew', touch);
   await shot('4-brew');
   for (let i = 0; i < 2; i++) {
     const b = await center(page, '#brewBtn'); await page.mouse.click(b.x, b.y);
@@ -95,24 +142,32 @@ async function playTutorial(page, tag, touch) {
     await page.mouse.click(b.x, b.y);
   }
   ok(`${tag}: milk step`, await waitKey(page, 'milk'));
+  await clear(page, tag, 'milk', touch);
   await place(page, '[data-drag="milk:whole"]', '#pitcherObj', touch);
   ok(`${tag}: wand step`, await waitKey(page, 'wand'));
+  await clear(page, tag, 'wand', touch);
   await place(page, '#pitcherObj', '#slotWand', touch);
   ok(`${tag}: steam step`, await waitKey(page, 'steam'));
+  await clear(page, tag, 'steam', touch);
   await hold(page, '#steamBtn', () => CB.B.pitcher.temp >= 63);
   ok(`${tag}: pour step`, await waitKey(page, 'pour'));
+  await clear(page, tag, 'pour', touch);
   await place(page, '#pitcherObj', '#cupObj', touch);
   ok(`${tag}: serving tray step`, await waitKey(page, 'serveTray'));
+  await clear(page, tag, 'serveTray', touch);
   await place(page, '#cupObj', '#slotServe', touch);
   ok(`${tag}: bell step`, await waitKey(page, 'bell') && await lit(page, '#serveBtn'));
+  await clear(page, tag, 'bell', touch);
   const b = await center(page, '#serveBtn'); await page.mouse.click(b.x, b.y);
   await page.waitForFunction(() => CB.view() === 'customer' && !CB.switching());
   ok(`${tag}: hand-over step`, await waitKey(page, 'hand'));
+  await clear(page, tag, 'hand', touch);
   await shot('5-hand');
   ok(`${tag}: patience never dropped`, await page.evaluate(() => CB.G.patience === 1));
   await place(page, '#cupObj', '#custZone', touch);
   await page.waitForFunction(() => CB.G.state === 'RESULT', null, { timeout: 6000 });
   ok(`${tag}: finish line with a cheer`, await waitKey(page, 'finish') && await page.evaluate(() => document.querySelector('.helper').classList.contains('pose-cheer')));
+  await clear(page, tag, 'finish', touch);
   await shot('6-finish');
   ok(`${tag}: tutorial latte gets 5 stars`, await page.evaluate(() => CB.G.result.stars === 5), await page.evaluate(() => JSON.stringify(CB.G.result.checks.filter(c => !c.ok))));
   await page.click('.hl-btns .btn.go');
@@ -174,6 +229,10 @@ async function playTutorial(page, tag, touch) {
   await playTutorial(phone, 'phone', true);
   const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   ok('phone: no horizontal scroll', overflow <= 0, 'overflow ' + overflow);
+
+  // the demo is played on phones held sideways
+  const wide = await newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true }, JSON.stringify({ lang: 'tr' }));
+  await playTutorial(wide, 'phone landscape', true);
 
   ok('no page errors', errors.length === 0, errors.join(' | '));
   await browser.close();

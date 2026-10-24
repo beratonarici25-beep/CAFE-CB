@@ -324,9 +324,9 @@
 .hopper[data-bean="dark"] .spr { filter: brightness(.7) contrast(1.1); }
 
 /* portafilter, tamper, pitcher */
-#pfImg { width: 122px; height: auto; }
+.pf-img { width: 122px; height: auto; }
 .tamper .spr { height: 62px; width: auto; }
-#pitcherImg { width: 86px; height: auto; }
+.pitcher-img { width: 86px; height: auto; }
 .pf svg, .tamper svg, .pitcher svg { display: none; }
 
 /* knock box */

@@ -1,18 +1,13 @@
 # Yarın yapılacaklar / Next session (2026-10-24)
 
-## 1. Boyut hataları (önce bu)
-- **Portafiltre sürüklenince çok büyüyor** (kullanıcı bildirdi). **Sebep bulundu (2026-10-23):**
-  `makeGhost()` (`js/station.js`) sürükleme kopyasındaki tüm `id`'leri siliyor. Portafiltre resminin boyutu ise
-  CSS'te id'ye bağlı (`#pfImg { width: 122px }`, `css/bar.css`). Kopyada id yok, kural uymuyor ve resim doğal
-  boyutunda çiziliyor: **551×210 px yerine 122×46** (masaüstü ve telefonda ölçüldü). Süt potunda da aynı hata var
-  (`#pitcherImg`).
-  - Düzeltme: resimlere sınıf ver (`class="spr pf-img"`, `class="spr pitcher-img"`), CSS'i sınıfa bağla
-    (`.pf-img`, `.pitcher-img`). `setSprite` id ile bulmaya devam edebilir.
-  - Ek güvenlik: her sprite `<img>`'e `width`/`height` attribute ver, CSS/JS linklerine sürüm ekle (`?v=…`),
-    önbellekte eski CSS kalsa bile taşmasın.
-  - Test ekle (`tests/sizes.js`): her sürüklenebilir nesnenin sürükleme kopyası, orijinal boyutunun en fazla ~%20
-    fazlası olmalı. Masaüstü + telefon.
-- Diğer boyut kontrolleri: telefonda öğretici balonu, tezgâh sprite oranları, müşteri sprite'ı (k=1.7'de bulanıklık?).
+## Kaldığımız yer (2026-10-25)
+Demo işleri başladı (`CLAUDE.md`, yol haritası #24).
+- **#15 bitti (bu commit):** sürüklenen portafiltre/süt potu artık büyümüyor (`tests/sizes.js`), köpük ve çekirdek
+  tuşlarının yazısı tek satırda (`fitKeys()`), Ülkü/Jesica düğmeleri kapatmıyor: yerleşim 4 köşeyi dener, yer yoksa
+  küçülür (`.compact`). Tutorial testi her adımda kontrol ediyor (telefonda şimdilik NOTE olarak).
+- **Yapılmadı:** `gh` kurulu değil, #15 kapatılmadı, #24'teki madde işaretlenmedi.
+- **Telefonda kalan:** tezgâh telefona sığmadığı için yardımcı bazen tezgâh nesnelerinin üstüne biniyor; #14 ve #23'te çözülecek.
+- **Sıradaki:** #24'te sıra #14 → #23 → #27, `CLAUDE.md`'de #27 önde. Kullanıcıya sorulacak.
 
 ## 2. Her şey Blender'dan, gerçekçiye yakın
 Hedef: modeller, arka planlar, müşteriler ve Ülkü/Jesica gerçekçiye yakın, hâlâ sıcak/sevimli.
