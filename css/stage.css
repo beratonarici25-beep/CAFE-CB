@@ -150,9 +150,7 @@ img { -webkit-user-drag: none; -webkit-touch-callout: none; }
   animation: turnPhone 2.2s ease-in-out infinite;
 }
 @keyframes turnPhone { 0%, 25% { transform: none; } 55%, 100% { transform: rotate(-90deg); } }
-@media (orientation: portrait) and (max-width: 900px) {
-  .rotate-ov { display: grid; }
-}
+/* the "turn your phone" screen is switched off: on some tablets it stayed up even when turned sideways (user, 25 Oct) */
 @media (prefers-reduced-motion: reduce) {
   .rotate-ov .phone { animation: none; transform: rotate(-90deg); }
 }

@@ -98,7 +98,7 @@ async function bench(browser, opts, tag) {
     const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
     const page = await ctx.newPage();
     await page.goto(URL); await page.waitForTimeout(300);
-    ok('phone portrait: asks to turn the phone', await page.evaluate(() => getComputedStyle(document.querySelector('#rotateOv')).display !== 'none'));
+    ok('phone portrait: no turn-the-phone screen blocks the game', await page.evaluate(() => getComputedStyle(document.querySelector('#rotateOv')).display === 'none'));
     await ctx.close();
   }
   await browser.close();
