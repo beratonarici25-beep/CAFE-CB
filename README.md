@@ -47,9 +47,11 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `js/main.js` | Game flow and states, view switching, HUD, overlays, frame loop |
 | `assets/models/` | 3D models rendered in Blender (WebP, @2x): bench equipment and the customer layers |
 | `sw.js`, `manifest.webmanifest` | Offline play and the home-screen app (PWA) |
-| `tools/icons.js` | Renders the PNG app icons from `assets/icon.svg` |
+| `assets/cover/` | The game's logo: `cafecb-logo-orijinal.jpg` (the owner's master, untouched), `logo.png` (black corners made transparent), `logo-menu.webp` (main menu) |
+| `tools/logo.py` | Cleans the logo master into `logo.png` and `logo-menu.webp` (Python, Pillow + NumPy) |
+| `tools/icons.js` | Renders the PNG app icons and the favicon from `assets/cover/logo.png` |
 | `tools/blender/models.py` | Builds every 3D model from primitives in Blender and renders them (toon shading, ink outline, one upper-left light) |
-| `assets/` | Background SVGs (café wall, seating, back bar) and the icon; `assets/helper/art.js` is the helper's SVG; `assets/CREDITS.md` lists sources |
+| `assets/` | Background SVGs (café wall, seating, back bar), the app icons and favicon; `assets/helper/art.js` is the helper's SVG; `assets/CREDITS.md` lists sources |
 | `tests/e2e.js` | End-to-end test that brews real orders by dragging, through both views |
 | `tests/fuzz.js` | Random-play monkey test with state invariants |
 | `tests/tutorial.js` | Plays the tutorial with drags (desktop) and taps (phone); skip, replay, language, old saves |
@@ -64,7 +66,7 @@ The game is played sideways and fits any window: the views are laid out at one d
 (`css/stage.css`); a phone held upright shows "turn your phone". On an iPhone the link opens straight in Safari and
 plays there. Added to the home screen (optional) it opens full screen and, once opened, works offline:
 `manifest.webmanifest` + `sw.js` (the service worker caches every file; bump its `VERSION` together with the `?v=` on
-the links in `index.html` when releasing). `node tools/icons.js` renders the PNG icons from `assets/icon.svg`.
+the links in `index.html` when releasing). `python tools/logo.py` then `node tools/icons.js` make the menu logo and the PNG icons from the logo in `assets/cover/`.
 The fonts are bundled in `assets/fonts/` (SIL Open Font License, licence texts beside them), so nothing is loaded
 from outside.
 `CAFECB.html` redirects to `index.html` for old links.

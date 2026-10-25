@@ -1,6 +1,7 @@
 # Credits / Teşekkürler
 
-Every visual asset in CAFE C&B is original work made for this game, drawn as SVG, CSS gradients or Canvas 2D code.
+Every visual asset in CAFE C&B is original work made for this game, drawn as SVG, CSS gradients or Canvas 2D code,
+except the game's logo, which the game's owner provided.
 No third-party 3D models, sprites, textures or photos are included, so there is nothing to license or attribute.
 No real brand names or logos are used (labels on bottles, bags and cartons are plain).
 
@@ -9,7 +10,7 @@ No real brand names or logos are used (labels on bottles, bags and cartons are p
 | `bg-wall.svg`, `bg-seating.svg` (café background) | Original | Same as this repository |
 | `backbar.svg` (shelves, jars, bags, syrups, cartons, chalk menu) | Original | Same as this repository |
 | `helper/art.js` (the head barista, Jesica / Ülkü) | Original; described from a reference photo that is **not** included | Same as this repository |
-| `icon.svg` | Original | Same as this repository |
+| `cover/cafecb-logo-orijinal.jpg` (the CafeCB logo) and everything made from it: `cover/logo.png`, `cover/logo-menu.webp`, `icon-*.png`, `apple-touch-icon.png`, `favicon-64.png` | Provided by the game's owner; corners cleaned and resized by `tools/logo.py` and `tools/icons.js` | Same as this repository |
 | `models/*.webp` (machine parts, grinder hopper, portafilter, tamper, pitcher, cups, bottles, shakers, knock box, bin, bell, customer layers) | Original 3D models built from primitives by `tools/blender/models.py`, rendered in Blender | Same as this repository |
 | Customers, cups, coins (`js/render.js`) | Drawn in code | Same as this repository |
 | Machines, bottles, bar mats (`css/bar.css`, `index.html` SVGs) | Drawn in code | Same as this repository |

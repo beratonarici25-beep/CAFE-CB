@@ -8,7 +8,8 @@ const CORE = [
   'css/scene.css?v=16', 'css/fx.css?v=16', 'css/views.css?v=16', 'css/bar.css?v=16', 'css/theme.css?v=16', 'css/helper.css?v=16', 'css/stage.css?v=16',
   'js/util.js?v=16', 'js/i18n.js?v=16', 'js/audio.js?v=16', 'js/recipe.js?v=16', 'js/render.js?v=16', 'js/scene.js?v=16', 'js/fx.js?v=16',
   'js/station.js?v=16', 'assets/helper/art.js?v=16', 'js/helper.js?v=16', 'js/tutorial.js?v=16', 'js/main.js?v=16',
-  'assets/icon.svg', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png',
+  'assets/favicon-64.png', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/icon-512-any.png', 'assets/apple-touch-icon.png',
+  'assets/cover/logo-menu.webp',
   'assets/backbar.svg', 'assets/bg-seating.svg', 'assets/bg-wall.svg',
   'assets/fonts/fonts.css?v=16', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
     .flatMap(f => [`assets/fonts/${f}-latin.woff2`, `assets/fonts/${f}-latin-ext.woff2`]),

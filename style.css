@@ -157,8 +157,6 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 }
 @keyframes pop { from { transform: translateY(18px) scale(.97); opacity: .4; } }
 .logo { text-align: center; line-height: .9; }
-.logo .big { font-family: var(--font-display); font-weight: 800; font-size: clamp(52px, 13vw, 88px); letter-spacing: .02em; }
-.logo .big b { color: var(--blush-deep); }
 .logo .sub { font-weight: 800; letter-spacing: .3em; font-size: 12px; text-transform: uppercase; color: var(--ink-soft); margin-top: 6px; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
 .stats div { background: #f6ede6; border-radius: 14px; padding: 8px 4px; min-width: 0; }

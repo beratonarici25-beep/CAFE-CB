@@ -110,27 +110,20 @@
   to { transform: translateY(-115vh) rotate(540deg); }
 }
 .menu-card { position: relative; z-index: 1; }
-/* the logo is a lit sign on a walnut board */
-.logo .sign {
-  display: inline-block; padding: 10px 26px 12px; border: 3px solid var(--ink); border-radius: 18px;
-  background: repeating-linear-gradient(90deg, rgba(255,220,180,.06) 0 3px, transparent 3px 10px), linear-gradient(#6e4128, #3e2618);
-  box-shadow: inset 0 2px 0 rgba(255,220,180,.3), 0 5px 0 #2a1810, 4px 10px 16px rgba(40,20,10,.35);
-  max-width: 100%;
+/* the owner's logo (issue #26): the app icon itself, sitting on the card with a soft shadow. Its height follows the
+   window so on a phone held sideways the card's buttons stay on screen */
+.logo img {
+  display: block; margin: 0 auto; width: auto; max-width: 100%;
+  height: clamp(84px, 24vh, 150px);
+  filter: drop-shadow(0 4px 0 rgba(75,46,43,.35)) drop-shadow(2px 8px 10px rgba(40,20,10,.25));
 }
-.logo .sign .big {
-  color: #fff4f6; font-size: clamp(42px, 11vw, 76px);
-  text-shadow: 0 0 4px #fff, 0 0 12px #ff8fb1, 0 0 26px #ff5c8d;
-  animation: flicker 9s linear infinite;
-}
-.logo .sign .big b { color: #fff7da; text-shadow: 0 0 4px #fff, 0 0 12px #ffd36b, 0 0 26px #ffb43b; }
 .logo .sub { margin-top: 10px; }
 
 @media (max-width: 760px) {
   .mb-cup { transform: scale(.6); transform-origin: left bottom; }
-  .logo .sign { padding: 8px 14px 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .mb-cup .steam i, .mb-beans i, .logo .sign .big { animation: none; }
+  .mb-cup .steam i, .mb-beans i { animation: none; }
   .mb-cup .steam i { opacity: .5; }
   .mb-beans i { display: none; }
 }
