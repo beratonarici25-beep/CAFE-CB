@@ -51,7 +51,8 @@ const waitKey = (page, key, ms = 6000) => page.waitForFunction(k => {
 }, key, { timeout: ms }).then(() => true, () => false);
 const lit = (page, sel) => page.evaluate(s => {
   const el = document.querySelector(s); if (!el) return false;
-  const r = el.getBoundingClientRect(); const d = document.querySelector('#tutDim');
+  // the spotlight is drawn in stage coordinates (issue #14)
+  const r = stageRect(el); const d = document.querySelector('#tutDim');
   if (d.style.display === 'none') return false;
   return [...d.querySelectorAll('.rings rect')].some(q => Math.abs(+q.getAttribute('x') + 7 - r.left) < 3 && Math.abs(+q.getAttribute('y') + 7 - r.top) < 3);
 }, sel);
@@ -64,8 +65,7 @@ const covered = page => page.evaluate(() => {
   const hit = r => parts.some(q => Math.min(q.right, r.right) - Math.max(q.left, r.left) > 2 && Math.min(q.bottom, r.bottom) - Math.max(q.top, r.top) > 2);
   // what the spotlight lights up (the thing to touch next)
   const d = document.querySelector('#tutDim');
-  const lit = d.style.display === 'none' ? [] : [...d.querySelectorAll('.rings rect')]
-    .map(q => ({ left: +q.getAttribute('x'), top: +q.getAttribute('y'), right: +q.getAttribute('x') + +q.getAttribute('width'), bottom: +q.getAttribute('y') + +q.getAttribute('height') }));
+  const lit = d.style.display === 'none' ? [] : [...d.querySelectorAll('.rings rect')].map(q => q.getBoundingClientRect());
   // a big target (the customer) may lose an edge, but its middle stays free and most of it shows
   const hidden = r => {
     const cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2, area = (r.right - r.left) * (r.bottom - r.top);
@@ -224,11 +224,11 @@ async function playTutorial(page, tag, touch) {
   ok('old save without tutorialDone sees it once', await old.evaluate(() => CB.tutorial()));
   ok('English helper is Jesica', await waitKey(old, 'welcome') && (await old.textContent('.helper .hl-name')) === 'Jesica');
 
-  // phone, touch: tap-to-place all the way
-  const phone = await newPage({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true }, JSON.stringify({ lang: 'tr' }));
+  // phone, touch: tap-to-place all the way, on a small phone held sideways (the game is played sideways, #14)
+  const phone = await newPage({ viewport: { width: 667, height: 375 }, hasTouch: true, isMobile: true }, JSON.stringify({ lang: 'tr' }));
   await playTutorial(phone, 'phone', true);
-  const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-  ok('phone: no horizontal scroll', overflow <= 0, 'overflow ' + overflow);
+  const overflow = await phone.evaluate(() => Math.max(document.documentElement.scrollWidth - innerWidth, document.documentElement.scrollHeight - innerHeight));
+  ok('phone: the page does not scroll', overflow <= 0, 'overflow ' + overflow);
 
   // the demo is played on phones held sideways
   const wide = await newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true }, JSON.stringify({ lang: 'tr' }));

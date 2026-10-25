@@ -27,7 +27,7 @@ const FX = {
   // glide an element from where it used to be (FLIP)
   flip(el, from) {
     if (!from || reduceMotion) return;
-    const r = el.getBoundingClientRect();
+    const r = stageRect(el);
     const dx = from.left - r.left, dy = from.top - r.top;
     if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
     this.anim(el, [{ transform: `translate(${dx}px, ${dy}px) scale(1.06)` }, { transform: 'none' }], { duration: 320 });
@@ -44,14 +44,14 @@ const FX = {
   ghostTransform(g) { return g.style.transform || 'none'; },
   // dragged ghost returns home, then disappears
   flyBack(ghost, home, delay = 0, from = this.ghostTransform(ghost)) {
-    const r = home.getBoundingClientRect();
+    const r = stageRect(home);
     const a = this.anim(ghost, [{ transform: from }, { transform: `translate3d(${r.left}px, ${r.top}px, 0)` }],
       { duration: 280, delay, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'forwards' });
     dropGhost(a, ghost, 280 + delay);
   },
   // the cup is taken by the customer: it hops toward their hands and shrinks away
   handOver(ghost, zone) {
-    const z = rectOf(zone), g = ghost.getBoundingClientRect();
+    const z = rectOf(zone) && stageRect(zone), g = stageRect(ghost);
     if (!z) { this.fadeOut(ghost); return; }
     const x = z.left + z.width * 0.75 - g.width / 2, y = z.top + z.height * 0.55 - g.height / 2;
     const a = this.anim(ghost, [{ transform: this.ghostTransform(ghost), opacity: 1 },
@@ -66,7 +66,7 @@ const FX = {
   },
   // wrong cup: shrinks, tips over and drops into the bin while the lid flaps
   intoTrash(ghost, bin) {
-    const r = bin.getBoundingClientRect(), g = ghost.getBoundingClientRect();
+    const r = stageRect(bin), g = stageRect(ghost);
     const x = r.left + r.width / 2 - g.width / 2, y = r.top + 10 - g.height / 2;
     const a = this.anim(ghost, [{ transform: this.ghostTransform(ghost), opacity: 1 },
       { transform: `translate3d(${x}px, ${y - 30}px, 0) rotate(-20deg) scale(.55)`, opacity: 1, offset: 0.6 },
@@ -81,7 +81,7 @@ const FX = {
   },
   // the pitcher ghost tips over the cup, pours, then goes back to the wand or rack
   tiltPour(ghost, cupEl, home) {
-    const c = rectOf(cupEl), gr = ghost.getBoundingClientRect();
+    const c = rectOf(cupEl) && stageRect(cupEl), gr = stageRect(ghost);
     if (!c || reduceMotion) { this.flyBack(ghost, home); return; }
     const x = c.left + c.width / 2 - 8, y = c.top - gr.height * 0.55;
     const a = this.anim(ghost, [{ transform: this.ghostTransform(ghost) },
@@ -90,7 +90,7 @@ const FX = {
       { transform: `translate3d(${x}px, ${y}px, 0) rotate(-52deg)`, offset: .85 },
       { transform: `translate3d(${x}px, ${y}px, 0) rotate(0deg)` }], { duration: 900, easing: 'ease-in-out', fill: 'forwards' });
     // spout is at the top-left once tipped
-    this.stream(() => ({ x: x + 6, y: y + gr.height * 0.22 }), () => this.surface(cupEl), C.milk, 7, 0.35, 0.8);
+    this.stream(() => toScreen(x + 6, y + gr.height * 0.22), () => this.surface(cupEl), C.milk, 7, 0.35, 0.8);
     // return from above the cup, where the pour ended, not from the drop point
     a ? a.finished.then(() => { a.cancel(); this.flyBack(ghost, home, 0, `translate3d(${x}px, ${y}px, 0)`); }, () => ghost.remove()) : ghost.remove();
     setTimeout(() => ghost.isConnected && ghost.remove(), 2000);

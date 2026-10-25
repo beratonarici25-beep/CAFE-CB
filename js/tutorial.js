@@ -13,7 +13,8 @@ const Tutorial = (() => {
   const dim = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   dim.id = 'tutDim'; dim.setAttribute('aria-hidden', 'true');
   dim.innerHTML = '<path class="shade" fill-rule="evenodd"/><g class="rings"></g>';
-  document.body.appendChild(dim);
+  // inside the stage, so the dragged object (also in the stage) stays above the shade (issue #14)
+  $('#views').appendChild(dim);
   dim.style.display = 'none';
 
   const cup = () => B.cup, pf = () => B.pf, pt = () => B.pitcher;
@@ -47,7 +48,7 @@ const Tutorial = (() => {
     { key: 'bell', show: ['#serveBtn'], done: () => false },
   ];
 
-  let active = false, cur = null, saidAt = -1, praiseUntil = 0, scrolledFor = null, skipArmed = 0;
+  let active = false, cur = null, saidAt = -1, praiseUntil = 0, skipArmed = 0;
   const els = sels => sels.map(s => document.querySelector(s)).filter(el => el && !el.hidden && el.getClientRects().length);
 
   // which step are we on right now?
@@ -77,12 +78,12 @@ const Tutorial = (() => {
   // dim everything except the highlighted objects, and draw a pulsing ring around each
   function drawDim(list) {
     if (!list.length) { dim.style.display = 'none'; return; }
-    const W = window.innerWidth, H = window.innerHeight;
+    const W = UI.w, H = UI.h;
     dim.style.display = '';
     dim.setAttribute('viewBox', `0 0 ${W} ${H}`);
     let d = `M0 0H${W}V${H}H0Z`, rings = '';
     for (const el of list) {
-      const r = el.getBoundingClientRect(), p = 7, x = r.left - p, y = r.top - p, w = r.width + p * 2, h = r.height + p * 2, rr = 14;
+      const r = stageRect(el), p = 7, x = r.left - p, y = r.top - p, w = r.width + p * 2, h = r.height + p * 2, rr = 14;
       d += `M${x + rr} ${y}H${x + w - rr}Q${x + w} ${y} ${x + w} ${y + rr}V${y + h - rr}Q${x + w} ${y + h} ${x + w - rr} ${y + h}H${x + rr}Q${x} ${y + h} ${x} ${y + h - rr}V${y + rr}Q${x} ${y} ${x + rr} ${y}Z`;
       rings += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rr}"/>`;
     }
@@ -102,7 +103,7 @@ const Tutorial = (() => {
   return {
     get active() { return active; },
     start() {
-      active = true; cur = null; saidAt = -1; scrolledFor = null; skipArmed = 0;
+      active = true; cur = null; saidAt = -1; skipArmed = 0;
     },
     // the order for the tutorial customer is always the same simple latte
     order: TUTORIAL_ORDER,
@@ -120,16 +121,9 @@ const Tutorial = (() => {
         praiseUntil = T + 0.9;
         sfx.coin();
       }
-      if (changed) scrolledFor = null;
       cur = next;
       const list = G.state === 'PREPARING' || G.state === 'READY_TO_SERVE' || next.key === 'ticket' || next.key === 'toBench' ? els(next.show) : [];
       const switching = window.CB && CB.switching();
-      // bring the first highlighted object on screen (phones scroll a lot)
-      if (list.length && scrolledFor !== next.key && !switching && !(window.CB && CB.dragging && CB.dragging())) {
-        const r = list[0].getBoundingClientRect();
-        if (r.top < 60 || r.bottom > window.innerHeight - 20) list[0].scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
-        scrolledFor = next.key;
-      }
       drawDim(switching ? [] : list);
       // skipping asks once more, so a stray tap near the bubble never ends the tutorial by accident
       const skipBtn = skipArmed > T ? { key: 'skipSure', cls: 'skip sure', onClick: () => Tutorial.skip() }

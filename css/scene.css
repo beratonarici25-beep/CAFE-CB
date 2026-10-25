@@ -68,12 +68,6 @@
 .neon span { color: #fff7da; text-shadow: 0 0 4px #fff, 0 0 10px #ffd36b, 0 0 22px #ffb43b, 0 0 40px #ffb43b; }
 @keyframes flicker { 0%, 61%, 63.5%, 66%, 100% { opacity: 1; } 62%, 65% { opacity: .55; } }
 
-@media (max-width: 760px) {
-  .scene { min-height: 250px; }
-  .neon { font-size: 22px; top: 10px; margin-left: -80px; width: 160px; }
-  .layer.front { width: 90px; height: 45%; }
-  .scene .talk { padding-top: 58px; }
-}
 @media (prefers-reduced-motion: reduce) {
   .bulbs i::after, .neon { animation: none; }
 }

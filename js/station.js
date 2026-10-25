@@ -206,7 +206,7 @@ const SLOT = {
 function moveInto(el, parentSel, from) {
   const parent = $(parentSel);
   // from: a rect to glide from; false: appear in place; undefined: glide from wherever it was
-  const before = from === false ? null : from || (el.isConnected && !el.hidden ? el.getBoundingClientRect() : null);
+  const before = from === false ? null : from || (el.isConnected && !el.hidden ? stageRect(el) : null);
   if (el.parentElement !== parent) parent.appendChild(el);
   if (before) fx('flip', el, before);
 }
@@ -269,8 +269,9 @@ function attempt(spec, target, from, src) {
   return true;
 }
 
+// the ghost lives inside the stage, in stage coordinates, so it scales with the bench (issue #14)
 function makeGhost(src) {
-  const r = src.getBoundingClientRect();
+  const r = stageRect(src);
   const g = src.cloneNode(true);
   g.removeAttribute('id');
   g.querySelectorAll('[id]').forEach(n => { if (n.tagName.toLowerCase() !== 'clippath') n.removeAttribute('id'); });
@@ -280,7 +281,7 @@ function makeGhost(src) {
   g.classList.add('drag-ghost');
   g.style.width = r.width + 'px'; g.style.height = r.height + 'px';
   g.style.transform = `translate3d(${r.left}px, ${r.top}px, 0)`;
-  document.body.appendChild(g);
+  $('#views').appendChild(g);
   const cv = src.id === 'cupObj' ? g.querySelector('canvas') : null;
   return { el: g, x: r.left, y: r.top, w: r.width, h: r.height, tilt: 0, sq: 0, cv, slosh: { a: 0, v: 0 } };
 }
@@ -312,8 +313,8 @@ function onPointerMove(e) {
     if (Math.hypot(drag.x - drag.sx, drag.y - drag.sy) < 6) return;
     drag.started = true;
     clearHeld();
-    const r = drag.src.getBoundingClientRect();
-    drag.offX = drag.sx - r.left; drag.offY = drag.sy - r.top;
+    const r = stageRect(drag.src), p = toStage(drag.sx, drag.sy);
+    drag.offX = p.x - r.left; drag.offY = p.y - r.top;
     drag.ghost = makeGhost(drag.src);
     drag.src.classList.add('dragging-src');
     document.body.classList.add('is-dragging');
@@ -385,13 +386,8 @@ function onKey(e) {
 // per-frame ghost follow with a little lag and tilt
 function updateDrag() {
   if (!drag || !drag.started) return;
-  // scroll the page when the object is held near the top or bottom edge
-  const edge = 70, vh = window.innerHeight;
-  // only once the pointer has travelled toward that edge, so grabbing something low on screen does not scroll
-  const dy = drag.y < edge && drag.y < drag.sy - 12 ? -(edge - drag.y) / 4
-    : drag.y > vh - edge && drag.y > drag.sy + 12 ? (drag.y - (vh - edge)) / 4 : 0;
-  if (dy) { window.scrollBy(0, Math.round(dy)); updateHover(); }
-  const g = drag.ghost, tx = drag.x - drag.offX, ty = drag.y - drag.offY;
+  const p = toStage(drag.x, drag.y);
+  const g = drag.ghost, tx = p.x - drag.offX, ty = p.y - drag.offY;
   const k = reduceMotion ? 1 : 0.38;
   const vx = (tx - g.x) * k, vy = (ty - g.y) * k;
   g.x += vx; g.y += vy;

@@ -25,3 +25,20 @@ if (!Array.isArray(save.upgrades)) save.upgrades = [];
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
 const has = id => save.upgrades.includes(id);
 const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+/* ---------------- the stage (issue #14) ----------------
+   The two views are laid out at a fixed design height (STAGE_H) and scaled to the window with one transform, so
+   the whole bench always fits. UI.s is that scale; UI.ox/oy is where the stage starts on screen. Things placed
+   inside the stage (drag ghosts, glides, the tutorial spotlight) use stage coordinates; stageRect() turns a screen
+   rect into one. The particles, the helper and the overlays stay in screen coordinates. */
+const STAGE_H = 770, STAGE_MIN_W = 1560;
+const UI = { s: 1, ox: 0, oy: 0, w: 0, h: 0 };
+function stageRect(el) {
+  const r = el.getBoundingClientRect(), s = UI.s;
+  return { left: (r.left - UI.ox) / s, top: (r.top - UI.oy) / s, width: r.width / s, height: r.height / s,
+    right: (r.right - UI.ox) / s, bottom: (r.bottom - UI.oy) / s };
+}
+const toStage = (x, y) => ({ x: (x - UI.ox) / UI.s, y: (y - UI.oy) / UI.s });
+const toScreen = (x, y) => ({ x: x * UI.s + UI.ox, y: y * UI.s + UI.oy });
+// canvas backing-store pixels per layout pixel: sharp on screen at any stage scale
+const pxRatio = () => Math.min((window.devicePixelRatio || 1) * UI.s, 3);

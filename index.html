@@ -9,13 +9,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grandstander:wght@500;700;800&family=Nunito:wght@400;600;700;800&family=Courier+Prime:wght@400;700&family=Pacifico&display=swap">
-<link rel="stylesheet" href="style.css?v=15">
-<link rel="stylesheet" href="css/scene.css?v=15">
-<link rel="stylesheet" href="css/fx.css?v=15">
-<link rel="stylesheet" href="css/views.css?v=15">
-<link rel="stylesheet" href="css/bar.css?v=15">
-<link rel="stylesheet" href="css/theme.css?v=15">
-<link rel="stylesheet" href="css/helper.css?v=15">
+<link rel="stylesheet" href="style.css?v=16">
+<link rel="stylesheet" href="css/scene.css?v=16">
+<link rel="stylesheet" href="css/fx.css?v=16">
+<link rel="stylesheet" href="css/views.css?v=16">
+<link rel="stylesheet" href="css/bar.css?v=16">
+<link rel="stylesheet" href="css/theme.css?v=16">
+<link rel="stylesheet" href="css/helper.css?v=16">
+<link rel="stylesheet" href="css/stage.css?v=16">
 </head>
 <body>
 
@@ -33,6 +34,8 @@
 </header>
 
 <!-- two views (issue #5): the customer view and the barista view; only one is shown, they slide when switching -->
+<!-- the stage (issue #14): the views are laid out at a fixed design height and scaled to fit the window -->
+<div class="stage" id="stage">
 <div class="views" id="views">
 <section class="scene view" id="scene">
   <!-- parallax layers, back to front (issue #2); the canvas draws customers and the counter -->
@@ -238,6 +241,7 @@
   </div>
 </main>
 </div>
+</div>
 
 <div class="overlay menu" id="ovMenu" hidden>
   <!-- the café itself behind the menu (issue #8): the same wall and seating, bulbs, a steaming cup and drifting beans -->
@@ -302,17 +306,20 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="js/util.js?v=15"></script>
-<script src="js/i18n.js?v=15"></script>
-<script src="js/audio.js?v=15"></script>
-<script src="js/recipe.js?v=15"></script>
-<script src="js/render.js?v=15"></script>
-<script src="js/scene.js?v=15"></script>
-<script src="js/fx.js?v=15"></script>
-<script src="js/station.js?v=15"></script>
-<script src="assets/helper/art.js?v=15"></script>
-<script src="js/helper.js?v=15"></script>
-<script src="js/tutorial.js?v=15"></script>
-<script src="js/main.js?v=15"></script>
+<!-- phones held upright (issue #14): the game is played sideways -->
+<div class="rotate-ov" id="rotateOv"><div><div class="phone" aria-hidden="true"></div><p data-t="rotate">Turn your phone sideways to play</p></div></div>
+
+<script src="js/util.js?v=16"></script>
+<script src="js/i18n.js?v=16"></script>
+<script src="js/audio.js?v=16"></script>
+<script src="js/recipe.js?v=16"></script>
+<script src="js/render.js?v=16"></script>
+<script src="js/scene.js?v=16"></script>
+<script src="js/fx.js?v=16"></script>
+<script src="js/station.js?v=16"></script>
+<script src="assets/helper/art.js?v=16"></script>
+<script src="js/helper.js?v=16"></script>
+<script src="js/tutorial.js?v=16"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>

@@ -101,7 +101,8 @@ async function brewOrder(page) {
     .then(r => ({ ...r, floated }));
 }
 
-(async () => {
+module.exports = { drag, hold, arrive, settled, brewOrder };
+if (require.main === module) (async () => {
   const browser = await pw.chromium.launch({ channel: 'msedge', headless: true });
   const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
   const errors = [];
@@ -199,15 +200,16 @@ async function brewOrder(page) {
   ok('Turkish error message', (await page.textContent('#toast')).includes('Portafiltre'));
   await page.click('#langBtn');
 
-  // mobile layout, both views
-  await page.setViewportSize({ width: 375, height: 812 });
+  // phone held sideways, both views: nothing scrolls (issue #14; every size is in tests/layout.js)
+  await page.setViewportSize({ width: 844, height: 390 });
   await page.waitForTimeout(300);
-  let overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-  ok('no horizontal scroll at 375px (bench)', overflow <= 0, 'overflow ' + overflow);
+  const scrolls = () => page.evaluate(() => Math.max(document.documentElement.scrollWidth - innerWidth, document.documentElement.scrollHeight - innerHeight));
+  let overflow = await scrolls();
+  ok('no page scroll at 844x390 (bench)', overflow <= 0, 'overflow ' + overflow);
   await page.click('#peekBtn');
   await settled(page, 'customer');
-  overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-  ok('no horizontal scroll at 375px (customer)', overflow <= 0, 'overflow ' + overflow);
+  overflow = await scrolls();
+  ok('no page scroll at 844x390 (customer)', overflow <= 0, 'overflow ' + overflow);
   try { await page.screenshot({ path: path.join(process.env.SHOT_DIR || __dirname, 'shot-mobile-customer.png'), timeout: 8000 }); } catch (e) {}
   await page.click('#backBtn');
   await settled(page, 'barista');

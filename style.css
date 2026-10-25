@@ -370,37 +370,6 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 .book .steps { margin: 6px 0 0; padding-left: 20px; font-size: 14px; }
 .book .steps li { margin-bottom: 4px; }
 
-@media (max-width: 1240px) {
-  .counter {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
-    grid-template-areas:
-      "grinder machine milk"
-      "cups    machine syrups"
-      "prep    serve   tops"
-      "trash   serve   tops";
-  }
-}
-@media (max-width: 760px) {
-  .counter {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 8px;
-    grid-template-areas:
-      "machine machine"
-      "grinder cups"
-      "milk    milk"
-      "prep    syrups"
-      "tops    serve"
-      "trash   serve";
-  }
-  .say { font-size: 15px; }
-  .brand { font-size: 17px; }
-  .draghint { display: none; }
-  .mach-head, .mach-tray { grid-template-columns: 1fr 92px; }
-  .cupobj canvas { width: 116px; height: 148px; }
-  .cupslot { min-height: 150px; }
-  .z-milk { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .z-milk h3, .z-milk .fridge { grid-column: 1 / -1; }
-}
-
 /* compact milk controls so the whole counter fits on a laptop screen */
 .bottle-obj.milk .n { display: none; }
 .bottle-obj .n { min-height: 1.2em; }

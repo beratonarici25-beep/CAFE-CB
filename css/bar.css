@@ -287,19 +287,6 @@
 .bin .lid { background: linear-gradient(var(--steel-hi), var(--steel-lo)); }
 .bin { filter: drop-shadow(3px 5px 3px rgba(40,20,10,.28)); }
 
-/* ---------- smaller screens ---------- */
-@media (max-width: 1240px) {
-  .backbar { height: 130px; }
-}
-@media (max-width: 760px) {
-  .backbar { height: 92px; margin-bottom: -18px; }
-  .machine { padding-inline: 12px; }
-  .mach-head { grid-template-columns: 1fr 92px; }
-  .deco-group { display: none; }
-  .tampstation { grid-template-columns: 1fr; }
-  .tampmat { grid-template-columns: auto auto; justify-content: center; }
-  .pass-deco { display: none; }
-}
 @media (prefers-reduced-motion: reduce) {
   .machine.busy .gauge-dial i { animation: none; }
 }

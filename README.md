@@ -33,6 +33,7 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `css/bar.css` | The barista bar: back shelves, rubber mats, steel machine, grinder, fridge, bottles (2.5D shading) |
 | `css/theme.css` | Shared theme: walnut top bar, paper cards, notebook recipe book, main menu café backdrop |
 | `css/helper.css` | Helper character poses and the tutorial spotlight |
+| `css/stage.css` | The stage: the views laid out at one design height and scaled to the window (no scrolling), the wide bench layout, the "turn your phone" screen |
 | `js/util.js` | Helpers, palette, save file |
 | `js/i18n.js` | All text (`STR` UI, `PH` customer phrases); every key needs `en` and `tr` |
 | `js/audio.js` | Synthesised sound effects |
@@ -50,6 +51,8 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `tests/e2e.js` | End-to-end test that brews real orders by dragging, through both views |
 | `tests/fuzz.js` | Random-play monkey test with state invariants |
 | `tests/tutorial.js` | Plays the tutorial with drags (desktop) and taps (phone); skip, replay, language, old saves |
+| `tests/sizes.js` | Drag ghosts keep their size, machine keys fit their label, a phone held upright asks to be turned |
+| `tests/layout.js` | At every window size (1280×720 to 3440×1440, phones held sideways) the game fits without scrolling and an order can be brewed |
 
 Plain scripts, no build step: open `index.html` directly or serve the folder.
 `CAFECB.html` redirects to `index.html` for old links.
@@ -61,6 +64,8 @@ node tests/e2e.js
 node tests/fuzz.js 3000   # random play, checks for errors and broken state
 FUZZ_TUT=1 node tests/fuzz.js 1500   # the same while the tutorial runs
 node tests/tutorial.js
+node tests/sizes.js
+node tests/layout.js   # every window size; screenshots to tests/layout-*.png
 ```
 
 ## Credits

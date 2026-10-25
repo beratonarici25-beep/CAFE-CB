@@ -1,5 +1,6 @@
 // Size test (issue #15): the drag ghost of every draggable thing keeps the size of the original (no sprite growing to
-// its natural size while dragged), the machine keys fit their label on one line (EN + TR), desktop and phone.
+// its natural size while dragged), the machine keys fit their label on one line (EN + TR), desktop and phone; a phone
+// held upright asks to be turned (issue #14).
 // Run: node tests/sizes.js   (needs playwright-core and Microsoft Edge, like tests/e2e.js)
 const path = require('path');
 const pw = require(process.env.PW_CORE || 'playwright-core');
@@ -29,7 +30,8 @@ async function ghostRatio(page, sel) {
   const orig = await loc.evaluate(new Function('return ' + PAINT)());
   await page.mouse.move(x, y); await page.mouse.down();
   await page.mouse.move(x + 12, y + 12); await page.mouse.move(x + 24, y + 24);
-  await page.waitForTimeout(60);
+  // let the tilt and stretch from the move settle (on a small stage the same move is a fast one)
+  await page.waitForTimeout(300);
   // the newest ghost: the one from the drag before may still be flying home
   const ghost = await page.evaluate(p => { const g = [...document.querySelectorAll('.drag-ghost')].pop(); return g && new Function('return ' + p)()(g); }, PAINT);
   await page.mouse.move(x, y); await page.mouse.up();
@@ -91,7 +93,14 @@ async function bench(browser, opts, tag) {
   const browser = await pw.chromium.launch({ channel: 'msedge', headless: true });
   await bench(browser, { viewport: { width: 1366, height: 900 } }, 'desktop');
   await bench(browser, { viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true }, 'phone landscape');
-  await bench(browser, { viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true }, 'phone portrait');
+  // held upright, the game asks to turn the phone (issue #14)
+  {
+    const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+    const page = await ctx.newPage();
+    await page.goto(URL); await page.waitForTimeout(300);
+    ok('phone portrait: asks to turn the phone', await page.evaluate(() => getComputedStyle(document.querySelector('#rotateOv')).display !== 'none'));
+    await ctx.close();
+  }
   await browser.close();
   for (const r of results) console.log(r.join('  '));
   const fails = results.filter(r => r[0] === 'FAIL').length;

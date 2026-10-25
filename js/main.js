@@ -34,12 +34,10 @@ function setView(v) {
   document.body.classList.toggle('view-customer', v === 'customer');
   $(v === 'barista' ? '#benchTicket' : '#sceneTicket').appendChild($('#ticket'));
   inEl.classList.remove('view-off');
-  if (first || reduceMotion) { outEl.classList.add('view-off'); fit(); window.scrollTo(0, 0); return; }
-  const views = $('#views'), dir = v === 'barista' ? 1 : -1, y = window.scrollY;
+  if (first || reduceMotion) { outEl.classList.add('view-off'); fit(); return; }
+  const views = $('#views'), dir = v === 'barista' ? 1 : -1;
   views.classList.add('switching');
   outEl.classList.add('view-leaving');
-  outEl.style.top = -y + 'px';           // keep the old view where it was on screen while the page jumps to the top
-  window.scrollTo(0, 0);
   fit();
   const opts = { duration: 520, easing: 'cubic-bezier(.65,0,.35,1)' };
   const a1 = outEl.animate([{ transform: 'none' }, { transform: `translateX(${-dir * 100}%)` }], opts);
@@ -49,7 +47,7 @@ function setView(v) {
   const finish = () => {
     if (done) return; done = true; viewAnim = null;
     a1.cancel(); a2.cancel();
-    outEl.classList.remove('view-leaving'); outEl.style.top = '';
+    outEl.classList.remove('view-leaving');
     if (outEl !== (curView === 'barista' ? $('#bench') : $('#scene'))) outEl.classList.add('view-off');
     views.classList.remove('switching');
     fit();
@@ -307,10 +305,24 @@ function render() {
 const sceneCv = $('#sceneCv'), sceneG = sceneCv.getContext('2d');
 const cupCv = $('#cupCv'), cupG = cupCv.getContext('2d');
 const dims = { sw: 0, sh: 0, cw: 0, ch: 0, k: 1, counterH: 44, topD: 15 };
+// scale the stage so the design height (or the narrowest bench width) fits the window (issue #14)
+function fitStage() {
+  const top = Math.ceil($('.topbar').getBoundingClientRect().height);
+  document.documentElement.style.setProperty('--top-h', top + 'px');
+  const st = $('#stage'), r = st.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  const s = Math.min(r.height / STAGE_H, r.width / STAGE_MIN_W);
+  UI.s = s; UI.ox = r.left; UI.oy = r.top; UI.w = r.width / s; UI.h = r.height / s;
+  const v = $('#views');
+  v.style.width = UI.w + 'px'; v.style.height = UI.h + 'px';
+  v.style.transform = `scale(${s})`;
+  document.documentElement.classList.toggle('small-stage', s < 0.75);
+}
 function fit() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  document.documentElement.style.setProperty('--top-h', Math.ceil($('.topbar').getBoundingClientRect().height) + 'px');
-  const s = sceneCv.getBoundingClientRect(), c = cupCv.getBoundingClientRect();
+  fitStage();
+  const dpr = pxRatio();
+  // layout sizes (stage pixels); the backing stores follow the screen size so the drawing stays sharp
+  const s = { width: sceneCv.clientWidth, height: sceneCv.clientHeight }, c = { width: cupCv.clientWidth, height: cupCv.clientHeight };
   if (s.width) {
     dims.sw = s.width; dims.sh = s.height;
     // the customer view is tall: a deeper bar seen slightly from above, and bigger customers (issue #6)
@@ -327,8 +339,10 @@ function fit() {
   sceneG.setTransform(dpr, 0, 0, dpr, 0, 0); cupG.setTransform(dpr, 0, 0, dpr, 0, 0);
   fx('fit');
 }
-if (window.ResizeObserver) { const ro = new ResizeObserver(fit); ro.observe(sceneCv); ro.observe(cupCv); }
+if (window.ResizeObserver) { const ro = new ResizeObserver(fit); ro.observe(sceneCv); ro.observe(cupCv); ro.observe($('#stage')); }
 window.addEventListener('resize', fit);
+// iPhone Safari: the toolbars grow and shrink without always firing a window resize
+if (window.visualViewport) visualViewport.addEventListener('resize', fit);
 
 function drawCupObj() {
   const g = cupG, W = dims.cw, H = dims.ch;

@@ -164,19 +164,6 @@ body.view-barista {
 .mbtn.bellbtn.ready { animation: ready 1.2s ease-in-out infinite; }
 @keyframes ready { 50% { box-shadow: 0 4px 0 var(--ink), 0 0 0 7px rgba(246,216,140,.55); } }
 
-/* ---------- smaller screens ---------- */
-@media (max-width: 900px) {
-  .scene .talk { flex-wrap: wrap; }
-  #sceneTicket { flex: 1 1 100%; }
-}
-@media (max-width: 760px) {
-  .scene .talk { margin-left: 16px; }
-  .bubble::before { left: 26px; bottom: -14px; transform: rotate(-45deg) skew(10deg, 10deg); }
-  .cust-tray { left: 66%; }
-  #peekBtn { margin-left: 0; }
-  .mach-panel, .mach-head { grid-template-columns: 1fr 92px; }
-  .panel-left .lcd { min-width: 0; }
-}
 @media (prefers-reduced-motion: reduce) {
   .handhint, .mbtn.bellbtn.ready, .machine.busy .gauge-dial i, .scene .ticket { animation: none; }
 }

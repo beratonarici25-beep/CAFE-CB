@@ -1,0 +1,141 @@
+/* The stage (issue #14): the game never scrolls. The two views are laid out at a fixed design height (STAGE_H in
+   js/util.js, 770 px) and at least STAGE_MIN_W wide, then scaled to the window with one transform (fitStage() in
+   js/main.js). So the bench below is one wide layout for every screen, from a phone held sideways to a 3440 px
+   monitor; a wider window only gives the columns more room. The top bar, overlays, helper and toasts stay outside
+   the stage at their real size. */
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+.stage {
+  position: fixed; top: var(--top-h, 46px); bottom: env(safe-area-inset-bottom, 0px);
+  left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px);
+  overflow: hidden;
+}
+.views { position: absolute; left: 0; top: 0; width: 1480px; height: 720px; transform-origin: 0 0; overflow: hidden; }
+.views > .view { height: 100%; }
+.view-leaving { top: 0; bottom: 0; }
+.scene { min-height: 0; height: 100%; }
+
+/* ---------- the bench: ticket strip over the back bar, then the counter filling the rest ---------- */
+.bench {
+  max-width: none; height: 100%; margin: 0; position: relative;
+  display: flex; flex-direction: column; padding: 8px 18px 32px;
+}
+.benchhead { position: relative; z-index: 2; flex: none; flex-wrap: nowrap; margin: 0; min-height: 62px; align-items: flex-start; }
+.benchhead #benchTicket { flex: 0 1 460px; }
+.benchhead .draghint { flex: 0 1 300px; background: rgba(255,250,243,.94); border-radius: 10px; padding: 4px 10px; box-shadow: var(--drop-sm); }
+.backbar { position: absolute; left: 24px; right: 24px; top: 6px; height: 150px; margin: 0; }
+.counter {
+  flex: 1 1 auto; min-height: 0; margin: 6px 0 0; padding: 8px 12px;
+  grid-template-columns: minmax(160px, .7fr) minmax(340px, 1.45fr) minmax(340px, 1.7fr) minmax(220px, .9fr) minmax(180px, .8fr) minmax(200px, .9fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "cups grinder machine milk syrups serve"
+    "prep grinder machine milk tops   trash";
+  align-content: stretch;
+}
+
+/* the cup slots and the cup a bit lower than before, so the machine column fits the height */
+.bench .cupslot { min-height: 150px; }
+.cupobj canvas { width: 118px; height: 150px; }
+.mach-top { height: 30px; display: flex; justify-content: center; overflow: hidden; }
+.mach-top .spr { width: auto; height: 100%; }
+.ticket h4 { margin-bottom: 2px; }
+.bench .ticket { padding-block: 6px 7px; }
+.bench .ticket-pat { margin-top: 5px; }
+
+/* cups side by side instead of stacked */
+.cupstand { display: flex; align-items: flex-end; justify-content: center; gap: 6px; }
+
+/* grinder with the tamp station beside it */
+.z-grinder {
+  grid-template-columns: minmax(0, 1fr) 128px; column-gap: 10px;
+  grid-template-areas: "h h" "mat tamp" "meter tamp" "msg tamp";
+}
+.z-grinder > h3 { grid-area: h; }
+.z-grinder > .barmat { grid-area: mat; }
+.z-grinder > .meter { grid-area: meter; }
+.z-grinder > .readout { grid-area: msg; }
+.z-grinder > .tampstation { grid-area: tamp; grid-template-columns: 1fr; align-content: start; }
+
+/* machine: the shot message and the shot list under the meter (on a phone the list sits beside the label) */
+.z-machine { gap: 6px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "h h" "mat mat" "meter meter" "msg msg" "shots shots"; }
+.z-machine > .shotlist { min-height: 0; }
+.z-machine > h3 { grid-area: h; }
+.z-machine > .barmat { grid-area: mat; }
+.z-machine > .meter { grid-area: meter; }
+.z-machine > .readout { grid-area: msg; }
+.z-machine > .shotlist { grid-area: shots; }
+
+/* milk: the fridge on top, the pitcher and its thermometer side by side under it */
+.z-milk { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "h h" "fridge fridge" "pitcher ctl"; align-items: start; }
+.z-milk > h3 { grid-area: h; }
+.z-milk > .fridge { grid-area: fridge; }
+.z-milk > .slot { grid-area: pitcher; min-width: 96px; }
+.z-milk > .wandctl { grid-area: ctl; }
+
+/* the pass: the bell beside the serving tray */
+.z-serve { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "h h" "tray bell"; align-items: end; }
+.z-serve > h3 { grid-area: h; }
+.z-serve > .servetray { grid-area: tray; }
+.z-serve > .pass-row { grid-area: bell; flex-direction: column; flex-wrap: nowrap; }
+
+/* the bench text that grows with the drink: the shot tags stay on one line, the cup notes get three lines */
+.shotlist { flex-wrap: nowrap; }
+.shotlist .tag { white-space: nowrap; }
+.cupinfo { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+
+/* syrups and toppings: one row of bottles */
+.z-syrups .bottles, .z-tops .bottles { flex-wrap: nowrap; gap: 4px; }
+
+/* ---------- phone held sideways (the stage is drawn at about half size): bigger text so it stays readable ---------- */
+.small-stage .draghint, .small-stage .zone h3 .hint { display: none; }
+.small-stage .zone h3 { font-size: 19px; }
+.small-stage .z-machine > h3 { white-space: nowrap; }
+.small-stage .z-machine { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "h shots" "mat mat" "meter meter" "msg msg"; }
+.small-stage .z-machine > .shotlist { justify-content: flex-end; }
+.small-stage .z-machine > .shotlist { align-self: center; }
+.small-stage .benchhead #benchTicket { flex-basis: 1180px; }
+.small-stage .ticket { font-size: 21px; line-height: 1.2; }
+.small-stage .ticket h4 { font-size: 15px; }
+.small-stage .benchhead .btn { font-size: 21px; }
+.small-stage .readout { font-size: 16px; }
+.small-stage .shotlist .tag { font-size: 14px; padding-inline: 7px; }
+.small-stage .wandctl .readout span:last-child { font-size: 15px; }
+.small-stage .bottle-obj span.nm, .small-stage .newcup b, .small-stage .objtag { font-size: 16px; }
+.small-stage .lcd { font-size: 18px; }
+.small-stage .key { font-size: 14px; }
+.small-stage .mbtn { font-size: 15px; }
+.small-stage .cupinfo { font-size: 15px; line-height: 1.3; }
+.small-stage .slotlabel { font-size: 14px; }
+/* the customer view: their words, the ticket and the buttons */
+.small-stage .talk-main { max-width: 920px; }
+.small-stage .bubble .who { font-size: 20px; }
+.small-stage .say { font-size: 28px; line-height: 1.3; }
+.small-stage .talk-actions .btn, .small-stage .talk-actions .btn.big { font-size: 28px; padding: 10px 26px; }
+.small-stage .handhint { font-size: 24px; }
+.small-stage #sceneTicket { flex-basis: 400px; }
+.small-stage .bubble .patience { height: 12px; max-width: 240px; }
+
+/* a slimmer top bar on short screens (a phone held sideways), so the stage gets the height */
+@media (max-height: 500px) {
+  .topbar { padding-block: 3px; gap: 8px; }
+  .brand { font-size: 16px; }
+  .hud { gap: 5px; }
+  .pill, .iconbtn { font-size: 12px; padding: 3px 9px; }
+}
+
+/* ---------- held upright on a phone: ask to turn it ---------- */
+.rotate-ov {
+  position: fixed; inset: 0; z-index: 40; display: none; place-items: center; text-align: center; padding: 24px;
+  background: var(--ink); color: var(--paper); font-family: var(--font-display); font-size: 22px;
+}
+.rotate-ov .phone {
+  width: 54px; height: 92px; margin: 0 auto 18px; border: 4px solid var(--paper); border-radius: 12px;
+  animation: turnPhone 2.2s ease-in-out infinite;
+}
+@keyframes turnPhone { 0%, 25% { transform: none; } 55%, 100% { transform: rotate(-90deg); } }
+@media (orientation: portrait) and (max-width: 900px) {
+  .rotate-ov { display: grid; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rotate-ov .phone { animation: none; transform: rotate(-90deg); }
+}

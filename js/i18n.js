@@ -14,7 +14,7 @@ const STR = {
     grinding: 'Grinding…', doseLight: 'A bit light', doseOver: 'Overpacked', perfectDose: 'Perfect dose',
     waitFor: 'Wait for it…', now: 'Now!', tooLong: 'Too long!', grindFirst: 'Grind first', max3: 'Three shots max', ready: 'Ready',
     scorched: 'Scorched!', steaming: 'Steaming…', pourReady: 'Pour when ready', sec: 's',
-    noShots: 'No shots yet', shotTag: 'Shot {0}: {1}s {2}', sour: 'sour', bitter: 'bitter', perfect: 'perfect',
+    noShots: 'No shots yet', shotTag: '{0}. {1}s {2}', sour: 'sour', bitter: 'bitter', perfect: 'perfect',
     pumps: n => n === 1 ? '1 pump' : `${n} pumps`,
     noCup: 'No cup yet. Start at station 1.', cupWord: '{0} cup', pickCup: 'Pick a cup to start', benchClear: 'The bench is clear',
     milkInfo: '{0}, {1} °C, {2}',
@@ -88,7 +88,7 @@ const STR = {
     grinding: 'Öğütülüyor…', doseLight: 'Biraz az', doseOver: 'Fazla dolu', perfectDose: 'Mükemmel doz',
     waitFor: 'Bekle…', now: 'Şimdi!', tooLong: 'Çok uzun!', grindFirst: 'Önce öğüt', max3: 'En fazla üç shot', ready: 'Hazır',
     scorched: 'Yandı!', steaming: 'Isıtılıyor…', pourReady: 'Hazırsan dök', sec: 'sn',
-    noShots: 'Henüz shot yok', shotTag: 'Shot {0}: {1} sn {2}', sour: 'ekşi', bitter: 'acı', perfect: 'mükemmel',
+    noShots: 'Henüz shot yok', shotTag: '{0}. {1} sn {2}', sour: 'ekşi', bitter: 'acı', perfect: 'mükemmel',
     pumps: n => `${n} pompa`,
     noCup: 'Henüz bardak yok. 1. istasyondan başla.', cupWord: '{0} bardak', pickCup: 'Başlamak için bardak seç', benchClear: 'Tezgâh boş',
     milkInfo: '{0}, {1} °C, {2}',
@@ -242,6 +242,7 @@ Object.assign(STR.en, {
   toBarista: 'Go to the barista bench', toCustomer: 'Look at the customer', backToBench: 'Back to the bench',
   dragToCust: 'Your drink is on the bar. Drag the cup to the customer!',
   dragHint: 'Drag things onto each other, or tap one and then tap where it goes.',
+  rotate: 'Turn your phone sideways to play',
   pfState: { empty: 'empty', ground: '{0} g, loose', tamped: '{0} g, tamped' },
   pitcherState: { empty: 'empty', milk: '{0}, {1} °C' },
   err: {
@@ -269,6 +270,7 @@ Object.assign(STR.tr, {
   toBarista: 'Barista alanına geç', toCustomer: 'Müşteriye bak', backToBench: 'Tezgâha dön',
   dragToCust: 'İçecek tezgâhta. Bardağı müşteriye sürükle!',
   dragHint: 'Nesneleri birbirinin üstüne sürükle ya da birine dokunup gideceği yere dokun.',
+  rotate: 'Oynamak için telefonu yan çevir',
   pfState: { empty: 'boş', ground: '{0} g, sıkıştırılmadı', tamped: '{0} g, sıkıştırıldı' },
   pitcherState: { empty: 'boş', milk: '{0}, {1} °C' },
   err: {

@@ -350,9 +350,8 @@ function drawCup(g, c, x, y, s, slosh = 0) {
 // Cached; redrawn only on resize.
 let counterCache = null;
 function counterImage(W, H, cy, topD) {
-  const key = W + 'x' + H + 'x' + topD;
+  const dpr = pxRatio(), key = W + 'x' + H + 'x' + topD + 'x' + dpr;
   if (counterCache && counterCache.key === key) return counterCache.cv;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const cv = document.createElement('canvas');
   cv.width = Math.ceil(W * dpr); cv.height = Math.ceil((H - cy + 4) * dpr);
   const g = cv.getContext('2d');
