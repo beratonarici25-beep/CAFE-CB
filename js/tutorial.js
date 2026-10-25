@@ -79,15 +79,17 @@ const Tutorial = (() => {
   function drawDim(list) {
     if (!list.length) { dim.style.display = 'none'; return; }
     const W = UI.w, H = UI.h;
-    dim.style.display = '';
-    dim.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    setStyle(dim, 'display', '');
+    const vb = `0 0 ${W} ${H}`;
+    if (dim.getAttribute('viewBox') !== vb) dim.setAttribute('viewBox', vb);
     let d = `M0 0H${W}V${H}H0Z`, rings = '';
     for (const el of list) {
       const r = stageRect(el), p = 7, x = r.left - p, y = r.top - p, w = r.width + p * 2, h = r.height + p * 2, rr = 14;
       d += `M${x + rr} ${y}H${x + w - rr}Q${x + w} ${y} ${x + w} ${y + rr}V${y + h - rr}Q${x + w} ${y + h} ${x + w - rr} ${y + h}H${x + rr}Q${x} ${y + h} ${x} ${y + h - rr}V${y + rr}Q${x} ${y} ${x + rr} ${y}Z`;
       rings += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rr}"/>`;
     }
-    dim.querySelector('.shade').setAttribute('d', d);
+    const sh = dim.querySelector('.shade');
+    if (sh.getAttribute('d') !== d) sh.setAttribute('d', d);
     const g = dim.querySelector('.rings');
     if (g.dataset.n !== rings) { g.innerHTML = rings; g.dataset.n = rings; }
   }

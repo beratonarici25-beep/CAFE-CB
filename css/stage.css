@@ -125,6 +125,13 @@ img { -webkit-user-drag: none; -webkit-touch-callout: none; }
 .small-stage #sceneTicket { flex-basis: 400px; }
 .small-stage .bubble .patience { height: 12px; max-width: 240px; }
 
+/* phones: nothing on the stage animates shadows or outline colours (that repaints every frame on a phone and made
+   dragging and grinding stutter); highlights stay, and only cheap transform/opacity animations run */
+.small-stage .can-drop { animation: none; }
+.small-stage .drop-hover { animation: none; transform: scale(1.03); box-shadow: 0 0 0 6px rgba(79,158,112,.3); }
+.small-stage .brew.on, .small-stage .mbtn.bellbtn.ready { animation: none; box-shadow: 0 1px 0 var(--ink), 0 0 0 6px rgba(246,216,140,.5); }
+.small-stage .bulbs i::after { animation: none; }
+
 /* a slimmer top bar on short screens (a phone held sideways), so the stage gets the height */
 @media (max-height: 500px) {
   .topbar { padding-block: 3px; gap: 8px; }

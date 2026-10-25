@@ -6,6 +6,12 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const ri = n => Math.floor(Math.random() * n);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// per-frame writes only when the value changed: an unchanged write still makes the browser lay the page out again,
+// which is what made the bench stutter on phones
+const setText = (el, v) => { if (el.textContent !== v) el.textContent = v; };
+const setStyle = (el, k, v) => { if (el.style[k] !== v) el.style[k] = v; };
+// a bar that fills from the left, moved with a transform (no layout at all)
+const setFill = (el, f) => setStyle(el, 'transform', `scaleX(${clamp(f, 0, 1).toFixed(3)})`);
 const money = n => '$' + n.toFixed(2);
 
 const C = {

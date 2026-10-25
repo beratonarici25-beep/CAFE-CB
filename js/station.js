@@ -586,18 +586,18 @@ function updateBench(dt) {
   }
   $('#pfObj').classList.toggle('has-grounds', p.dose > 0);
   $('#machine').classList.toggle('busy', c.shotting || pt.steaming);
-  $('#doseFill').style.width = (p.dose / 25 * 100) + '%';
-  $('#doseTxt').textContent = p.dose.toFixed(1) + ' g';
+  setFill($('#doseFill'), p.dose / 25);
+  setText($('#doseTxt'), p.dose.toFixed(1) + ' g');
   const [lo, hi] = doseZone();
-  $('#doseMsg').textContent = p.grinding ? L.grinding : p.dose <= 0 ? L.holdGrind : p.dose < lo ? L.doseLight : p.dose > hi ? L.doseOver : L.perfectDose;
-  $('#shotNeedle').style.left = (Math.min(45, c.shotT) / 45 * 100) + '%';
-  $('#shotTxt').textContent = Math.round(c.shotT) + ' ' + L.sec;
-  $('#shotMsg').textContent = c.shotting ? (c.shotT < 25 ? L.waitFor : c.shotT <= 30 ? L.now : L.tooLong)
-    : p.at !== 'group' ? t('err.pfToGroup') : c.shots.length >= 3 ? L.max3 : L.ready;
-  $('#tempFill').style.width = (Math.min(90, pt.temp) / 90 * 100) + '%';
-  $('#tempTxt').textContent = Math.round(pt.temp) + ' °C';
-  $('#tempMsg').textContent = !pt.milk ? t('err.pitcherEmpty') : pt.scorched ? L.scorched : pt.steaming ? L.steaming : pt.temp >= 30 ? L.pourReady : L.holdSteam;
-  if (p.grinding || pt.steaming) $(p.grinding ? '#pfTag' : '#pitcherTag').textContent = p.grinding ? p.dose.toFixed(1) + ' g' : `${L.milks[pt.milk]}, ${Math.round(pt.temp)} °C`;
+  setText($('#doseMsg'), p.grinding ? L.grinding : p.dose <= 0 ? L.holdGrind : p.dose < lo ? L.doseLight : p.dose > hi ? L.doseOver : L.perfectDose);
+  setStyle($('#shotNeedle'), 'left', (Math.min(45, c.shotT) / 45 * 100).toFixed(1) + '%');
+  setText($('#shotTxt'), Math.round(c.shotT) + ' ' + L.sec);
+  setText($('#shotMsg'), c.shotting ? (c.shotT < 25 ? L.waitFor : c.shotT <= 30 ? L.now : L.tooLong)
+    : p.at !== 'group' ? t('err.pfToGroup') : c.shots.length >= 3 ? L.max3 : L.ready);
+  setFill($('#tempFill'), Math.min(90, pt.temp) / 90);
+  setText($('#tempTxt'), Math.round(pt.temp) + ' °C');
+  setText($('#tempMsg'), !pt.milk ? t('err.pitcherEmpty') : pt.scorched ? L.scorched : pt.steaming ? L.steaming : pt.temp >= 30 ? L.pourReady : L.holdSteam);
+  if (p.grinding || pt.steaming) setText($(p.grinding ? '#pfTag' : '#pitcherTag'), p.grinding ? p.dose.toFixed(1) + ' g' : `${L.milks[pt.milk]}, ${Math.round(pt.temp)} °C`);
   // the pitcher model shows what is inside: empty, cold milk, or milk with foam on top once it is steamed
   setSprite($('#pitcherImg'), !pt.milk ? 'pitcher-empty' : pt.foam !== 'none' && pt.temp >= 30 ? 'pitcher-foam' : 'pitcher-milk');
   setSprite($('#pfImg'), p.dose <= 0 ? 'pf-empty' : p.tamped ? 'pf-tamped' : 'pf-ground');

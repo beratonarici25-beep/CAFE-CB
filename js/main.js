@@ -389,7 +389,7 @@ function update(dt) {
     }
     if (c.reactT != null) c.reactT += dt;
     const col = G.patience > 0.55 ? 'var(--mint)' : G.patience > 0.25 ? 'var(--butter)' : 'var(--blush-deep)';
-    for (const pb of [$('#patBar'), $('#patBar2')]) { pb.style.width = (G.patience * 100) + '%'; pb.style.background = col; }
+    for (const pb of [$('#patBar'), $('#patBar2')]) { setFill(pb, G.patience); setStyle(pb, 'background', col); }
     placeCustZone();
   }
   updateBench(dt);
@@ -399,8 +399,8 @@ function placeCustZone() {
   const z = $('#custZone'), c = G.cust;
   if (z.hidden || !c) return;
   const k = dims.k, cy = dims.sh - dims.counterH;
-  z.style.left = (c.x - 62 * k) + 'px'; z.style.top = (cy - 178 * k) + 'px';
-  z.style.width = (124 * k) + 'px'; z.style.height = (178 * k + dims.topD) + 'px';
+  setStyle(z, 'left', (c.x - 62 * k).toFixed(1) + 'px'); setStyle(z, 'top', (cy - 178 * k).toFixed(1) + 'px');
+  setStyle(z, 'width', (124 * k).toFixed(1) + 'px'); setStyle(z, 'height', (178 * k + dims.topD).toFixed(1) + 'px');
 }
 let last = performance.now(), dtLast = 0.016;
 function frame(now) {
