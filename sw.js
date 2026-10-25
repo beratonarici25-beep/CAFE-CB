@@ -10,6 +10,8 @@ const CORE = [
   'js/station.js?v=16', 'assets/helper/art.js?v=16', 'js/helper.js?v=16', 'js/tutorial.js?v=16', 'js/main.js?v=16',
   'assets/icon.svg', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png',
   'assets/backbar.svg', 'assets/bg-seating.svg', 'assets/bg-wall.svg',
+  'assets/fonts/fonts.css?v=16', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
+    .flatMap(f => [`assets/fonts/${f}-latin.woff2`, `assets/fonts/${f}-latin-ext.woff2`]),
   ...['bell', 'bin', 'binlid', 'cup-L', 'cup-M', 'cup-S', 'cust-beard', 'cust-collar-round', 'cust-collar-v', 'cust-hair-bun-front',
     'cust-hair-curly-back', 'cust-hair-curly-front', 'cust-hair-long-back', 'cust-hair-long-front', 'cust-hair-short-front',
     'cust-hair-straight-back', 'cust-hair-straight-front', 'cust-hat-beanie', 'cust-hat-cap', 'cust-hat-pom', 'cust-scarf', 'cust-skin',

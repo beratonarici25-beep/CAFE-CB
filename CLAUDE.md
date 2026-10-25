@@ -27,6 +27,7 @@ Demo sırası (#24 ile aynı):
 ## Kullanıcı kararları (özet; ayrıntı issue'larda)
 - **Demo sadece telefonda.** Bilgisayardan oynayan olmayacak; exe (#13) demodan sonra.
 - Kullanıcı sadece **dosya (Android APK) veya bağlantı (iPhone)** gönderecek, arkadaşlar **direkt oyuna girecek**. QR kodu, talimat, "ana ekrana ekle" şartı yok.
+- **2026-10-25 kararı:** Arkadaşlar iPhone kullanıyor; demo **GitHub Pages bağlantısıyla** gönderilecek. Android APK (Capacitor) şimdilik yapılmıyor, Android'li biri çıkarsa sonra. Fontlar oyunun içinde (`assets/fonts/`, OFL).
 - Mobilde görünüm **yatay**; telefonda **sorunsuz** çalışması önemli. Her değişikliği telefon yatayda da kontrol et.
 - Görsel tarz **B**: Good Pizza, Great Pizza'nın sevimliliği ve okunaklılığı, ama düz 2D değil; yumuşak 3D gölge, gerçek malzemeler, sevimli ama gerçekçiye yakın oranlar.
 - **Model tasarımı önemli:** demo, bütün görseller (kafe, makineler, karakterler) bitmeden verilmez.

@@ -13,7 +13,7 @@ No real brand names or logos are used (labels on bottles, bags and cartons are p
 | `models/*.webp` (machine parts, grinder hopper, portafilter, tamper, pitcher, cups, bottles, shakers, knock box, bin, bell, customer layers) | Original 3D models built from primitives by `tools/blender/models.py`, rendered in Blender | Same as this repository |
 | Customers, cups, coins (`js/render.js`) | Drawn in code | Same as this repository |
 | Machines, bottles, bar mats (`css/bar.css`, `index.html` SVGs) | Drawn in code | Same as this repository |
-| Fonts: Grandstander, Nunito, Courier Prime, Pacifico | Google Fonts | SIL Open Font License 1.1 |
+| `fonts/*.woff2`: Grandstander (Etcetera Type Co), Nunito (Vernon Adams et al.), Courier Prime (Quote-Unquote Apps), Pacifico (Vernon Adams et al.) | Google Fonts (fonts.google.com), Latin + Latin Extended subsets, bundled unchanged | SIL Open Font License 1.1; licence texts in `fonts/OFL-*.txt`. The fonts may be bundled and shared with the game; they are not sold on their own and keep their names. |
 | Sound effects (`js/audio.js`) | Synthesised at runtime | Same as this repository |
 
 If a future change adds outside assets, prefer CC0 (Kenney, Quaternius, Poly Haven), list each one here with its

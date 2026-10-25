@@ -65,6 +65,8 @@ The game is played sideways and fits any window: the views are laid out at one d
 plays there. Added to the home screen (optional) it opens full screen and, once opened, works offline:
 `manifest.webmanifest` + `sw.js` (the service worker caches every file; bump its `VERSION` together with the `?v=` on
 the links in `index.html` when releasing). `node tools/icons.js` renders the PNG icons from `assets/icon.svg`.
+The fonts are bundled in `assets/fonts/` (SIL Open Font License, licence texts beside them), so nothing is loaded
+from outside.
 `CAFECB.html` redirects to `index.html` for old links.
 
 Run the tests (needs `playwright-core` and Microsoft Edge):
