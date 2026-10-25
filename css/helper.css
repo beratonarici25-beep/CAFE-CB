@@ -1,43 +1,55 @@
-/* The helper character and the tutorial spotlight (issue #12). She stands in a bottom (or top) corner, away from
-   what she talks about; only her bubble's buttons take clicks, so she never blocks the game. */
+/* The helper character and the tutorial spotlight (issues #12, #23). While she talks she is one of the game's main
+   characters: waist up, about 46% of the window height, in a bottom (or top) corner away from what she talks about.
+   If she would cover the lit target or a button there, she gets smaller (size-m, size-s); if even that covers
+   something, the stage moves aside and she stands in a strip of her own beside it (.aside, see place() in
+   js/helper.js). Every size follows the window height, and the bubble and its text grow with her. Only her bubble's
+   buttons take clicks, so she never blocks the game. */
 .helper {
-  position: fixed; z-index: 29; bottom: max(10px, env(safe-area-inset-bottom, 0px)); left: 10px; right: auto;
-  display: flex; align-items: flex-end; gap: 4px; pointer-events: none; max-width: calc(100vw - 20px);
+  --fh: 46vh; --fh: 46dvh;                     /* figure height */
+  --fs: clamp(13px, calc(var(--fh) * .055), 23px);  /* bubble text */
+  position: fixed; z-index: 29; bottom: 0; left: max(6px, env(safe-area-inset-left, 0px)); right: auto;
+  display: flex; align-items: flex-end; gap: 4px; pointer-events: none; max-width: calc(100vw - 12px);
 }
-.helper.side-right { left: auto; right: 10px; flex-direction: row-reverse; }
-.helper.at-top { bottom: auto; top: calc(var(--top-h, 46px) + 8px); align-items: flex-start; }
-.hl-figure { flex: none; width: 128px; filter: drop-shadow(4px 8px 8px rgba(40,20,10,.35)); }
-.helper-art { display: block; width: 100%; height: auto; overflow: visible; }
+.helper.size-m { --fh: 34vh; --fh: 34dvh; }
+.helper.size-s { --fh: 24vh; --fh: 24dvh; --fs: clamp(12px, calc(var(--fh) * .07), 17px); }
+.helper.side-right { left: auto; right: max(6px, env(safe-area-inset-right, 0px)); flex-direction: row-reverse; }
+.helper.at-top { bottom: auto; top: calc(var(--top-h, 46px) + 6px); align-items: flex-start; }
+.hl-figure { flex: none; height: var(--fh); width: calc(var(--fh) * .72); filter: drop-shadow(4px 8px 8px rgba(40,20,10,.35)); }
+.helper-art { display: block; width: 100%; height: 100%; overflow: visible; }
 .hl-bubble {
-  position: relative; max-width: 330px; margin-bottom: 92px; padding: 9px 13px 11px;
-  background: var(--paper-grad, #fffaf3); border: 3px solid var(--ink); border-radius: 18px;
+  position: relative; max-width: min(calc(var(--fs) * 24), calc(100vw - var(--fh) * .72 - 24px));
+  margin-bottom: calc(var(--fh) * .5); padding: calc(var(--fs) * .55) calc(var(--fs) * .85) calc(var(--fs) * .7);
+  background: var(--paper-grad, #fffaf3); border: 3px solid var(--ink); border-radius: calc(var(--fs) * 1.1);
   box-shadow: 0 4px 0 var(--ink), 4px 10px 18px rgba(40,20,10,.3);
 }
-.helper.at-top .hl-bubble { margin: 70px 0 0; }
+.helper.at-top .hl-bubble { margin: calc(var(--fh) * .3) 0 0; }
 .hl-bubble::before {
-  content: ""; position: absolute; left: -13px; bottom: 26px; width: 18px; height: 18px;
+  content: ""; position: absolute; left: -13px; bottom: calc(var(--fh) * .12); width: 18px; height: 18px;
   background: #fffaf3; border-left: 3px solid var(--ink); border-bottom: 3px solid var(--ink); transform: rotate(45deg);
 }
 .helper.side-right .hl-bubble::before { left: auto; right: -13px; transform: rotate(-135deg); }
-.helper.at-top .hl-bubble::before { bottom: auto; top: 26px; }
-.hl-who { display: flex; align-items: baseline; gap: 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
-.hl-who b { font-family: var(--font-display); font-size: 15px; letter-spacing: .02em; text-transform: none; color: var(--blush-deep); }
-.hl-text { margin: 2px 0 0; font-weight: 700; font-size: 15px; line-height: 1.38; }
-.hl-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+.helper.at-top .hl-bubble::before { bottom: auto; top: calc(var(--fh) * .12); }
+.hl-who { display: flex; align-items: baseline; gap: 6px; font-size: calc(var(--fs) * .78); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.hl-who b { font-family: var(--font-display); font-size: calc(var(--fs) * 1.02); letter-spacing: .02em; text-transform: none; color: var(--blush-deep); }
+.hl-text { margin: 2px 0 0; font-weight: 700; font-size: var(--fs); line-height: 1.36; }
+.hl-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: calc(var(--fs) * .5); }
 .hl-btns .btn { pointer-events: auto; }   /* only the buttons take clicks, never the space around them */
-.hl-btns .btn { padding: 4px 12px; font-size: 13px; box-shadow: 0 2px 0 var(--ink); }
+.hl-btns .btn { padding: calc(var(--fs) * .25) calc(var(--fs) * .8); font-size: calc(var(--fs) * .86); box-shadow: 0 2px 0 var(--ink); }
 .hl-btns .btn.skip { background: #f6ede6; font-weight: 700; }
 .hl-btns .btn.skip.sure { background: var(--butter); }
-.hl-btns .btn.go { font-size: 15px; padding: 6px 16px; }
-/* no free corner for her at full size (small screens): a smaller figure and bubble, so she covers no button */
-.helper.compact .hl-figure { width: 72px; }
-.helper.compact .hl-bubble { max-width: 250px; margin-bottom: 44px; padding: 6px 10px 8px; border-width: 2px; border-radius: 14px; }
-.helper.compact.at-top .hl-bubble { margin: 36px 0 0; }
-.helper.compact .hl-who { font-size: 10px; }
-.helper.compact .hl-who b { font-size: 13px; }
-.helper.compact .hl-text { font-size: 13px; line-height: 1.3; }
-.helper.compact .hl-btns { margin-top: 5px; }
-.helper.compact .hl-btns .btn { padding: 3px 10px; font-size: 12px; }
+.hl-btns .btn.go { font-size: var(--fs); padding: calc(var(--fs) * .35) calc(var(--fs) * 1.05); }
+
+/* her own strip beside the stage: the bubble above her, both as wide as the strip (--aside-w, set from js) */
+.helper.aside {
+  left: auto; right: max(4px, env(safe-area-inset-right, 0px)); top: calc(var(--top-h, 46px) + 6px); bottom: 0;
+  width: calc(var(--aside-w, 240px) - 8px); flex-direction: column-reverse; justify-content: flex-start; align-items: center; gap: 0;
+  --fs: clamp(12px, calc(var(--aside-w, 240px) * .066), 18px);
+}
+.helper.aside .hl-bubble { max-width: none; width: 100%; margin: 0 0 10px; }
+.helper.aside .hl-bubble::before { left: 50%; bottom: -12px; margin-left: -9px; transform: rotate(-45deg); }
+/* she fills what the bubble leaves, waist up */
+.helper.aside .hl-figure { flex: 1 1 0; min-height: 60px; height: auto; width: 100%; }
+.helper.aside .helper-art { object-fit: contain; }
 .helper.bubble-in .hl-bubble { animation: hlIn .3s var(--pop, ease-out); }
 @keyframes hlIn { from { transform: translateY(8px) scale(.96); opacity: .3; } }
 
@@ -53,10 +65,9 @@
 .helper-art .brows path { transform-box: fill-box; transform-origin: center; transition: transform .3s; }
 
 /* pointing: the arm on the side facing the screen reaches out toward the highlighted thing */
-.helper.side-left.pose-point .arm-b { transform: rotate(-115deg); }
-.helper.side-right.pose-point .arm-a { transform: rotate(115deg); }
-.helper.at-top.side-left.pose-point .arm-b { transform: rotate(-55deg); }
-.helper.at-top.side-right.pose-point .arm-a { transform: rotate(55deg); }
+/* --arm is the angle toward the first lit target, set by place() in js/helper.js */
+.helper.side-left.pose-point .arm-b { transform: rotate(var(--arm, -115deg)); }
+.helper.side-right.pose-point .arm-a { transform: rotate(var(--arm, 115deg)); }
 .helper.side-left.pose-point .arm-b .finger, .helper.side-right.pose-point .arm-a .finger { display: inline; }
 /* cheering: both arms up, happy eyes, open smile */
 .helper.pose-cheer .arm-a { transform: rotate(148deg); }
@@ -86,11 +97,6 @@
 #tutDim .rings rect { fill: none; stroke: #ffd36b; stroke-width: 4; stroke-dasharray: 12 8; animation: ringMarch 1s linear infinite; filter: drop-shadow(0 0 6px rgba(255,211,107,.9)); }
 @keyframes ringMarch { to { stroke-dashoffset: -20; } }
 
-@media (max-width: 760px) {
-  .hl-figure { width: 82px; }
-  .hl-bubble { max-width: min(250px, calc(100vw - 112px)); margin-bottom: 58px; padding: 7px 10px 9px; }
-  .helper.at-top .hl-bubble { margin-top: 40px; }
-  .hl-text { font-size: 13.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .helper-art .hl-body, .helper-art .eyes, .helper.pose-wave .arm-b, .helper.talking .m-open, .helper.talking .m-smile,

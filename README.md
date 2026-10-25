@@ -46,6 +46,8 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `js/tutorial.js` | First-run tutorial: fixed latte order, step checks, highlights and hints |
 | `js/main.js` | Game flow and states, view switching, HUD, overlays, frame loop |
 | `assets/models/` | 3D models rendered in Blender (WebP, @2x): bench equipment and the customer layers |
+| `sw.js`, `manifest.webmanifest` | Offline play and the home-screen app (PWA) |
+| `tools/icons.js` | Renders the PNG app icons from `assets/icon.svg` |
 | `tools/blender/models.py` | Builds every 3D model from primitives in Blender and renders them (toon shading, ink outline, one upper-left light) |
 | `assets/` | Background SVGs (café wall, seating, back bar) and the icon; `assets/helper/art.js` is the helper's SVG; `assets/CREDITS.md` lists sources |
 | `tests/e2e.js` | End-to-end test that brews real orders by dragging, through both views |
@@ -55,6 +57,14 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `tests/layout.js` | At every window size (1280×720 to 3440×1440, phones held sideways) the game fits without scrolling and an order can be brewed |
 
 Plain scripts, no build step: open `index.html` directly or serve the folder.
+
+### On phones
+
+The game is played sideways and fits any window: the views are laid out at one design size and scaled
+(`css/stage.css`); a phone held upright shows "turn your phone". On an iPhone the link opens straight in Safari and
+plays there. Added to the home screen (optional) it opens full screen and, once opened, works offline:
+`manifest.webmanifest` + `sw.js` (the service worker caches every file; bump its `VERSION` together with the `?v=` on
+the links in `index.html` when releasing). `node tools/icons.js` renders the PNG icons from `assets/icon.svg`.
 `CAFECB.html` redirects to `index.html` for old links.
 
 Run the tests (needs `playwright-core` and Microsoft Edge):

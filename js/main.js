@@ -311,8 +311,10 @@ function fitStage() {
   document.documentElement.style.setProperty('--top-h', top + 'px');
   const st = $('#stage'), r = st.getBoundingClientRect();
   if (!r.width || !r.height) return;
-  const s = Math.min(r.height / STAGE_H, r.width / STAGE_MIN_W);
-  UI.s = s; UI.ox = r.left; UI.oy = r.top; UI.w = r.width / s; UI.h = r.height / s;
+  // the helper may take a strip on the right for herself (issue #23)
+  const w = r.width - (typeof Helper !== 'undefined' ? Helper.aside : 0);
+  const s = Math.min(r.height / STAGE_H, w / STAGE_MIN_W);
+  UI.s = s; UI.ox = r.left; UI.oy = r.top; UI.w = w / s; UI.h = r.height / s;
   const v = $('#views');
   v.style.width = UI.w + 'px'; v.style.height = UI.h + 'px';
   v.style.transform = `scale(${s})`;
@@ -410,6 +412,21 @@ function frame(now) {
 // small debug/test hook
 window.CB = { G, B, drop: (spec, target) => { const e = check(spec, target); if (!e) apply(spec, target); return e; }, cupState: () => cupSnapshot(B.cup),
   view: () => curView, switching: () => !!viewAnim, dragging: () => !!(drag && drag.started), tutorial: () => Tutorial.active };
+
+/* ---------------- phones (issue #27) ---------------- */
+// in the background (another app, the screen off) the sound stops; the browser pauses the frame loop itself
+document.addEventListener('visibilitychange', () => {
+  if (sfx.ctx) document.hidden ? sfx.ctx.suspend() : sfx.ctx.resume();
+});
+// no long-press menu and no pinch zoom (iPhone ignores user-scalable) on the game
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('gesturestart', e => e.preventDefault());
+// ask the browser to keep the save even when space runs low
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+// offline play once opened (not from file://, where service workers do not run)
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
 
 function start() {
   buildBench();

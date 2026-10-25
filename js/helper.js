@@ -49,17 +49,42 @@ const Helper = (() => {
     if (v !== vert) { root.classList.toggle('at-top', v === 'top'); vert = v; }
   };
   const visible = q => q.width > 0 && q.height > 0 && q.right > 0 && q.bottom > 0 && q.left < window.innerWidth && q.top < window.innerHeight;
-  // stand in the corner where she covers nothing: not what she talks about, and no other button either (issue #15)
+  const SIZES = ['l', 'm', 's'];
+  const setSize = z => { for (const k of SIZES) root.classList.toggle('size-' + k, k === z); };
+  // her own strip beside the stage (issue #23): main.js fitStage() keeps the stage out of these pixels
+  let aside = 0, asideView = null;
+  const asideWidth = () => Math.round(clamp(window.innerWidth * 0.22, 180, 320));
+  function setAside(w) {
+    if (w === aside) return;
+    aside = w;
+    root.classList.toggle('aside', !!w);
+    if (w) root.style.setProperty('--aside-w', w + 'px');
+    if (typeof fit === 'function') fit();
+  }
+  const view = () => window.CB && CB.view ? CB.view() : null;
+  // the pointing arm turns toward the first lit target (0deg hangs down, positive turns clockwise)
+  function aim(r) {
+    if (!r) { root.style.removeProperty('--arm'); return; }
+    const f = $q('.hl-figure').getBoundingClientRect(), right = side === 'right';
+    const sx = f.left + f.width * (right ? 39 : 121) / 160, sy = f.top + f.height * 149 / 222;
+    const deg = Math.atan2(-(r.left + r.width / 2 - sx), r.top + r.height / 2 - sy) * 180 / PI;
+    root.style.setProperty('--arm', (right ? clamp(deg, 25, 170) : clamp(deg, -170, -25)).toFixed(0) + 'deg');
+  }
+  // stand where she covers nothing: not what she talks about, and no other button either (issues #15, #23).
+  // Biggest first: every corner at full size, then smaller; if even the smallest covers something, the strip.
   let placedFor = null, placedAt = 0;
   function place(target) {
     const all = (Array.isArray(target) ? target : [target]).map(x => typeof x === 'string' ? document.querySelector(x) : x).filter(Boolean);
-    // called every frame: only look again when the line or the targets change, or a few times a second (scrolling)
-    const sig = cur && cur.key + '|' + all.length + '|' + window.innerWidth + 'x' + window.innerHeight;
+    // called every frame: only look again when the line, the targets, the view or the window change, or a few times a
+    // second (things move: the cup glides, a view slides in)
+    const sig = cur && cur.key + '|' + all.length + '|' + view() + '|' + window.innerWidth + 'x' + window.innerHeight;
     const now = performance.now();
     if (sig === placedFor && now - placedAt < 250) return;
     placedFor = sig; placedAt = now;
+    if (aside && asideView !== view()) setAside(0);
     const el = all[0];
     const r = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+    if (aside) { setSpot('right', 'bottom'); aim(r); return; }
     // first guess: the side away from the thing she talks about
     let s = 'left', v = 'bottom';
     if (r && (r.width || r.height)) {
@@ -67,6 +92,7 @@ const Helper = (() => {
       v = r.top + r.height / 2 > window.innerHeight * 0.58 ? 'top' : 'bottom';
     }
     if (root.hidden) { setSpot(s, v); return; }
+    const was = SIZES.find(k => root.classList.contains('size-' + k)) + side + vert;
     // grown by the tutorial spotlight's ring around them
     const tgt = all.map(x => { const q = x.getBoundingClientRect(); return { left: q.left - 9, top: q.top - 9, right: q.right + 9, bottom: q.bottom + 9 }; });
     const others = [...document.querySelectorAll('button, [data-drag]')]
@@ -81,23 +107,48 @@ const Helper = (() => {
       let sum = 0;
       tgt.forEach((q, i) => { const a = over(q); if (a > 0) sum += (i === 0 ? 1e7 : 1e5) + a; });
       for (const q of others) { const a = over(q); if (a > 0) sum += 1e3 + a; }
+      // off the window (a bubble too tall for a short screen) counts like covering a button
+      for (const q of ps) if (q.top < 0 || q.bottom > window.innerHeight + 1) sum += 1e3;
       return sum;
     };
     const flip = x => x === 'left' ? 'right' : x === 'right' ? 'left' : x === 'top' ? 'bottom' : 'top';
-    // every corner at full size, then every corner smaller (a small screen may have no room for her otherwise)
     let best = null;
-    for (const small of [false, true]) {
-      root.classList.toggle('compact', small);
+    for (const z of SIZES) {
+      setSize(z);
       for (const [cs, cv] of [[s, v], [s, flip(v)], [flip(s), v], [flip(s), flip(v)]]) {
         setSpot(cs, cv);
         const c = cost();
-        if (!best || c < best.c) best = { c, s: cs, v: cv, small };
+        if (!best || c < best.c) best = { c, s: cs, v: cv, z };
         if (c === 0) break;
       }
       if (best.c === 0) break;
     }
-    root.classList.toggle('compact', best.small);
+    if (best.c > 0) {
+      // no free corner at any size: the stage makes room and she stands beside it until the view changes
+      asideView = view();
+      setSize('l');
+      setSpot('right', 'bottom');
+      setAside(asideWidth());
+      aim(el && el.getBoundingClientRect());
+      return;
+    }
+    const grew = was !== best.z + best.s + best.v;
+    setSize(best.z);
     setSpot(best.s, best.v);
+    aim(r);
+    if (grew) pop();
+  }
+  // she slides in from her edge when she appears, and pops a little when she changes size or corner
+  let anim = null;
+  function slideIn() {
+    if (reduceMotion || !root.animate) return;
+    if (anim) anim.cancel();
+    const dx = side === 'right' ? 60 : -60;
+    anim = $q('.hl-figure').animate([{ transform: `translateX(${dx}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.2,.8,.3,1)' });
+  }
+  function pop() {
+    if (reduceMotion || !root.animate || (anim && anim.playState === 'running')) return;
+    anim = $q('.hl-figure').animate([{ transform: 'scale(.9)', transformOrigin: '50% 100%' }, { transform: 'none', transformOrigin: '50% 100%' }], { duration: 280, easing: 'cubic-bezier(.34,1.56,.64,1)' });
   }
   root.classList.add('side-left');
 
@@ -111,9 +162,12 @@ const Helper = (() => {
       const v = S().helper && S().helper[key];
       cur = { key, args: opts.args, buttons: opts.buttons, pose: opts.pose || 'talk', btnSig: (opts.buttons || []).map(b => b.key).join(), target: opts.target, picked: same ? cur.picked : Array.isArray(v) ? ri(v.length) : 0 };
       setPose(opts.pose || 'talk');
+      const appear = root.hidden;
       root.hidden = false;
       render();
+      if (appear) placedFor = null;
       place(opts.target);
+      if (appear) slideIn();
       if (!same) {
         // a little "talking" animation whenever she starts a new line
         root.classList.remove('talking'); void root.offsetWidth; root.classList.add('talking');
@@ -123,7 +177,9 @@ const Helper = (() => {
     },
     pose: setPose,
     place,
-    hide() { root.hidden = true; cur = null; clearTimeout(talkTimer); root.classList.remove('talking'); },
+    hide() { root.hidden = true; cur = null; clearTimeout(talkTimer); root.classList.remove('talking'); setAside(0); },
+    // the strip she takes beside the stage (0 when she stands over it)
+    get aside() { return aside; },
     refresh() { render(); },
     get shown() { return !root.hidden; },
     get key() { return cur && cur.key; },

@@ -304,7 +304,9 @@ function onPointerDown(e) {
   if (!src || !canDrag(src.dataset.drag)) { if (held && !e.target.closest('button, .key')) clearHeld(); return; }
   e.preventDefault();
   sfx.init();
-  drag = { spec: src.dataset.drag, src, id: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, started: false, ghost: null, hover: null };
+  // under a finger the dragged thing rides a little above it, so the finger does not hide it (issue #27)
+  drag = { spec: src.dataset.drag, src, id: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, started: false, ghost: null, hover: null,
+    lift: e.pointerType === 'touch' ? 34 : 0 };
 }
 function onPointerMove(e) {
   if (!drag || e.pointerId !== drag.id) return;
@@ -386,7 +388,7 @@ function onKey(e) {
 // per-frame ghost follow with a little lag and tilt
 function updateDrag() {
   if (!drag || !drag.started) return;
-  const p = toStage(drag.x, drag.y);
+  const p = toStage(drag.x, drag.y - drag.lift);
   const g = drag.ghost, tx = p.x - drag.offX, ty = p.y - drag.offY;
   const k = reduceMotion ? 1 : 0.38;
   const vx = (tx - g.x) * k, vy = (ty - g.y) * k;
@@ -452,6 +454,8 @@ function holdable(btn, onStart, onEnd) {
   btn.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); end(); } });
   btn.addEventListener('blur', end);
   btn.addEventListener('contextmenu', e => e.preventDefault());
+  // switching apps mid-hold never leaves the grinder or the steam wand running
+  document.addEventListener('visibilitychange', () => { if (document.hidden) end(); });
 }
 
 function buildBench() {

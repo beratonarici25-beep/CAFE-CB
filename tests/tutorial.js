@@ -1,5 +1,6 @@
 // Tutorial test (issue #12): a fresh save plays the whole tutorial with real drags, the helper explains each step,
-// patience does not drop, hints show on mistakes; skip and replay from the menu work; desktop and phone (touch).
+// patience does not drop, hints show on mistakes; skip and replay from the menu work; desktop and phone (touch). On every
+// step and at every size the helper is big and covers neither the lit target nor any button (issue #23).
 // Run: node tests/tutorial.js   (needs playwright-core and Microsoft Edge, like tests/e2e.js)
 const path = require('path');
 const pw = require(process.env.PW_CORE || 'playwright-core');
@@ -79,59 +80,64 @@ const covered = page => page.evaluate(() => {
     if (st.visibility === 'hidden' || +st.opacity === 0) continue;
     const r = b.getBoundingClientRect();
     if (!r.width || r.right <= 0 || r.bottom <= 0 || r.left >= innerWidth || r.top >= innerHeight) continue;
-    // bench objects ([data-drag]) are kept apart: on a phone the bench does not fit yet (#14)
+    // bench objects ([data-drag]) are marked obj: in the report
     if (hit(r)) out.push((b.dataset.drag ? 'obj:' : '') + (b.id || b.dataset.drag || b.dataset.k || b.className));
   }
   return out;
 });
-// on a phone the bench scrolls and is crowded until #14 makes it fit and #23 sizes her for it: there a cover is only
-// noted (NOTE lines), on desktop it fails
-const clear = async (page, tag, step, touch) => {
-  await page.waitForTimeout(350);   // her bubble pops in
+// at every size and on every step she covers neither the lit target nor any button (issue #23)
+const clear = async (page, tag, step) => {
+  await page.waitForTimeout(450);   // she slides in, her bubble pops in
   const c = await covered(page);
-  if (touch) { if (c.length) results.push(['NOTE', `${tag}: helper covers (${step}), see #14/#23`, c.join(' ')]); return; }
   ok(`${tag}: helper covers no button (${step})`, c.length === 0, c.join(' '));
 };
+// while she talks she is big: about 40-50% of the window height, or her own strip beside the stage
+const big = page => page.evaluate(() => {
+  const h = document.querySelector('.helper'), f = h.querySelector('.hl-figure').getBoundingClientRect();
+  return { ratio: +(f.height / innerHeight).toFixed(2), aside: h.classList.contains('aside'), size: ['l', 'm', 's'].find(k => h.classList.contains('size-' + k)) };
+});
 
 async function playTutorial(page, tag, touch) {
   const shot = async n => { if (SHOTS) await page.screenshot({ path: path.join(SHOTS, `tut-${tag}-${n}.png`), timeout: 10000 }).catch(() => {}); };
   await page.click('#startBtn');
   ok(`${tag}: tutorial starts on a fresh save`, await page.evaluate(() => CB.tutorial()));
   ok(`${tag}: helper waves hello`, await waitKey(page, 'welcome') && await page.evaluate(() => document.querySelector('.helper').classList.contains('pose-wave')));
-  await clear(page, tag, 'welcome', touch);
+  await clear(page, tag, 'welcome');
+  const sz = await big(page);
+  ok(`${tag}: helper is big while she talks`, sz.size === "l" && sz.ratio >= 0.38 && sz.ratio <= 0.52, JSON.stringify(sz));
   ok(`${tag}: helper is called Ülkü in Turkish`, (await page.textContent('.helper .hl-name')) === 'Ülkü' && (await page.textContent('#hlName')) === 'Ülkü');
   ok(`${tag}: fixed latte order`, await page.evaluate(() => CB.G.order.drink === 'latte' && CB.G.order.size === 'M' && CB.G.order.milk === 'whole'));
   ok(`${tag}: ticket step points at the ticket`, await waitKey(page, 'ticket', 10000) && await lit(page, '#ticket'));
-  await clear(page, tag, 'ticket', touch);
+  await clear(page, tag, 'ticket');
   await shot('1-ticket');
   ok(`${tag}: then the go-to-bench button`, await waitKey(page, 'toBench', 8000) && await lit(page, '#takeBtn'));
-  await clear(page, tag, 'toBench', touch);
+  await clear(page, tag, 'toBench');
   await page.click('#takeBtn');
   await page.waitForFunction(() => CB.view() === 'barista' && !CB.switching());
   ok(`${tag}: cup step highlights the medium cup`, await waitKey(page, 'cup') && await lit(page, '[data-drag="newcup:M"]'));
-  await clear(page, tag, 'cup', touch);
+  await clear(page, tag, 'cup');
   await shot('2-cup');
   // a wrong cup gets a gentle hint
   await place(page, '[data-drag="newcup:L"]', '#slotTray', touch);
   ok(`${tag}: wrong cup size shows a hint`, await waitKey(page, 'hintCupSize') && await page.evaluate(() => document.querySelector('.helper').classList.contains('pose-warn')));
-  await clear(page, tag, 'hintCupSize', touch);
+  await clear(page, tag, 'hintCupSize');
   await shot('3-hint');
   await place(page, '#cupObj', '#trashZone', touch);
   await place(page, '[data-drag="newcup:M"]', '#slotTray', touch);
   ok(`${tag}: correct cup moves on (with praise)`, await waitKey(page, 'pfGrinder', 3000));
-  await clear(page, tag, 'pfGrinder', touch);
+  await clear(page, tag, 'pfGrinder');
   await place(page, '#pfObj', '#slotGrinder', touch);
   ok(`${tag}: grind step`, await waitKey(page, 'grind'));
-  await clear(page, tag, 'grind', touch);
+  await clear(page, tag, 'grind');
   await hold(page, '#grindBtn', () => CB.B.pf.dose >= 17.6);
   ok(`${tag}: tamp step`, await waitKey(page, 'tamp'));
-  await clear(page, tag, 'tamp', touch);
+  await clear(page, tag, 'tamp');
   await place(page, '#tamperObj', '#pfObj', touch);
   ok(`${tag}: lock step`, await waitKey(page, 'lock'));
-  await clear(page, tag, 'lock', touch);
+  await clear(page, tag, 'lock');
   await place(page, '#pfObj', '#slotGroup', touch);
   ok(`${tag}: brew step`, await waitKey(page, 'brew') && await lit(page, '#brewBtn'));
-  await clear(page, tag, 'brew', touch);
+  await clear(page, tag, 'brew');
   await shot('4-brew');
   for (let i = 0; i < 2; i++) {
     const b = await center(page, '#brewBtn'); await page.mouse.click(b.x, b.y);
@@ -142,32 +148,32 @@ async function playTutorial(page, tag, touch) {
     await page.mouse.click(b.x, b.y);
   }
   ok(`${tag}: milk step`, await waitKey(page, 'milk'));
-  await clear(page, tag, 'milk', touch);
+  await clear(page, tag, 'milk');
   await place(page, '[data-drag="milk:whole"]', '#pitcherObj', touch);
   ok(`${tag}: wand step`, await waitKey(page, 'wand'));
-  await clear(page, tag, 'wand', touch);
+  await clear(page, tag, 'wand');
   await place(page, '#pitcherObj', '#slotWand', touch);
   ok(`${tag}: steam step`, await waitKey(page, 'steam'));
-  await clear(page, tag, 'steam', touch);
+  await clear(page, tag, 'steam');
   await hold(page, '#steamBtn', () => CB.B.pitcher.temp >= 63);
   ok(`${tag}: pour step`, await waitKey(page, 'pour'));
-  await clear(page, tag, 'pour', touch);
+  await clear(page, tag, 'pour');
   await place(page, '#pitcherObj', '#cupObj', touch);
   ok(`${tag}: serving tray step`, await waitKey(page, 'serveTray'));
-  await clear(page, tag, 'serveTray', touch);
+  await clear(page, tag, 'serveTray');
   await place(page, '#cupObj', '#slotServe', touch);
   ok(`${tag}: bell step`, await waitKey(page, 'bell') && await lit(page, '#serveBtn'));
-  await clear(page, tag, 'bell', touch);
+  await clear(page, tag, 'bell');
   const b = await center(page, '#serveBtn'); await page.mouse.click(b.x, b.y);
   await page.waitForFunction(() => CB.view() === 'customer' && !CB.switching());
   ok(`${tag}: hand-over step`, await waitKey(page, 'hand'));
-  await clear(page, tag, 'hand', touch);
+  await clear(page, tag, 'hand');
   await shot('5-hand');
   ok(`${tag}: patience never dropped`, await page.evaluate(() => CB.G.patience === 1));
   await place(page, '#cupObj', '#custZone', touch);
   await page.waitForFunction(() => CB.G.state === 'RESULT', null, { timeout: 6000 });
   ok(`${tag}: finish line with a cheer`, await waitKey(page, 'finish') && await page.evaluate(() => document.querySelector('.helper').classList.contains('pose-cheer')));
-  await clear(page, tag, 'finish', touch);
+  await clear(page, tag, 'finish');
   await shot('6-finish');
   ok(`${tag}: tutorial latte gets 5 stars`, await page.evaluate(() => CB.G.result.stars === 5), await page.evaluate(() => JSON.stringify(CB.G.result.checks.filter(c => !c.ok))));
   await page.click('.hl-btns .btn.go');
@@ -229,6 +235,12 @@ async function playTutorial(page, tag, touch) {
   await playTutorial(phone, 'phone', true);
   const overflow = await phone.evaluate(() => Math.max(document.documentElement.scrollWidth - innerWidth, document.documentElement.scrollHeight - innerHeight));
   ok('phone: the page does not scroll', overflow <= 0, 'overflow ' + overflow);
+
+  // she grows with the window (issue #23)
+  for (const [w, h] of [[1280, 720], [2560, 1440]]) {
+    const p = await newPage({ viewport: { width: w, height: h } }, JSON.stringify({ lang: 'tr' }));
+    await playTutorial(p, `${w}x${h}`, false);
+  }
 
   // the demo is played on phones held sideways
   const wide = await newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true }, JSON.stringify({ lang: 'tr' }));
