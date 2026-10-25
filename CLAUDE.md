@@ -18,7 +18,7 @@ Demo sırası (#24 ile aynı):
 6. #16 Görsel tarz denemesi (B tarzı). **Kullanıcı bir varyasyon seçmeden #17'ye geçme.** Bu iş kullanıcının seçimini beklediği için erken başlatmak iyi olur; görseller 1-5 ile paralel yürüyebilir.
 7. #17 Bütün kafe tek Blender sahnesi + makineler tezgâh üstünde
 8. #18 Karakter modelleri: **beklemede**, kullanıcı planını paylaşınca
-9. #28 Açılış animasyonu: **beklemede**, kullanıcı yapacak
+9. #28 Açılış animasyonu: **hazır** (`acilis-animasyonu` dalında, `assets/intro/`), demo işleri bitince oyuna ekle; ayrıntı #28 yorumunda
 10. #26 Kapak görseli: **beklemede**, kullanıcı verecek
 11. #25 Demo paketi (7 gün, demo bitti ekranı, APK + bağlantı)
 
