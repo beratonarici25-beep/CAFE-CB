@@ -158,6 +158,11 @@ img { -webkit-user-drag: none; -webkit-touch-callout: none; }
 }
 .cam .z-machine > .shotlist { justify-content: flex-start; align-self: start; flex-wrap: wrap; }
 .cam .z-machine > .barmat { width: 435px; --k: .72; transform: scale(var(--k)); transform-origin: 0 0; }
+/* the customer view is narrower on the close-up stage: a wider bubble (the ticket and the gap give way) and a little
+   smaller words, so a long order still leaves the go-to-bench button on screen */
+.cam .scene .talk { margin-left: max(150px, 30%); }
+.cam #sceneTicket { flex-basis: 300px; }
+.cam .say { font-size: 24px; }
 .cam .z-milk { grid-template-columns: 226px 160px; grid-template-areas: "h h" "fridge pitcher" "fridge ctl"; }
 
 /* a slimmer top bar on short screens (a phone held sideways), so the stage gets the height */

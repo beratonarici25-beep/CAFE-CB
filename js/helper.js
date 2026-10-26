@@ -136,6 +136,8 @@ const Helper = (() => {
       setSize('l');
       setSpot('right', 'bottom');
       setAside(asideWidth());
+      // the stage just got narrower: on a phone pan what she talks about back into view
+      if (UI.cam) Cam.show(all);
       aim(el && el.getBoundingClientRect());
       return;
     }
