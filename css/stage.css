@@ -8,6 +8,8 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 img { -webkit-user-drag: none; -webkit-touch-callout: none; }
+/* nothing in the game is text to select, not even mid-drag (Safari does not pass user-select down from body) */
+body *, body *::before, body *::after { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .stage { touch-action: none; }
 .stage {
   position: fixed; top: var(--top-h, 46px); bottom: env(safe-area-inset-bottom, 0px);

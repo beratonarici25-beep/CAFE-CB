@@ -351,9 +351,39 @@ function onPointerMove(e) {
   }
   updateHover();
 }
+// What a drop right now would land on. The owner wants drag & drop to be easy: the object does not have to land
+// exactly on its spot. In order: the allowed target under the finger; the one the dragged copy overlaps most (on a
+// phone the copy rides above the finger); else the nearest allowed target within a generous reach (a fifth of the
+// screen width, 110-220 px). The target it will land on is lit (drop-hover) before letting go.
+const dropReach = () => clamp(window.innerWidth * 0.2, 110, 220);
+function targetAt(x, y) {
+  const under = document.elementFromPoint(x, y);
+  return under ? resolveTarget(under, drag.spec, drag.src) : null;
+}
+function looseTarget(box, points) {
+  // (among the targets the copy touches, the one closest to its middle: a big area like the trash must not win just
+  // because it is big)
+  let over = null, oc = Infinity, near = null, bd = dropReach();
+  document.querySelectorAll('.can-drop').forEach(n => {
+    const r = n.getBoundingClientRect();
+    if (!r.width || n === drag.src || n.contains(drag.src)) return;
+    if (box) {
+      const a = Math.max(0, Math.min(box.right, r.right) - Math.max(box.left, r.left)) * Math.max(0, Math.min(box.bottom, r.bottom) - Math.max(box.top, r.top));
+      const dc = Math.hypot((r.left + r.right) / 2 - (box.left + box.right) / 2, (r.top + r.bottom) / 2 - (box.top + box.bottom) / 2);
+      if (a > 0 && dc < oc) { oc = dc; over = n; }
+    }
+    for (const [x, y] of points) {
+      const d = Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom));
+      if (d < bd) { bd = d; near = n; }
+    }
+  });
+  const n = over || near;
+  return n ? { el: n, name: n.dataset.drop } : null;
+}
 function updateHover() {
-  const under = document.elementFromPoint(drag.x, drag.y);
-  const tgt = under ? resolveTarget(under, drag.spec, drag.src) : null;
+  const g = drag.ghost;
+  const box = g && g.el.getBoundingClientRect(), c = box && { x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2 };
+  const tgt = targetAt(drag.x, drag.y) || looseTarget(box, c ? [[c.x, c.y], [drag.x, drag.y]] : [[drag.x, drag.y]]);
   if ((tgt && tgt.el) !== (drag.hover && drag.hover.el)) {
     if (drag.hover) drag.hover.el.classList.remove('drop-hover');
     if (tgt) tgt.el.classList.add('drop-hover');
@@ -362,6 +392,7 @@ function updateHover() {
 }
 function onPointerUp(e) {
   if (!drag || e.pointerId !== drag.id) return;
+  if (drag.started) updateHover();   // where the copy is now, not where it was at the last move
   const d = drag; drag = null;
   if (!d.started) { tap(d.src); return; }
   document.body.classList.remove('is-dragging');
@@ -496,6 +527,9 @@ function buildBench() {
   $('#serveBtn').addEventListener('click', () => { sfx.init(); sendOut(); });
   const ctr = $('#counter'), views = $('#views');
   views.addEventListener('pointerdown', onPointerDown);
+  // iPhone: holding a finger on an object must not start a text selection, the magnifier or the callout menu
+  views.addEventListener('touchstart', e => { if (e.target.closest('[data-drag]')) e.preventDefault(); }, { passive: false });
+  document.addEventListener('selectstart', e => e.preventDefault());
   document.addEventListener('pointerdown', e => { if (held && !views.contains(e.target)) clearHeld(); });
   window.addEventListener('pointermove', onPointerMove, { passive: true });
   window.addEventListener('pointerup', onPointerUp);
