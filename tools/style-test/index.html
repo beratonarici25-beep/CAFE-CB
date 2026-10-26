@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tarz denemesi</title>
+<!-- Issue #16: the espresso machine in style B, three takes next to the current look. Renders: tools/blender/style_test.py -->
+<style>
+  :root { --ink: #4b2e2b; --paper: #fffaf3; --bg: #efe6da; --soft: #8a6f68; --line: #e2d4c6; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #f3e6dc; --paper: #2b2220; --bg: #1e1816; --soft: #bba59c; --line: #4a3c38; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px 16px 40px; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  p.lead { color: var(--soft); margin: 0 0 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 8px; }
+  .card h2 { font-size: 17px; margin: 0; display: flex; gap: 8px; align-items: baseline; }
+  .tag { font-size: 12px; font-weight: 700; background: #e8968c; color: #fff; border-radius: 6px; padding: 1px 7px; }
+  .tag.now { background: #8a6f68; }
+  .shot { background: #e9e0d4; border-radius: 10px; display: grid; place-items: center; aspect-ratio: 4 / 3; overflow: hidden; }
+  .shot img { max-width: 100%; max-height: 100%; }
+  .small { display: flex; gap: 10px; align-items: center; font-size: 12px; color: var(--soft); }
+  .small img { width: 120px; height: auto; background: #e9e0d4; border-radius: 6px; }
+  ul { margin: 0; padding-left: 18px; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tarz denemesi: espresso makinesi (#16)</h1>
+  <p class="lead">Aynı model, üç farklı görünüm. Bir tanesini seç; seçilen ayarlar bütün kafeye (#17) uygulanacak. Küçük resim, makinenin telefonda oyunda görüneceği boyuta yakın.</p>
+  <div class="grid">
+    <section class="card">
+      <h2><span class="tag now">Şu an</span> Oyundaki makine</h2>
+      <div class="shot"><img src="machine-current.webp" alt="Oyundaki şimdiki espresso makinesi"></div>
+      <ul><li>CSS ile çizilmiş gövde, Blender'dan birkaç parça (grup başlığı, ısıtıcı).</li><li>Düz, karton gibi; parçalar birbirine tam oturmuyor.</li></ul>
+    </section>
+    <section class="card">
+      <h2><span class="tag">A</span> Yumuşak toon</h2>
+      <div class="shot"><img src="machine-toon.webp" alt="A: yumuşak toon"></div>
+      <div class="small"><img src="machine-toon.webp" alt="">oyundaki boyutta</div>
+      <ul><li>Şimdiki modellerin tarzı: renk bantlarıyla gölge, ince kahverengi çizgi.</li><li>En okunaklı, en "çizgi film". Çelik ve krom daha düz.</li><li>Hızlı render (EEVEE).</li></ul>
+    </section>
+    <section class="card">
+      <h2><span class="tag">B</span> Gerçek malzeme + ince çizgi</h2>
+      <div class="shot"><img src="machine-pbr.webp" alt="B: gerçek malzeme ve ince çizgi"></div>
+      <div class="small"><img src="machine-pbr.webp" alt="">oyundaki boyutta</div>
+      <ul><li>Fırçalanmış çelik, krom, emaye, ceviz; yumuşak stüdyo ışığı, alttaki gölge.</li><li>İnce, yumuşak kahverengi çizgi okunaklılığı koruyor.</li><li>Cycles (GPU) ile render.</li></ul>
+    </section>
+    <section class="card">
+      <h2><span class="tag">C</span> Gerçek malzeme, çizgisiz</h2>
+      <div class="shot"><img src="machine-clean.webp" alt="C: gerçek malzeme, çizgisiz"></div>
+      <div class="small"><img src="machine-clean.webp" alt="">oyundaki boyutta</div>
+      <ul><li>B ile aynı malzemeler, çizgi yok.</li><li>Daha sıcak ışık, biraz daha canlı renkler.</li><li>En gerçekçi; küçükken kenarlar biraz kaybolabilir.</li></ul>
+    </section>
+  </div>
+</main>
+</body>
+</html>
