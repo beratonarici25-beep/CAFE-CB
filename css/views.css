@@ -46,6 +46,10 @@
   box-shadow: 0 5px 0 rgba(40,20,10,.25);
 }
 .cust-tray .slot { border: 0; min-height: 168px; position: relative; }
+/* the empty space above the tray lets taps through (on a short phone stage the go-to-bench button sits there);
+   the cup on it can still be picked up */
+.cust-tray, .cust-tray .slot { pointer-events: none; }
+.cust-tray .slot > * { pointer-events: auto; }
 .cust-tray .slot::after { display: none; }
 
 /* drop zone over the customer while the drink waits */

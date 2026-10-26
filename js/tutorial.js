@@ -48,7 +48,7 @@ const Tutorial = (() => {
     { key: 'bell', show: ['#serveBtn'], done: () => false },
   ];
 
-  let active = false, cur = null, saidAt = -1, praiseUntil = 0, skipArmed = 0;
+  let active = false, cur = null, saidAt = -1, praiseUntil = 0, skipArmed = 0, camFor = null;
   const els = sels => sels.map(s => document.querySelector(s)).filter(el => el && !el.hidden && el.getClientRects().length);
 
   // which step are we on right now?
@@ -126,6 +126,8 @@ const Tutorial = (() => {
       cur = next;
       const list = G.state === 'PREPARING' || G.state === 'READY_TO_SERVE' || next.key === 'ticket' || next.key === 'toBench' ? els(next.show) : [];
       const switching = window.CB && CB.switching();
+      // on a phone the camera pans to what she talks about, once per step (the player may swipe away after that)
+      if (camFor !== next.key && !switching && G.state === 'PREPARING' && !G.peek && !CB.dragging()) { camFor = next.key; Cam.show(list); }
       drawDim(switching ? [] : list);
       // skipping asks once more, so a stray tap near the bubble never ends the tutorial by accident
       const skipBtn = skipArmed > T ? { key: 'skipSure', cls: 'skip sure', onClick: () => Tutorial.skip() }

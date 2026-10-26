@@ -27,8 +27,9 @@ const FX = {
   // glide an element from where it used to be (FLIP)
   flip(el, from) {
     if (!from || reduceMotion) return;
-    const r = stageRect(el);
-    const dx = from.left - r.left, dy = from.top - r.top;
+    const r = stageRect(el), k = drawnScale(el);
+    // inside a shrunk machine (the phone bench) the move is drawn k times smaller, so it is k times longer here
+    const dx = (from.left - r.left) / k, dy = (from.top - r.top) / k;
     if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
     this.anim(el, [{ transform: `translate(${dx}px, ${dy}px) scale(1.06)` }, { transform: 'none' }], { duration: 320 });
   },

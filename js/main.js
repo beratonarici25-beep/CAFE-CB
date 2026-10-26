@@ -313,12 +313,18 @@ function fitStage() {
   if (!r.width || !r.height) return;
   // the helper may take a strip on the right for herself (issue #23)
   const w = r.width - (typeof Helper !== 'undefined' ? Helper.aside : 0);
-  const s = Math.min(r.height / STAGE_H, w / STAGE_MIN_W);
-  UI.s = s; UI.ox = r.left; UI.oy = r.top; UI.w = w / s; UI.h = r.height / s;
+  const fitAll = Math.min(r.height / STAGE_H, w / STAGE_MIN_W);
+  // a phone: the whole bench would be drawn at under 3/4 size, so the close-up camera takes over (js/camera.js)
+  const cam = fitAll < 0.75;
+  // (at least CAM_MIN_W wide, so the customer's words and the ticket still fit side by side on a small phone)
+  const s = cam ? Math.min(r.height / CAM_H, w / CAM_MIN_W) : fitAll;
+  UI.s = s; UI.ox = r.left; UI.oy = r.top; UI.w = w / s; UI.h = r.height / s; UI.cam = cam;
   const v = $('#views');
-  v.style.width = UI.w + 'px'; v.style.height = UI.h + 'px';
-  v.style.transform = `scale(${s})`;
-  document.documentElement.classList.toggle('small-stage', s < 0.75);
+  setStyle(v, 'width', UI.w + 'px'); setStyle(v, 'height', UI.h + 'px');
+  setStyle(v, 'transform', `scale(${s})`);
+  document.documentElement.classList.toggle('small-stage', cam);
+  document.documentElement.classList.toggle('cam', cam);
+  Cam.fit();
 }
 function fit() {
   fitStage();
@@ -405,13 +411,13 @@ function placeCustZone() {
 let last = performance.now(), dtLast = 0.016;
 function frame(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; T += dt; dtLast = dt;
-  try { update(dt); drawScene(); drawCupObj(); fx('frame', dt); Tutorial.tick(); } catch (e) { console.error(e); }
+  try { update(dt); Cam.tick(dt); drawScene(); drawCupObj(); fx('frame', dt); Tutorial.tick(); } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
 }
 
 // small debug/test hook
 window.CB = { G, B, drop: (spec, target) => { const e = check(spec, target); if (!e) apply(spec, target); return e; }, cupState: () => cupSnapshot(B.cup),
-  view: () => curView, switching: () => !!viewAnim, dragging: () => !!(drag && drag.started), tutorial: () => Tutorial.active };
+  view: () => curView, switching: () => !!viewAnim, dragging: () => !!(drag && drag.started), tutorial: () => Tutorial.active, cam: Cam };
 
 /* ---------------- phones (issue #27) ---------------- */
 // in the background (another app, the screen off) the sound stops; the browser pauses the frame loop itself

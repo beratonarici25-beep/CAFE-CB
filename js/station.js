@@ -279,7 +279,10 @@ function makeGhost(src) {
   srcCv.forEach((cv, i) => { gCv[i].width = cv.width; gCv[i].height = cv.height; gCv[i].getContext('2d').drawImage(cv, 0, 0); });
   g.classList.remove('selected', 'can-drop', 'drop-hover', 'dragging-src');
   g.classList.add('drag-ghost');
-  g.style.width = r.width + 'px'; g.style.height = r.height + 'px';
+  // picked up from a shrunk machine (the phone bench): the copy keeps its layout size and is drawn as small
+  const k = drawnScale(src);
+  if (Math.abs(k - 1) > 0.01) { g.style.width = src.offsetWidth + 'px'; g.style.height = src.offsetHeight + 'px'; g.style.scale = k.toFixed(3); g.style.transformOrigin = '0 0'; }
+  else { g.style.width = r.width + 'px'; g.style.height = r.height + 'px'; }
   g.style.transform = `translate3d(${r.left}px, ${r.top}px, 0)`;
   $('#views').appendChild(g);
   const cv = src.id === 'cupObj' ? g.querySelector('canvas') : null;
@@ -301,7 +304,12 @@ function onPointerDown(e) {
     }
   }
   const src = e.target.closest('[data-drag]');
-  if (!src || !canDrag(src.dataset.drag)) { if (held && !e.target.closest('button, .key')) clearHeld(); return; }
+  if (!src || !canDrag(src.dataset.drag)) {
+    const tapAway = () => { if (held && !e.target.closest('button, .key')) clearHeld(); };
+    // on a phone a swipe over the bench pans the camera; only a tap puts a held object back
+    if (!Cam.grab(e, tapAway)) tapAway();
+    return;
+  }
   e.preventDefault();
   sfx.init();
   // under a finger the dragged thing rides a little above it, so the finger does not hide it (issue #27)
