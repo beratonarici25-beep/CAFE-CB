@@ -266,7 +266,8 @@ def render(name, width_px, tilt=14, pad=0.06, yaw=0):
     xs, ys = [], []
     dg = bpy.context.evaluated_depsgraph_get()
     for o in sc.objects:
-        if o.type != 'MESH':
+        # (a shadow-catcher floor is not part of the model: style_test.py marks it noframe)
+        if o.type != 'MESH' or o.get('noframe'):
             continue
         oe = o.evaluated_get(dg); me = oe.to_mesh()
         for v in me.vertices:
