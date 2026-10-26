@@ -7,19 +7,60 @@ const URL = process.env.GAME_URL || 'file:///' + path.resolve(__dirname, '..', '
 const results = [];
 const ok = (name, cond, extra = '') => { results.push([cond ? 'PASS' : 'FAIL', name, extra]); };
 
+const onScreen = (b, vw) => b && b.x >= 0 && b.x + b.width <= vw;
+// comfortably on screen: a player does not press a button half under the screen edge
+const wellOn = (b, vw) => onScreen(b, vw) && b.x >= 20 && b.x + b.width <= vw - 20;
+// the phone camera (js/camera.js): swipe the bench (from the ticket strip, which does not pan) until sel is on screen
+async function reveal(page, sel) {
+  const vw = page.viewportSize().width;
+  for (let i = 0; i < 5; i++) {
+    const b = await page.locator(sel).first().boundingBox();
+    if (!b || wellOn(b, vw) || !(await page.evaluate(() => UI.cam && CB.view() === 'barista'))) return;
+    const t = await page.locator('#benchTicket').boundingBox();
+    const sx = t.x + t.width / 2, sy = t.y + t.height / 2;
+    const dx = Math.max(-vw * 0.8, Math.min(vw * 0.8, vw / 2 - (b.x + b.width / 2)));
+    await page.mouse.move(sx, sy); await page.mouse.down();
+    for (let k = 1; k <= 6; k++) { await page.mouse.move(sx + dx * k / 6, sy); await page.waitForTimeout(30); }
+    await page.waitForTimeout(60); await page.mouse.up();
+    await page.waitForFunction(() => CB.cam.settled(), null, { timeout: 3000 });
+  }
+}
+async function click(page, sel) { await reveal(page, sel); await page.click(sel); }
 async function drag(page, from, to) {
   // a real player scrolls a little when the thing they want is below the fold
   const pre = await page.locator(from).first().boundingBox();
-  const vh = page.viewportSize().height;
+  const vh = page.viewportSize().height, vw = page.viewportSize().width;
   if (pre && pre.y + pre.height / 2 > vh - 20) {
     await page.evaluate(dy => window.scrollBy(0, dy), Math.ceil(pre.y + pre.height - vh + 30));
     await page.waitForTimeout(50);
   }
+  await reveal(page, from);
   const a = await page.locator(from).first().boundingBox();
-  const b = await page.locator(to).first().boundingBox();
+  let b = await page.locator(to).first().boundingBox();
   if (!a || !b) throw new Error(`no box for ${!a ? from : to}`);
   await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
   await page.mouse.down();
+  // on a phone the target may be off screen: hold the object at that edge until the camera brings it in
+  if (!onScreen(b, vw)) {
+    const ex = b.x < 0 ? 6 : vw - 6, ey = a.y + a.height / 2;
+    for (let i = 1; i <= 4; i++) await page.mouse.move(a.x + a.width / 2 + (ex - a.x - a.width / 2) * i / 4, ey);
+    // until its middle is clear of the edge strips where the camera follows
+    const inMid = q => q && q.x + q.width / 2 > 150 && q.x + q.width / 2 < vw - 150;
+    for (let i = 0; i < 120 && !inMid(b); i++) {
+      await page.waitForTimeout(40); await page.mouse.move(ex, ey); b = await page.locator(to).first().boundingBox();
+      // the camera is at the end of the bench: the target stays near the edge
+      if (onScreen(b, vw) && await page.evaluate(() => CB.cam.x <= 0 || CB.cam.x >= CB.cam.max)) break;
+    }
+    // step off the edge so the camera stops
+    await page.mouse.move(vw / 2, ey); await page.waitForTimeout(40);
+    b = await page.locator(to).first().boundingBox();
+    const m = { x: vw / 2, y: ey, width: 0, height: 0 };
+    for (let i = 1; i <= 8; i++) await page.mouse.move(m.x + (b.x + b.width / 2 - m.x) * i / 8, m.y + (b.y + b.height / 2 - m.y) * i / 8);
+    await page.waitForTimeout(40);
+    await page.mouse.up();
+    await page.waitForTimeout(60);
+    return;
+  }
   const steps = 8;
   for (let i = 1; i <= steps; i++) {
     await page.mouse.move(a.x + a.width / 2 + (b.x + b.width / 2 - a.x - a.width / 2) * i / steps,
@@ -30,6 +71,7 @@ async function drag(page, from, to) {
   await page.waitForTimeout(60);
 }
 async function hold(page, sel, untilFn) {
+  await reveal(page, sel);
   const b = await page.locator(sel).boundingBox();
   await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
   await page.mouse.down();
@@ -54,7 +96,7 @@ async function arrive(page) {
 // serving tray -> bell -> back in the customer view, drag the cup onto the customer
 async function handOver(page) {
   await drag(page, '#cupObj', '#slotServe');
-  await page.click('#serveBtn');
+  await click(page, '#serveBtn');
   await page.waitForFunction(() => window.CB.G.state === 'READY_TO_SERVE');
   await settled(page, 'customer');
   await drag(page, '#cupObj', '#custZone');
@@ -70,19 +112,19 @@ async function brewOrder(page) {
       temp: o.temp, syrups: o.syrups, tops: o.tops };
   await drag(page, `[data-drag="newcup:${want.size}"]`, '#slotTray');
   await drag(page, '#pfObj', '#slotGrinder');
-  await page.click(`#beanChips [data-k="${want.bean}"]`);
+  await click(page, `#beanChips [data-k="${want.bean}"]`);
   await hold(page, '#grindBtn', () => window.CB.B.pf.dose >= 17.6);
   await drag(page, '#tamperObj', '#pfObj');
   await drag(page, '#pfObj', '#slotGroup');
   for (let i = 0; i < want.shots; i++) {
-    await page.click('#brewBtn');
+    await click(page, '#brewBtn');
     await page.waitForFunction(() => window.CB.B.cup.shotT >= 26.5);
-    await page.click('#brewBtn');
+    await click(page, '#brewBtn');
   }
   if (want.milk) {
     await drag(page, `[data-drag="milk:${want.milk}"]`, '#pitcherObj');
     await drag(page, '#pitcherObj', '#slotWand');
-    await page.click(`#foamChips [data-k="${want.foam}"]`);
+    await click(page, `#foamChips [data-k="${want.foam}"]`);
     const target = { warm: 53, normal: 63, hot: 72 }[want.temp || 'normal'];
     await hold(page, '#steamBtn', `window.CB.B.pitcher.temp >= ${target}`);
     await drag(page, '#pitcherObj', '#cupObj');
@@ -101,7 +143,7 @@ async function brewOrder(page) {
     .then(r => ({ ...r, floated }));
 }
 
-module.exports = { drag, hold, arrive, settled, brewOrder };
+module.exports = { drag, hold, arrive, settled, brewOrder, reveal, click };
 if (require.main === module) (async () => {
   const browser = await pw.chromium.launch({ channel: 'msedge', headless: true });
   const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
@@ -140,7 +182,7 @@ if (require.main === module) (async () => {
   await drag(page, '#cupObj', '#slotServe');
   ok('cup sits on the serving tray', await page.evaluate(() => CB.B.cup.at === 'serving'));
   ok('serve bell lights up', await page.evaluate(() => !document.querySelector('#serveBtn').disabled && document.querySelector('#serveBtn').classList.contains('ready')));
-  await page.click('#serveBtn');
+  await click(page, '#serveBtn');
   await page.waitForFunction(() => window.CB.G.state === 'READY_TO_SERVE');
   await settled(page, 'customer');
   ok('cup waits on the tray at the bar', await page.evaluate(() => !!document.querySelector('#custTray #cupObj') && !document.querySelector('#cupObj').hidden));

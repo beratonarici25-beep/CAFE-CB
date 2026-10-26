@@ -42,6 +42,7 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `js/scene.js` | Edison bulbs and parallax |
 | `js/fx.js` | Particles (espresso, steam, grounds, drops) and one-shot animations |
 | `js/station.js` | Drag & drop / tap-to-place interactions on the counter |
+| `js/camera.js` | Phones: the close-up camera that pans along the bench (swipe, follows a drag at the edge, the tutorial pans to its step) |
 | `js/helper.js` | The helper character module: `Helper.say(key, { pose, target, buttons })`, reusable outside the tutorial |
 | `js/tutorial.js` | First-run tutorial: fixed latte order, step checks, highlights and hints |
 | `js/main.js` | Game flow and states, view switching, HUD, overlays, frame loop |
@@ -56,14 +57,16 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `tests/fuzz.js` | Random-play monkey test with state invariants |
 | `tests/tutorial.js` | Plays the tutorial with drags (desktop) and taps (phone); skip, replay, language, old saves |
 | `tests/sizes.js` | Drag ghosts keep their size, machine keys fit their label, a phone held upright asks to be turned |
-| `tests/layout.js` | At every window size (1280×720 to 3440×1440, phones held sideways) the game fits without scrolling and an order can be brewed |
+| `tests/layout.js` | At every window size (1280×720 to 3440×1440, phones held sideways) the game fits without scrolling (phones: every station once the camera pans to it, and a swipe pans) and an order can be brewed |
 
 Plain scripts, no build step: open `index.html` directly or serve the folder.
 
 ### On phones
 
 The game is played sideways and fits any window: the views are laid out at one design size and scaled
-(`css/stage.css`); a phone held upright shows "turn your phone". On an iPhone the link opens straight in Safari and
+(`css/stage.css`). On a phone the whole bench would be too small, so it is drawn about 1.4x bigger with the stations in
+one long row, and a close-up camera (`js/camera.js`) shows about half of it: swipe to pan, or drag an object to the
+screen edge and the camera follows. On an iPhone the link opens straight in Safari and
 plays there. Added to the home screen (optional) it opens full screen and, once opened, works offline:
 `manifest.webmanifest` + `sw.js` (the service worker caches every file; bump its `VERSION` together with the `?v=` on
 the links in `index.html` when releasing). `python tools/logo.py` then `node tools/icons.js` make the menu logo and the PNG icons from the logo in `assets/cover/`.

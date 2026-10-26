@@ -77,7 +77,9 @@ const Helper = (() => {
     const all = (Array.isArray(target) ? target : [target]).map(x => typeof x === 'string' ? document.querySelector(x) : x).filter(Boolean);
     // called every frame: only look again when the line, the targets, the view or the window change, or a few times a
     // second (things move: the cup glides, a view slides in)
-    const sig = cur && cur.key + '|' + all.length + '|' + view() + '|' + window.innerWidth + 'x' + window.innerHeight;
+    // on a phone the bench pans under her: look again once the camera has stopped where it went
+    if (UI.cam && !Cam.settled()) return;
+    const sig = cur && cur.key + '|' + all.length + '|' + view() + '|' + window.innerWidth + 'x' + window.innerHeight + '|' + Math.round(Cam.x);
     const now = performance.now();
     if (sig === placedFor && now - placedAt < 250) return;
     placedFor = sig; placedAt = now;
@@ -95,9 +97,14 @@ const Helper = (() => {
     const was = SIZES.find(k => root.classList.contains('size-' + k)) + side + vert;
     // grown by the tutorial spotlight's ring around them
     const tgt = all.map(x => { const q = x.getBoundingClientRect(); return { left: q.left - 9, top: q.top - 9, right: q.right + 9, bottom: q.bottom + 9 }; });
+    // (on a phone the bench runs on past the stage edge, clipped: those controls are not on screen)
+    const vr = $('#views').getBoundingClientRect();
+    const inStage = q => q.right > vr.left && q.left < vr.right && q.bottom > vr.top && q.top < vr.bottom;
     const others = [...document.querySelectorAll('button, [data-drag]')]
       .filter(b => !root.contains(b) && !all.includes(b) && b.offsetParent && !b.closest('[hidden]'))
-      .map(b => b.getBoundingClientRect()).filter(visible);
+      .map(b => ({ b, q: b.getBoundingClientRect() })).filter(({ b, q }) => visible(q) && (!b.closest('#views') || inStage(q)))
+      // only the part on the stage counts
+      .map(({ b, q }) => b.closest('#views') ? { left: Math.max(q.left, vr.left), top: Math.max(q.top, vr.top), right: Math.min(q.right, vr.right), bottom: Math.min(q.bottom, vr.bottom) } : q);
     const parts = [$q('.hl-figure'), $q('.hl-bubble')];
     // the first target is the one to touch next: covering it costs far more than the other targets, which cost more
     // than any other button
@@ -129,6 +136,8 @@ const Helper = (() => {
       setSize('l');
       setSpot('right', 'bottom');
       setAside(asideWidth());
+      // the stage just got narrower: on a phone pan what she talks about back into view
+      if (UI.cam) Cam.show(all);
       aim(el && el.getBoundingClientRect());
       return;
     }

@@ -10,9 +10,11 @@ const results = [];
 const ok = (name, cond, extra = '') => { results.push([cond ? 'PASS' : 'FAIL', name, extra]); };
 const SHOTS = process.env.SHOT_DIR;
 
+const { reveal } = require('./e2e.js');
 async function center(page, sel) {
   const loc = page.locator(sel).first();
-  await loc.scrollIntoViewIfNeeded();
+  // on a phone the player swipes the bench until it shows (the close-up camera, js/camera.js)
+  await reveal(page, sel);
   await page.waitForTimeout(80);
   const b = await loc.boundingBox();
   if (!b) throw new Error('no box for ' + sel);
@@ -78,8 +80,14 @@ const covered = page => page.evaluate(() => {
     if (h.contains(b) || b.closest('[hidden]') || !b.offsetParent) continue;
     const st = getComputedStyle(b);
     if (st.visibility === 'hidden' || +st.opacity === 0) continue;
-    const r = b.getBoundingClientRect();
+    let r = b.getBoundingClientRect();
     if (!r.width || r.right <= 0 || r.bottom <= 0 || r.left >= innerWidth || r.top >= innerHeight) continue;
+    // on a phone the bench runs on past the stage edge, clipped (the close-up camera): only the part on the stage shows
+    const v = document.querySelector('#views').getBoundingClientRect();
+    if (b.closest('#views')) {
+      if (r.left >= v.right || r.right <= v.left) continue;
+      r = { left: Math.max(r.left, v.left), right: Math.min(r.right, v.right), top: r.top, bottom: r.bottom, width: 1 };
+    }
     // bench objects ([data-drag]) are marked obj: in the report
     if (hit(r)) out.push((b.dataset.drag ? 'obj:' : '') + (b.id || b.dataset.drag || b.dataset.k || b.className));
   }
