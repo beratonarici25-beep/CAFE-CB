@@ -14,8 +14,17 @@ const DRINKS = {
   cappuccino: { milk: true, foam: 'thick', price: 4.25, tops: [] },
   flatwhite: { milk: true, foam: 'none', price: 4, tops: [] },
   mocha: { milk: true, foam: 'light', price: 5, tops: ['cocoa', 'whip'] },
+  // from the recipe shop (issue #21), each with a step of its own: ice and cold milk straight from the bottle
+  // (no steaming); a spoon of cocoa and steamed milk, no espresso at all
+  iced: { milk: true, foam: 'none', price: 4.5, tops: [], iced: true },
+  hotchoc: { milk: true, foam: 'light', price: 4, tops: [], noEsp: true, choc: true },
 };
 const UPGRADES = [{ id: 'stools', cost: 40 }, { id: 'grinder', cost: 70 }, { id: 'tipjar', cost: 90 }, { id: 'gauge', cost: 120 }];
+// The recipe shop (issue #21): espresso and latte are on the menu from the start, every other drink is bought with the
+// café's money (all prices here). A locked drink is never ordered.
+const RECIPE_COST = { cappuccino: 70, hotchoc: 90, flatwhite: 110, iced: 140, mocha: 170 };
+const recipeOpen = k => !(k in RECIPE_COST) || save.recipes.includes(k);
+const drinkName = k => cap1(PH[save.lang].drink[k], save.lang);
 const SURPRISE_KEYS = ['decaf', 'oat', 'almond', 'vanilla', 'cinnamon', 'L'];
 const NAMES = ['Mira', 'Theo', 'Ada', 'Jun', 'Rosa', 'Felix', 'Noor', 'Kai', 'Lena', 'Omar', 'Ivy', 'Bastian', 'Yuki', 'Sam', 'Priya', 'Elif', 'Mateo', 'Hana', 'Leo', 'Zara', 'Deniz', 'Ola', 'Can', 'Ayşe', 'Mert', 'Zeynep'];
 const SKIN = ['#f6d3b8', '#ecbd98', '#c98b62', '#9b6544', '#6e4630', '#f2c9a5'];
@@ -28,7 +37,9 @@ const SHIRT = ['#f2b5b8', '#a9c7ea', '#f6d88c', '#b9dcb0', '#d5b8ea', '#f4c095',
 // null size means no cup on the bench
 function newCup() {
   return { size: null, at: 'prep', bean: 'esp', dose: 0, doseQ: 0, shotting: false, shotT: 0, shots: [],
-    scorched: false, milkPoured: false, milkType: null, foamUsed: null, milkTemp: 0, syrups: {}, tops: [] };
+    scorched: false, milkPoured: false, milkType: null, foamUsed: null, milkTemp: 0, syrups: {}, tops: [],
+    // cold: the milk went in straight from the bottle; ice: scoops of ice; choc: spoons of cocoa in the cup (issue #21)
+    cold: false, ice: 0, choc: 0 };
 }
 // pf.at: 'rack' | 'grinder' | 'group'
 function newPortafilter() { return { at: 'rack', bean: 'esp', dose: 0, doseQ: 0, grinding: false, tamped: false }; }
@@ -65,6 +76,10 @@ const Rules = {
   dumpPitcher: (b) => b.pitcher.steaming ? 'steamRunning' : !b.pitcher.milk ? 'pitcherEmpty' : null,
   syrup: (b) => !b.cup.size ? 'noCup' : Object.values(b.cup.syrups).reduce((a, n) => a + n, 0) >= 6 ? 'plenty' : null,
   topping: (b, k) => !b.cup.size ? 'noCup' : b.cup.tops.includes(k) ? 'topAlready' : null,
+  ice: (b) => !b.cup.size ? 'noCup' : b.cup.ice ? 'iceAlready' : null,
+  cocoa: (b) => !b.cup.size ? 'noCup' : b.cup.choc ? 'cocoaAlready' : null,
+  // a milk bottle tipped straight into the cup: cold milk
+  coldMilk: (b) => !b.cup.size ? 'noCup' : b.cup.milkPoured ? 'milkAlready' : null,
   // the bell takes the cup on the serving tray out to the customer; then it is dragged onto them
   sendOut: (b) => !b.cup.size ? 'noCup' : b.cup.shotting ? 'shotRunning' : b.cup.at !== 'serving' ? 'cupToServeTray' : null,
   handOver: (b) => !b.cup.size ? 'noCup' : b.cup.at !== 'hand' ? 'notReady' : null,
@@ -81,18 +96,21 @@ function makeCustomer() {
   };
 }
 
-function makeOrder(day) {
+// fresh: drinks bought for today, ordered more often on their first day; force: this drink, whatever the odds
+function makeOrder(day, fresh = [], force = null) {
   const h = Math.min(0.15 + (day - 1) * 0.12, 0.7), H = () => Math.random() < h;
   const r = { greet: ri(6), form: ri(4), q: ri(6) };
-  if (day >= 3 && Math.random() < 0.14) return { surprise: true, constraint: pick(SURPRISE_KEYS), temp: 'normal', r };
-  const pool = day === 1 ? ['latte', 'cappuccino', 'espresso', 'latte'] : Object.keys(DRINKS);
-  const dk = pick(pool), D = DRINKS[dk];
+  if (!force && day >= 3 && Math.random() < 0.14) return { surprise: true, constraint: pick(SURPRISE_KEYS), temp: 'normal', r };
+  const pool = (day === 1 ? ['latte', 'cappuccino', 'espresso', 'latte'] : Object.keys(DRINKS)).filter(recipeOpen);
+  for (const k of fresh) if (recipeOpen(k)) pool.push(k, k);
+  const dk = force || pick(pool), D = DRINKS[dk];
   const o = { drink: dk, surprise: false, r };
   o.size = (dk === 'espresso' || dk === 'flatwhite') ? 'S' : pick(['S', 'M', 'M', 'L']);
-  o.bean = Math.random() < (day === 1 ? 0.2 : 0.4) ? pick(['decaf', 'dark']) : 'esp';
-  o.shots = dk === 'espresso' ? (Math.random() < 0.5 ? 2 : 1) : (day >= 2 && Math.random() < 0.2 ? 3 : 2);
+  // (a hot chocolate has no coffee in it, so no beans or shots to ask for; an iced latte no temperature)
+  o.bean = !D.noEsp && Math.random() < (day === 1 ? 0.2 : 0.4) ? pick(['decaf', 'dark']) : 'esp';
+  o.shots = D.noEsp ? 0 : dk === 'espresso' ? (Math.random() < 0.5 ? 2 : 1) : (day >= 2 && Math.random() < 0.2 ? 3 : 2);
   o.milk = D.milk ? (Math.random() < 0.45 ? 'whole' : pick(['oat', 'almond'])) : null;
-  o.temp = D.milk ? (Math.random() < 0.6 ? 'normal' : pick(['warm', 'hot'])) : null;
+  o.temp = D.milk && !D.iced ? (Math.random() < 0.6 ? 'normal' : pick(['warm', 'hot'])) : null;
   o.syrups = {};
   if (D.milk && day >= 2 && Math.random() < 0.45) o.syrups[pick(Object.keys(SYRUPS))] = pick([1, 1, 2, 2, 3]);
   o.tops = [...D.tops];
@@ -110,11 +128,13 @@ function orderText(o, L) {
   if (o.drink !== 'espresso' && o.drink !== 'flatwhite') {
     if (r.h.size) extra.push(P.sizeHint[o.size]); else adj.push(P.sizeAdj[o.size]);
   }
-  if (o.temp && o.temp !== 'normal') { if (r.h.temp) extra.push(P.tempHint[o.temp]); else adj.push(P.tempAdj[o.temp]); }
-  if (o.bean !== 'esp') { if (r.h.bean) extra.push(P.beanHint[o.bean]); else adj.push(P.beanAdj[o.bean]); }
+  // ("an extra-hot hot chocolate": a hot chocolate says how hot in a sentence of its own)
+  if (o.temp && o.temp !== 'normal') { if (r.h.temp || D.choc) extra.push(P.tempHint[o.temp]); else adj.push(P.tempAdj[o.temp]); }
+  if (o.bean !== 'esp' && !D.noEsp) { if (r.h.bean) extra.push(P.beanHint[o.bean]); else adj.push(P.beanAdj[o.bean]); }
   if (o.milk && o.milk !== 'whole') { if (r.h.milk) extra.push(P.milkHint[o.milk]); else adj.push(P.milkAdj[o.milk]); }
   let name = P.drink[o.drink], hinted = false;
-  if (r.h.drink) { name = P.coffee; hinted = true; extra.unshift(P.drinkHint[o.drink]); }
+  // (a hot chocolate is never hinted as "a coffee")
+  if (r.h.drink && !D.noEsp) { name = P.coffee; hinted = true; extra.unshift(P.drinkHint[o.drink]); }
   if (o.drink === 'espresso' && o.shots === 2) {
     if (r.h.dbl) extra.push(P.dblHint); else name = hinted ? P.dbl.coffee : P.dbl.espresso;
   }
@@ -141,9 +161,23 @@ function evaluate(o, c, patience) {
   } else {
     const D = DRINKS[o.drink];
     checks.push({ label: fmt(L.chk.size, L.sizes[o.size]), ok: c.size === o.size, say: fmt(L.say.size, L.sizes[o.size].toLocaleLowerCase(save.lang)) });
-    checks.push({ label: fmt(L.chk.beans, L.beans[o.bean]), ok: c.bean === o.bean && shotsN > 0, say: shotsN ? L.say.beans : L.say.noCoffee });
-    checks.push({ label: L.chk.shots(o.shots), ok: shotsN === o.shots, say: shotsN > o.shots ? L.say.strong : L.say.weak });
-    if (D.milk) {
+    if (D.noEsp) {
+      // hot chocolate (issue #21): no coffee, a spoon of cocoa in the cup
+      checks.push({ label: L.chk.noEsp, ok: shotsN === 0, say: L.say.noEspWanted });
+      checks.push({ label: L.chk.cocoaIn, ok: c.choc > 0, say: L.say.whereChoc });
+    } else {
+      checks.push({ label: fmt(L.chk.beans, L.beans[o.bean]), ok: c.bean === o.bean && shotsN > 0, say: shotsN ? L.say.beans : L.say.noCoffee });
+      checks.push({ label: L.chk.shots(o.shots), ok: shotsN === o.shots, say: shotsN > o.shots ? L.say.strong : L.say.weak });
+      if (c.choc) checks.push({ label: L.chk.noCocoaIn, ok: false, say: L.say.chocWhy });
+    }
+    // iced latte: ice and cold milk; ice in any other drink is a mistake
+    if (D.iced) {
+      checks.push({ label: L.chk.ice, ok: c.ice > 0, say: L.say.notCold });
+      checks.push({ label: L.chk.coldMilk, ok: !!c.milkType && c.cold, say: c.milkType ? L.say.hotMilkIced : L.say.whereMilk });
+    } else if (c.ice) checks.push({ label: L.chk.noIce, ok: false, say: L.say.iceWhy });
+    if (D.iced) {
+      checks.push({ label: L.milkLabel[o.milk], ok: c.milkType === o.milk, say: c.milkType ? L.say.milk : L.say.whereMilk });
+    } else if (D.milk) {
       checks.push({ label: L.milkLabel[o.milk], ok: c.milkType === o.milk, say: c.milkType ? L.say.milk : L.say.whereMilk });
       checks.push({ label: L.foams[D.foam], ok: !!c.milkType && c.foamUsed === D.foam, say: c.milkType ? L.say.foam : L.say.whereMilk });
     } else {
@@ -164,7 +198,11 @@ function evaluate(o, c, patience) {
     const avg = c.shots.reduce((a, s) => a + s.q, 0) / shotsN;
     parts.push({ name: L.bars.shots, v: avg, txt: c.shots.map(s => Math.round(s.t) + ' ' + L.sec).join(' · ') });
   }
-  if (c.milkType) {
+  const iced = !o.surprise && DRINKS[o.drink].iced;
+  if (c.milkType && iced) {
+    // an iced latte's milk is right when it is cold
+    parts.push({ name: L.bars.milk, v: c.cold ? 1 : 0, txt: c.cold ? L.bars.cold : Math.round(c.milkTemp) + ' °C' });
+  } else if (c.milkType) {
     const band = TEMPS[o.temp || 'normal'], tm = c.milkTemp;
     const dist = tm < band.lo ? band.lo - tm : tm > band.hi ? tm - band.hi : 0;
     parts.push({ name: L.bars.milk, v: c.scorched ? 0 : Math.max(0, 1 - dist * 0.1), txt: Math.round(tm) + ' °C' + (c.scorched ? L.bars.scorched : '') });

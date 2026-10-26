@@ -285,7 +285,9 @@ function drawCup(g, c, x, y, s, slosh = 0) {
     const foamMl = { none: cap * 0.03, light: cap * 0.1, thick: cap * 0.24 }[c.foamUsed] * milkK;
     const milkMl = Math.max(40, cap * 0.9 - foamMl - esp - pumps * 7) * milkK;
     const y0 = yy, total = px(esp + milkMl);
-    const latte = mix(C.milk, C.espresso, clamp(esp / (esp + milkMl) * 1.4, 0, 0.6));
+    let latte = mix(C.milk, C.espresso, clamp(esp / (esp + milkMl) * 1.4, 0, 0.6));
+    // cocoa stirred in (hot chocolate, issue #21)
+    if (c.choc) latte = mix(latte, '#6b3b26', 0.55);
     const gr = g.createLinearGradient(0, y0, 0, y0 - total);
     gr.addColorStop(0, esp ? C.espresso : C.milk); gr.addColorStop(esp ? 0.25 : 0, latte); gr.addColorStop(1, latte);
     g.fillStyle = gr; g.fillRect(X0, y0 - total, XW, total + 0.6 + below()); yy -= total;
@@ -299,6 +301,19 @@ function drawCup(g, c, x, y, s, slosh = 0) {
     layer(Math.max(0, esp - 6), C.espresso);
     layer(Math.min(6, esp), C.crema);
     wave(yy - 1, C.crema);
+  } else if (c.choc) {
+    layer(14, '#6b3b26');
+  }
+  // ice cubes (iced latte, issue #21): floating at the top of the drink, or piled at the bottom of an empty cup
+  if (c.ice) {
+    const top = yy < -12 ? yy + 6 : -4, sz = Math.min(26, d.t * 0.2);
+    g.lineWidth = 2; g.strokeStyle = 'rgba(110,160,185,.85)';
+    [[-0.42, 0.1, -0.2], [0.05, -0.1, 0.25], [0.4, 0.15, 0.1], [-0.15, 0.85, -0.35], [0.3, 0.95, 0.4]].forEach(([u, v, a]) => {
+      g.save(); g.translate(u * (ht - 10), top - sz * (0.3 + v)); g.rotate(a);
+      g.fillStyle = 'rgba(232,246,252,.78)'; g.beginPath(); g.roundRect(-sz / 2, -sz / 2, sz, sz, 5); g.fill(); g.stroke();
+      g.fillStyle = 'rgba(255,255,255,.9)'; g.fillRect(-sz / 2 + 4, -sz / 2 + 4, sz * 0.28, 3);
+      g.restore();
+    });
   }
   g.restore();
   if (A) A.levelPx = -yy;

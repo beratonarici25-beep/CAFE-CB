@@ -108,20 +108,28 @@ async function brewOrder(page) {
   const want = o.surprise ? { size: o.constraint === 'L' ? 'L' : 'M', bean: o.constraint === 'decaf' ? 'decaf' : 'esp', shots: 2,
     milk: ['oat', 'almond'].includes(o.constraint) ? o.constraint : 'whole', foam: 'light', temp: 'normal',
     syrups: o.constraint === 'vanilla' ? { vanilla: 1 } : {}, tops: o.constraint === 'cinnamon' ? ['cinnamon'] : [] }
-    : { size: o.size, bean: o.bean, shots: o.shots, milk: o.milk, foam: o.milk ? { latte: 'light', cappuccino: 'thick', flatwhite: 'none', mocha: 'light' }[o.drink] : null,
-      temp: o.temp, syrups: o.syrups, tops: o.tops };
+    : { size: o.size, bean: o.bean, shots: o.shots, milk: o.milk, foam: o.milk ? { latte: 'light', cappuccino: 'thick', flatwhite: 'none', mocha: 'light', hotchoc: 'light' }[o.drink] : null,
+      temp: o.temp, syrups: o.syrups, tops: o.tops, iced: o.drink === 'iced', choc: o.drink === 'hotchoc' };
   await drag(page, `[data-drag="newcup:${want.size}"]`, '#slotTray');
-  await drag(page, '#pfObj', '#slotGrinder');
-  await click(page, `#beanChips [data-k="${want.bean}"]`);
-  await hold(page, '#grindBtn', () => window.CB.B.pf.dose >= 17.6);
-  await drag(page, '#tamperObj', '#pfObj');
-  await drag(page, '#pfObj', '#slotGroup');
+  // a hot chocolate has no coffee (issue #21)
+  if (want.shots) {
+    await drag(page, '#pfObj', '#slotGrinder');
+    await click(page, `#beanChips [data-k="${want.bean}"]`);
+    await hold(page, '#grindBtn', () => window.CB.B.pf.dose >= 17.6);
+    await drag(page, '#tamperObj', '#pfObj');
+    await drag(page, '#pfObj', '#slotGroup');
+  }
   for (let i = 0; i < want.shots; i++) {
     await click(page, '#brewBtn');
     await page.waitForFunction(() => window.CB.B.cup.shotT >= 26.5);
     await click(page, '#brewBtn');
   }
-  if (want.milk) {
+  if (want.choc) await drag(page, '#cocoaObj', '#cupObj');
+  if (want.iced) {
+    // ice, then cold milk straight from the bottle
+    await drag(page, '#iceObj', '#cupObj');
+    await drag(page, `[data-drag="milk:${want.milk}"]`, '#cupObj');
+  } else if (want.milk) {
     await drag(page, `[data-drag="milk:${want.milk}"]`, '#pitcherObj');
     await drag(page, '#pitcherObj', '#slotWand');
     await click(page, `#foamChips [data-k="${want.foam}"]`);

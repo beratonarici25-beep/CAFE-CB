@@ -4,6 +4,7 @@
 // Run: node tests/sizes.js   (needs playwright-core and Microsoft Edge, like tests/e2e.js)
 const path = require('path');
 const pw = require(process.env.PW_CORE || 'playwright-core');
+const { reveal } = require('./e2e.js');
 
 const URL = process.env.GAME_URL || 'file:///' + path.resolve(__dirname, '..', 'index.html').replace(/\\/g, '/');
 const results = [];
@@ -23,7 +24,8 @@ const PAINT = `el => {
 // starts a drag on sel, measures the ghost against the original, then lets go where it started
 async function ghostRatio(page, sel) {
   const loc = page.locator(sel).first();
-  await loc.scrollIntoViewIfNeeded();
+  // on a phone the bench is panned to it, like a player would (the close-up camera)
+  await reveal(page, sel);
   const a = await loc.boundingBox();
   if (!a) return null;
   const x = a.x + a.width / 2, y = a.y + a.height / 2;

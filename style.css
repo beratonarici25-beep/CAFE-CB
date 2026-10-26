@@ -375,3 +375,15 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 .wandctl .bandlabels span { white-space: normal; line-height: 1.15; align-items: flex-start; }
 .wandctl .bandlabels i { flex: none; margin-top: 1px; }
 .wandctl .readout span:last-child { font-size: 11px; }
+
+/* the recipe shop (issue #21): one card per drink; a drink on the menu shows a tag, a locked one its price and what is
+   still missing */
+.rec .buy { display: grid; justify-items: end; gap: 2px; }
+.rec .need { font-size: 11px; color: var(--blush-deep); white-space: nowrap; }
+.rec.own { opacity: .75; }
+.rec.just-bought { animation: recBought .6s var(--pop, cubic-bezier(.34,1.56,.64,1)); opacity: 1; }
+@keyframes recBought { 0% { transform: scale(1); } 35% { transform: scale(1.06); background: #fff3c4; } 100% { transform: none; } }
+#bookBody tr.locked td { opacity: .5; }
+#bookBody tr.locked td:first-child { opacity: .8; }
+#bookBody .lock { display: block; font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+@media (prefers-reduced-motion: reduce) { .rec.just-bought { animation: none; } }

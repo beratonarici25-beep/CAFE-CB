@@ -2,23 +2,23 @@
    too. The page itself is fetched from the network first (so a new version shows up at once) and from the cache when
    offline; everything else comes from the cache and is fetched only the first time. Bump VERSION with every release
    (together with the ?v= on the links in index.html): the old cache is then dropped. */
-const VERSION = 'cafe-cb-17';
+const VERSION = 'cafe-cb-18';
 const CORE = [
-  './', 'index.html', 'manifest.webmanifest', 'style.css?v=17',
-  'css/scene.css?v=17', 'css/fx.css?v=17', 'css/views.css?v=17', 'css/bar.css?v=17', 'css/theme.css?v=17', 'css/helper.css?v=17', 'css/stage.css?v=17',
-  'js/util.js?v=17', 'js/i18n.js?v=17', 'js/audio.js?v=17', 'js/recipe.js?v=17', 'js/render.js?v=17', 'js/scene.js?v=17', 'js/fx.js?v=17',
-  'js/station.js?v=17', 'js/camera.js?v=17', 'assets/helper/art.js?v=17', 'js/helper.js?v=17', 'js/tutorial.js?v=17', 'js/main.js?v=17',
+  './', 'index.html', 'manifest.webmanifest', 'style.css?v=18',
+  'css/scene.css?v=18', 'css/fx.css?v=18', 'css/views.css?v=18', 'css/bar.css?v=18', 'css/theme.css?v=18', 'css/helper.css?v=18', 'css/stage.css?v=18',
+  'js/util.js?v=18', 'js/i18n.js?v=18', 'js/audio.js?v=18', 'js/recipe.js?v=18', 'js/render.js?v=18', 'js/scene.js?v=18', 'js/fx.js?v=18',
+  'js/station.js?v=18', 'js/camera.js?v=18', 'assets/helper/art.js?v=18', 'js/helper.js?v=18', 'js/tutorial.js?v=18', 'js/main.js?v=18',
   'assets/favicon-64.png', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/icon-512-any.png', 'assets/apple-touch-icon.png',
   'assets/cover/logo-menu.webp',
   'assets/backbar.svg', 'assets/bg-seating.svg', 'assets/bg-wall.svg',
-  'assets/fonts/fonts.css?v=17', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
+  'assets/fonts/fonts.css?v=18', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
     .flatMap(f => [`assets/fonts/${f}-latin.woff2`, `assets/fonts/${f}-latin-ext.woff2`]),
   ...['bell', 'bin', 'binlid', 'cup-L', 'cup-M', 'cup-S', 'cust-beard', 'cust-collar-round', 'cust-collar-v', 'cust-hair-bun-front',
     'cust-hair-curly-back', 'cust-hair-curly-front', 'cust-hair-long-back', 'cust-hair-long-front', 'cust-hair-short-front',
     'cust-hair-straight-back', 'cust-hair-straight-front', 'cust-hat-beanie', 'cust-hat-cap', 'cust-hat-pom', 'cust-scarf', 'cust-skin',
     'cust-torso', 'gauge', 'grouphead', 'hopper', 'hotwater', 'knockbox', 'milk-almond', 'milk-oat', 'milk-whole', 'pf-empty', 'pf-ground',
     'pf-tamped', 'pitcher-empty', 'pitcher-foam', 'pitcher-milk', 'syrup-caramel', 'syrup-hazelnut', 'syrup-vanilla', 'tamper',
-    'top-cinnamon', 'top-cocoa', 'top-whip', 'wand', 'warmer'].map(n => `assets/models/${n}.webp`),
+    'top-cinnamon', 'top-cocoa', 'top-whip', 'wand', 'warmer', 'icebucket', 'cocoatin', 'tipjar', 'stool'].map(n => `assets/models/${n}.webp`),
 ];
 
 self.addEventListener('install', e => {

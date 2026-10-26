@@ -18,6 +18,13 @@ The whole game shares one look, "cartoon but realistic": soft thick outlines, re
 light from the upper left. New players get a short tutorial (one latte, start to finish) from the head barista,
 **Jesica** (EN) / **Ülkü** (TR); it can be skipped and replayed from the main menu.
 
+A new café only serves espresso and latte. The other drinks are bought with the café's money in the **recipe shop**
+(main menu and the day-end screen): cappuccino, hot chocolate, flat white, iced latte, mocha. The next day the new drink
+is announced, its first guest orders it and the head barista shows what is new about it. Hot chocolate (a spoon of
+cocoa, no coffee) and iced latte (ice and cold milk straight from the bottle) bring their own equipment to the bench.
+Prices are in `RECIPE_COST` (`js/recipe.js`); `node tools/balance.js` simulates what a good and an average player can
+unlock in the 7-day demo. Bought upgrades show in the café (stools, the tip jar, a brass dial on the grinder and gauge).
+
 Development will continue. Open to contributions.
 Geliştirmeye devam edicem, katkılara açığım.
 
@@ -57,6 +64,8 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `tests/fuzz.js` | Random-play monkey test with state invariants |
 | `tests/tutorial.js` | Plays the tutorial with drags (desktop) and taps (phone); skip, replay, language, old saves |
 | `tests/sizes.js` | Drag ghosts keep their size, machine keys fit their label, a phone held upright asks to be turned |
+| `tests/recipes.js` | Recipe shop: locked drinks never ordered, buying, intros, the two new drinks brewed, old saves, reset |
+| `tools/balance.js` | Recipe shop balance: what a good and an average player unlock over the demo |
 | `tests/layout.js` | At every window size (1280×720 to 3440×1440, phones held sideways) the game fits without scrolling (phones: every station once the camera pans to it, and a swipe pans) and an order can be brewed |
 
 Plain scripts, no build step: open `index.html` directly or serve the folder.
@@ -83,6 +92,7 @@ FUZZ_TUT=1 node tests/fuzz.js 1500   # the same while the tutorial runs
 node tests/tutorial.js
 node tests/sizes.js
 node tests/layout.js   # every window size; screenshots to tests/layout-*.png
+node tests/recipes.js   # the recipe shop and the new drinks
 ```
 
 ## Credits

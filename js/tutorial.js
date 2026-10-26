@@ -138,3 +138,45 @@ const Tutorial = (() => {
     },
   };
 })();
+
+/* A new drink's intro (issue #21). On the first day after a recipe is bought, the first guest orders it and the helper
+   says what is new about it, a line at a time, pointing at the controls that matter (Next / Got it / Skip). Like the
+   tutorial, the guest never loses patience while she talks; she leaves once the drink goes out. */
+const INTRO_STEPS = {
+  cappuccino: [['cappuccino1', []], ['cappuccino2', ['#foamChips [data-k="thick"]', '#steamBtn']]],
+  flatwhite: [['flatwhite1', ['[data-drag="newcup:S"]']], ['flatwhite2', ['#foamChips [data-k="none"]', '#steamBtn']]],
+  mocha: [['mocha1', []], ['mocha2', ['[data-drag="top:cocoa"]', '[data-drag="top:whip"]']]],
+  iced: [['iced1', ['#iceObj']], ['iced2', ['[data-drag="milk:whole"]']]],
+  hotchoc: [['hotchoc1', []], ['hotchoc2', ['#cocoaObj', '#foamChips [data-k="light"]']]],
+};
+const Intro = (() => {
+  let active = false, drink = null, step = 0, camFor = -1;
+  function stop() {
+    if (!active) return;
+    active = false; drink = null;
+    Helper.hide();
+  }
+  return {
+    get active() { return active; },
+    get drink() { return drink; },
+    start(k) { if (!INTRO_STEPS[k]) return; active = true; drink = k; step = 0; camFor = -1; },
+    stop,
+    tick() {
+      if (!active) return;
+      const st = G.state;
+      if (st !== 'ORDER_PENDING' && st !== 'PREPARING') { stop(); return; }
+      const skip = { key: 'introSkip', cls: 'skip', onClick: stop };
+      if (st === 'ORDER_PENDING') {
+        if (G.cust && G.cust.state === 'wait') Helper.say('introNew', { pose: 'wave', args: [drinkName(drink)], target: '#takeBtn', buttons: [skip] });
+        return;
+      }
+      if (CB.switching()) return;
+      const steps = INTRO_STEPS[drink], [key, show] = steps[Math.min(step, steps.length - 1)];
+      const last = step >= steps.length - 1;
+      const next = last ? { key: 'introGotIt', cls: 'go', onClick: stop } : { key: 'introNext', cls: 'go', onClick: () => { step++; } };
+      const els = show.map(s => document.querySelector(s)).filter(Boolean);
+      if (camFor !== step && !G.peek && !CB.dragging()) { camFor = step; Cam.show(els); }
+      Helper.say('intro_' + key, { pose: els.length ? 'point' : 'talk', target: els, buttons: last ? [next] : [next, skip] });
+    },
+  };
+})();

@@ -68,12 +68,16 @@ function startDay() {
   G.day = save.day; G.idx = 0; G.total = Math.min(4 + G.day, 9); G.earned = 0; G.stars = [];
   G.patMax = 70 * (has('stools') ? 1.25 : 1);
   G.cust = null;
+  // the recipes bought since the last day are new on the menu today (issue #21)
+  G.fresh = save.intros.filter(recipeOpen); save.intros = []; persist();
   if (!save.tutorialDone) Tutorial.start();
+  else if (G.fresh.length) { toast(t('newOnMenu', G.fresh.map(drinkName).join(', '))); Intro.start(G.fresh[0]); }
   nextCustomer();
 }
 function nextCustomer() {
   G.cust = makeCustomer();
-  G.order = Tutorial.active && G.idx === 0 ? Tutorial.order() : makeOrder(G.day);
+  // the first guest of the day orders the new drink, so the helper can show how it is made
+  G.order = Tutorial.active && G.idx === 0 ? Tutorial.order() : makeOrder(G.day, G.fresh || [], Intro.active && G.idx === 0 ? Intro.drink : null);
   G.typed = 0; G.patience = 1; G.served = null; G.result = null; G.ticket++;
   resetBench();
   $('#say').textContent = '';
@@ -135,6 +139,7 @@ function afterResult() {
   if (G.state !== 'RESULT') return;
   sfx.click();
   if (Tutorial.active) Tutorial.complete();
+  if (Intro.active) Intro.stop();
   G.idx++;
   G.cust.state = 'leave';
   $('#bubble').hidden = true;
@@ -151,6 +156,7 @@ function fillDay() {
   $('#dStars').textContent = avg.toFixed(1);
   $('#dCash').textContent = money(save.cash);
   $('#nextDayBtn').textContent = t('openDay', save.day);
+  renderRecipes($('#dayRecipes'));
   renderShop($('#dayShop'));
 }
 function endDay() {
@@ -179,8 +185,30 @@ function openBook(from) {
   sfx.init(); sfx.click();
   bookFrom = from;
   $('#closeBookBtn').textContent = t(from === 'menu' ? 'backToMenu' : 'backToBar');
+  markBook();
   $('#ovBook').hidden = false;
   $('#closeBookBtn').focus({ preventScroll: true });
+}
+// the chalk menu on the back bar (issue #21): every drink in two columns; the ones not bought yet faint, with a lock
+function renderChalk() {
+  const esc = x => x.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  let h = `<text x="160" y="32" text-anchor="middle" font-family="'Pacifico','Brush Script MT',cursive" font-size="19" fill="#ffd6dc">Cafe C&amp;B</text>`;
+  Object.keys(DRINKS).forEach((k, i) => {
+    const col = i < 4 ? 0 : 1, x = col ? 166 : 22, end = col ? 298 : 152, y = 54 + (i % 4) * 16, open = recipeOpen(k);
+    h += `<g opacity="${open ? 1 : 0.38}"><text x="${x}" y="${y}">${esc(drinkName(k))}</text>` + (open
+      ? `<text x="${end}" y="${y}" text-anchor="end">${DRINKS[k].price.toFixed(2)}</text>`
+      : `<path d="M${end - 8} ${y - 6}h8v7h-8z M${end - 6.5} ${y - 6}v-2.2a2.5 2.5 0 0 1 5 0v2.2" fill="none" stroke="#f5efe6" stroke-width="1.4"/>`) + `</g>`;
+  });
+  $('#chalkMenu').innerHTML = `<g font-family="'Courier Prime','Courier New',monospace" font-weight="700" fill="#f5efe6" font-size="11.5">${h}</g>`;
+}
+// drinks not bought yet stay in the book, greyed out, with their price in the recipe shop (issue #21)
+function markBook() {
+  document.querySelectorAll('#bookBody tr[data-d]').forEach(tr => {
+    const k = tr.dataset.d, lock = !recipeOpen(k);
+    tr.classList.toggle('locked', lock);
+    const old = tr.querySelector('.lock'); if (old) old.remove();
+    if (lock) tr.cells[0].insertAdjacentHTML('beforeend', `<small class="lock">${t('bookLocked', money(RECIPE_COST[k]))}</small>`);
+  });
 }
 function closeBook() {
   if ($('#ovBook').hidden) return;
@@ -215,7 +243,7 @@ $('#resetBtn').addEventListener('click', () => {
     return;
   }
   clearTimeout(resetTimer); resetArmed = false;
-  save = { ...DEFAULT_SAVE, muted: save.muted, lang: save.lang }; persist();
+  save = { ...DEFAULT_SAVE, muted: save.muted, lang: save.lang }; fixSave(); persist();
   $('#resetBtn').textContent = t('reset'); renderMenu(); render();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBook(); });
@@ -227,6 +255,31 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2200);
 }
 
+// the recipe shop (issue #21): a card per drink, bought with the café's money; on the menu from the next day
+function renderRecipes(el) {
+  const L = S();
+  el.innerHTML = `<h3>${L.recipes}</h3>` + Object.entries(RECIPE_COST).map(([k, cost]) => {
+    const own = recipeOpen(k), short = cost - save.cash;
+    return `<div class="upg rec${own ? ' own' : ''}" data-rec="${k}"><div><b>${drinkName(k)}</b><small>${L.recDesc[k]}</small></div>` +
+      (own ? `<span class="tag good">${L.onMenu}</span>`
+        : `<span class="buy"><button class="btn" type="button" data-r="${k}" ${short > 0 ? 'disabled' : ''}>${money(cost)}</button>` +
+          (short > 0 ? `<small class="need">${t('needMore', money(short))}</small>` : '') + '</span>') + `</div>`;
+  }).join('');
+  el.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.r, cost = RECIPE_COST[k];
+    if (recipeOpen(k) || save.cash < cost) return;
+    sfx.init(); save.cash -= cost; save.recipes.push(k); save.intros.push(k); persist(); sfx.coin();
+    toast(t('recipeBought', drinkName(k)));
+    refreshShops();
+    const card = document.querySelector(`#${el.id} [data-rec="${k}"]`);
+    if (card) { card.classList.add('just-bought'); const r = card.getBoundingClientRect(); fx('confetti', r.left + r.width / 2, r.top + r.height / 2); }
+  }));
+}
+function refreshShops() {
+  render();
+  renderChalk();
+  if (G.state === 'DAY_END') fillDay(); else renderMenu();
+}
 function renderShop(el) {
   const L = S();
   el.innerHTML = `<h3>${L.upgrades}</h3>` + UPGRADES.map(u => {
@@ -238,9 +291,7 @@ function renderShop(el) {
     const u = UPGRADES.find(x => x.id === b.dataset.u);
     if (!u || has(u.id) || save.cash < u.cost) return;
     sfx.init(); save.cash -= u.cost; save.upgrades.push(u.id); persist(); sfx.coin();
-    renderShop(el); render();
-    if (el.id === 'dayShop') $('#dCash').textContent = money(save.cash);
-    else renderMenu();
+    refreshShops();
   }));
 }
 function renderMenu() {
@@ -248,6 +299,7 @@ function renderMenu() {
   $('#mDay').textContent = save.day;
   $('#mBest').textContent = money(save.best);
   $('#startBtn').textContent = save.day > 1 ? t('openDay', save.day) : t('openCafe');
+  renderRecipes($('#menuRecipes'));
   renderShop($('#menuShop'));
 }
 
@@ -258,6 +310,8 @@ function applyLang() {
   $('#langBtn').textContent = L.otherLang;
   $('#langBtn2').textContent = L.otherLangLong;
   $('#bookBody').innerHTML = L.howSteps + L.book;
+  markBook();
+  renderChalk();
   $('#closeBookBtn').textContent = t(bookFrom === 'menu' ? 'backToMenu' : 'backToBar');
   document.querySelectorAll('.patience').forEach(el => { el.title = L.patience; });
   applyBenchLang();
@@ -280,6 +334,8 @@ function applyLang() {
 
 function render() {
   const L = S();
+  // bought upgrades show in the café (issue #21): html.upg-<id> (css/scene.css, css/bar.css)
+  for (const u of UPGRADES) document.documentElement.classList.toggle('upg-' + u.id, has(u.id));
   $('#bench').classList.toggle('idle', G.state !== 'PREPARING');
   setView(viewFor());
   $('#hudDay').textContent = t('day', G.state === 'MENU' || G.state === 'DAY_END' ? save.day : G.day);
@@ -387,8 +443,8 @@ function update(dt) {
           if (G.typed >= text.length) render();
         }
       }
-      // no patience lost while the tutorial runs (issue #12)
-      if ((G.state === 'ORDER_PENDING' || G.state === 'PREPARING' || G.state === 'READY_TO_SERVE') && !Tutorial.active) {
+      // no patience lost while the tutorial or a new drink's intro runs (issues #12, #21)
+      if ((G.state === 'ORDER_PENDING' || G.state === 'PREPARING' || G.state === 'READY_TO_SERVE') && !Tutorial.active && !Intro.active) {
         G.patience = Math.max(0, G.patience - dt / G.patMax);
         c.mood = G.patience > 0.55 ? 'happy' : G.patience > 0.25 ? 'neutral' : 'annoyed';
       }
@@ -411,7 +467,7 @@ function placeCustZone() {
 let last = performance.now(), dtLast = 0.016;
 function frame(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; T += dt; dtLast = dt;
-  try { update(dt); Cam.tick(dt); drawScene(); drawCupObj(); fx('frame', dt); Tutorial.tick(); } catch (e) { console.error(e); }
+  try { update(dt); Cam.tick(dt); drawScene(); drawCupObj(); fx('frame', dt); Tutorial.tick(); Intro.tick(); } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
 }
 
