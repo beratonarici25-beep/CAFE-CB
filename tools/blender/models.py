@@ -807,6 +807,80 @@ def cust_cap():
     render_fixed('cust-hat-cap')
 
 
+# ---------------------------------------------------------------- recipe shop drinks (issue #21)
+@job('icebucket')
+def ice_bucket():
+    # a brushed steel ice bucket heaped with ice cubes, a steel scoop resting in it
+    reset()
+    random.seed(7)
+    st = toon('steel', CHROME, 'metal')
+    # taller than wide, flaring out to a rolled rim: a bucket, not a pot
+    lathe('bucket', [(0.0001, 0), (2.9, 0), (3.1, 0.3), (3.9, 6.4), (4.2, 6.7), (4.0, 6.85)], st, cap_top=False, segs=56)
+    lathe('inner', [(3.85, 6.7), (3.0, 0.6), (0.0001, 0.6)], toon('inner', '#7f8b92', 'metal'), outline=0, cap_top=False, cap_bot=False)
+    lathe('ringa', [(3.33, 1.8), (3.36, 2.1)], toon('steeld', '#6f7b82', 'metal'), outline=0, cap_top=False, cap_bot=False)
+    for a in (0, math.pi):  # two little handles
+        tube('ear', smooth_curve([(3.8 * math.cos(a), -1.0, 5.6), (4.9 * math.cos(a), 0, 5.4), (3.8 * math.cos(a), 1.0, 5.6)], 5), 0.18, st)
+    # a heap of cubes over the rim
+    ice = toon('ice', '#e4f4fb', 'glass', alpha=0.85)
+    for i in range(44):
+        r = math.sqrt(random.uniform(0, 1)) * 3.4; a = random.uniform(0, 2 * math.pi)
+        z = 6.0 + random.uniform(0, 0.7) + (3.4 - r) * 0.45
+        box('cube', (1.15, 1.15, 1.0), ice, loc=(r * math.cos(a), r * math.sin(a), z), bevel=0.32, outline=0.07,
+            rot=(random.uniform(-0.6, 0.6), random.uniform(-0.6, 0.6), random.uniform(0, 3)))
+    lathe('scoop', [(0.0001, 0), (1.2, 0), (1.35, 1.6), (1.4, 2.6)], st, cap_top=False, loc=(1.4, -1.2, 7.2)).rotation_euler = (math.radians(70), 0, math.radians(-30))
+    tube('scoopgrip', smooth_curve([(2.1, -0.4, 8.0), (3.2, 1.2, 9.2), (4.1, 2.4, 10.2)], 5), 0.32, toon('pump', '#2a2523', 'gloss'))
+    render('icebucket', 110, tilt=30)
+
+
+@job('cocoatin')
+def cocoa_tin():
+    # a round tin of cocoa powder with its lid off and a spoon in it
+    reset()
+    tin = toon('tin', '#5b3423', 'gloss')
+    lathe('tin', [(0.0001, 0), (2.6, 0), (2.7, 0.3), (2.7, 5.6), (2.55, 5.8)], tin, cap_top=False, segs=56)
+    lathe('rim', [(2.55, 5.8), (2.75, 5.9), (2.6, 6.05)], toon('steel', CHROME, 'metal'), outline=0.05, cap_top=False, cap_bot=False)
+    lathe('band', [(2.74, 2.0), (2.74, 4.2)], toon('label', '#fffaf3'), outline=0.05, cap_top=False, cap_bot=False)
+    lathe('stripe', [(2.76, 2.85), (2.76, 3.35)], toon('blush', BLUSH), outline=0, cap_top=False, cap_bot=False)
+    lathe('powder', [(0.0001, 5.1), (2.5, 5.1), (2.45, 5.5), (1.2, 5.75), (0.0001, 5.8)], toon('cocoa', '#6b3b26'), outline=0)
+    st = toon('steel', CHROME, 'metal')
+    sphere('bowl', 0.8, st, loc=(0.6, -0.4, 5.6), scale=(1, 0.75, 0.35), outline=0.08)
+    tube('handle', smooth_curve([(1.2, 0, 5.8), (2.6, 1.0, 7.0), (3.6, 1.8, 8.2)], 4), 0.2, st)
+    render('cocoatin', 86, tilt=24)
+
+
+# ---------------------------------------------------------------- upgrades on show (issue #21)
+@job('tipjar')
+def tip_jar():
+    # a big glass jar with coins and a folded note, a paper "TIPS" tag tied on
+    reset()
+    random.seed(11)
+    lathe('jar', [(0.0001, 0), (2.6, 0), (2.8, 0.4), (2.8, 5.6), (2.3, 6.4), (2.2, 7.0), (2.4, 7.2)], toon('glass', '#e6f1f3', 'glass', alpha=0.28),
+          outline=0.08, cap_top=False, segs=56)
+    coin = toon('coin', '#e2b23c', 'gloss')
+    for i in range(30):
+        r = math.sqrt(random.uniform(0, 1)) * 2.2; a = random.uniform(0, 2 * math.pi)
+        cyl('coin', 0.55, 0.14, coin, loc=(r * math.cos(a), r * math.sin(a), 0.3 + random.uniform(0, 2.2)),
+            rot=(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5), 0), segs=20, outline=0.04)
+    box('note', (2.2, 0.08, 1.2), toon('note', '#9fd3a8'), loc=(0.4, 0.2, 3.6), bevel=0.04, outline=0.05, rot=(0.2, 0.1, 0.5))
+    lathe('band', [(2.82, 3.4), (2.82, 4.6)], toon('label', '#fffaf3'), outline=0.04, cap_top=False, cap_bot=False)
+    lathe('stripe', [(2.84, 3.85), (2.84, 4.15)], toon('blush', BLUSH), outline=0, cap_top=False, cap_bot=False)
+    render('tipjar', 80, tilt=16)
+
+
+@job('stool')
+def bar_stool():
+    # a café bar stool: round walnut seat with a soft blush cushion, steel legs and a foot ring
+    reset()
+    st = toon('steel', CHROME, 'metal')
+    lathe('cushion', soft([(0.0001, 15.2), (3.6, 15.2), (3.9, 15.8), (3.6, 16.6), (0.0001, 16.9)]), toon('blush', BLUSH, 'gloss'), segs=56)
+    lathe('seat', [(0.0001, 14.4), (3.8, 14.4), (3.9, 15.3), (0.0001, 15.3)], toon('walnut', WALNUT, 'gloss'), segs=56)
+    for i in range(4):
+        a = i * math.pi / 2 + math.pi / 4
+        tube('leg', [(1.6 * math.cos(a), 1.6 * math.sin(a), 14.4), (3.0 * math.cos(a), 3.0 * math.sin(a), 0)], 0.32, st)
+    lathe('ring', [(2.25, 5.2), (2.55, 5.2), (2.55, 5.6), (2.25, 5.6)], st, outline=0.08, cap_top=False, cap_bot=False)
+    render('stool', 90, tilt=10)
+
+
 # ---------------------------------------------------------------- run
 if __name__ == '__main__':
     for name, fn in JOBS:

@@ -82,3 +82,10 @@
   border-color: #4b2e2b;
   box-shadow: 0 10px 0 #6a3f25, 0 13px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.8);
 }
+
+/* upgrades on show (issue #21): the comfy stools stand on the guests' side, their seats over the bar top, behind the
+   customers (the canvas draws them in front); the big tip jar sits on the bar beside the tray */
+.upg-show { display: none; position: absolute; pointer-events: none; }
+.upg-stools .upg-show.stools { display: flex; gap: 44%; z-index: 1; left: 8%; right: 30%; bottom: calc(var(--counter-h, 44px) - 104px); }
+.upg-show.stools .spr { width: 92px; height: auto; }
+.upg-tipjar .upg-show.tipjar { display: block; z-index: 3; width: 62px; height: auto; left: 66%; bottom: calc(var(--counter-h, 44px) - var(--top-d, 15px) * .55 - 10px); filter: drop-shadow(3px 5px 3px rgba(40,20,10,.25)); }

@@ -34,10 +34,13 @@ const TARGETS = {
   cup: ['prep', 'tray', 'serving', 'trash', 'customer'],
   pf: ['grinder', 'group', 'pfrack', 'knockbox', 'trash'],
   tamper: ['pf'],
-  milk: ['pitcher'],
+  milk: ['pitcher', 'cup'],
   pitcher: ['wand', 'pitcherrack', 'cup', 'trash'],
   syrup: ['cup'],
   top: ['cup'],
+  // the recipe shop's drinks (issue #21): a scoop of ice, a spoon of cocoa
+  ice: ['cup'],
+  cocoa: ['cup'],
 };
 const PF_SPOT = { grinder: 'grinder', group: 'group', pfrack: 'rack' };
 const PITCHER_SPOT = { wand: 'wand', pitcherrack: 'rack' };
@@ -53,10 +56,13 @@ function check(spec, target) {
     case 'cup': return target === 'trash' ? Rules.trashCup(B) : Rules.moveCup(B, target);
     case 'pf': return target === 'trash' || target === 'knockbox' ? Rules.dumpPf(B) : Rules.movePf(B, PF_SPOT[target]);
     case 'tamper': return Rules.tamp(B);
-    case 'milk': return Rules.fillPitcher(B);
+    // straight into the cup only once the iced latte is on the menu; before that a bottle only fills the pitcher
+    case 'milk': return target === 'cup' ? (recipeOpen('iced') ? Rules.coldMilk(B) : 'nope') : Rules.fillPitcher(B);
     case 'pitcher': return target === 'cup' ? Rules.pour(B) : target === 'trash' ? Rules.dumpPitcher(B) : Rules.movePitcher(B, PITCHER_SPOT[target]);
     case 'syrup': return Rules.syrup(B);
     case 'top': return Rules.topping(B, arg);
+    case 'ice': return recipeOpen('iced') ? Rules.ice(B) : 'nope';
+    case 'cocoa': return recipeOpen('hotchoc') ? Rules.cocoa(B) : 'nope';
   }
   return 'nope';
 }
@@ -92,6 +98,12 @@ function apply(spec, target, from) {
       B.pf.tamped = true; sfx.tamp(); fx('tamp', $('#pfObj'));
       break;
     case 'milk':
+      if (target === 'cup') {
+        // straight from the bottle: cold milk, no foam (an iced latte)
+        Object.assign(c, { milkPoured: true, milkType: arg, foamUsed: 'none', milkTemp: 6, cold: true, scorched: false });
+        sfx.pour(); fx('pourInto', $('#cupObj'), MILK_COLORS[arg]);
+        break;
+      }
       B.pitcher.milk = arg; B.pitcher.temp = 6; B.pitcher.scorched = false;
       sfx.pour(); fx('pourInto', $('#pitcherObj'), C.milk);
       break;
@@ -111,6 +123,12 @@ function apply(spec, target, from) {
     case 'top':
       c.tops.push(arg);
       sfx.click(); fx('sprinkle', $('#cupObj'), TOP_COLORS[arg]);
+      break;
+    case 'ice':
+      c.ice++; sfx.clack(); fx('land', $('#cupObj'));
+      break;
+    case 'cocoa':
+      c.choc++; sfx.click(); fx('sprinkle', $('#cupObj'), TOP_COLORS.cocoa);
       break;
   }
   render();
@@ -532,6 +550,11 @@ function setSprite(img, name) {
 const setPressed = (el, fn) => el.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', fn(b.dataset.k) ? 'true' : 'false'));
 function renderBench() {
   const L = S(), c = B.cup, p = B.pf, pt = B.pitcher;
+  // the ice bucket and the cocoa tin stand on the bench once their drink is bought (issue #21)
+  const ice = !recipeOpen('iced'), choc = !recipeOpen('hotchoc');
+  if ($('#iceObj').hidden !== ice) $('#iceObj').hidden = ice;
+  if ($('#cocoaObj').hidden !== choc) $('#cocoaObj').hidden = choc;
+  if ($('#extras').hidden !== (ice && choc)) $('#extras').hidden = ice && choc;
   setPressed($('#beanChips'), k => p.bean === k);
   $('#beanChips').querySelectorAll('button').forEach(b => { b.disabled = p.dose > 0; });
   $('#hopper').dataset.bean = p.bean;

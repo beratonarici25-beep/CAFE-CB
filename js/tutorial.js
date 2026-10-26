@@ -146,6 +146,8 @@ const INTRO_STEPS = {
   cappuccino: [['cappuccino1', []], ['cappuccino2', ['#foamChips [data-k="thick"]', '#steamBtn']]],
   flatwhite: [['flatwhite1', ['[data-drag="newcup:S"]']], ['flatwhite2', ['#foamChips [data-k="none"]', '#steamBtn']]],
   mocha: [['mocha1', []], ['mocha2', ['[data-drag="top:cocoa"]', '[data-drag="top:whip"]']]],
+  iced: [['iced1', ['#iceObj']], ['iced2', ['[data-drag="milk:whole"]']]],
+  hotchoc: [['hotchoc1', []], ['hotchoc2', ['#cocoaObj', '#foamChips [data-k="light"]']]],
 };
 const Intro = (() => {
   let active = false, drink = null, step = 0, camFor = -1;

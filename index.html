@@ -16,15 +16,15 @@
 <link rel="icon" href="assets/favicon-64.png" type="image/png" sizes="64x64">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <!-- the fonts are inside the game (issue #27), so it looks the same offline -->
-<link rel="stylesheet" href="assets/fonts/fonts.css?v=17">
-<link rel="stylesheet" href="style.css?v=17">
-<link rel="stylesheet" href="css/scene.css?v=17">
-<link rel="stylesheet" href="css/fx.css?v=17">
-<link rel="stylesheet" href="css/views.css?v=17">
-<link rel="stylesheet" href="css/bar.css?v=17">
-<link rel="stylesheet" href="css/theme.css?v=17">
-<link rel="stylesheet" href="css/helper.css?v=17">
-<link rel="stylesheet" href="css/stage.css?v=17">
+<link rel="stylesheet" href="assets/fonts/fonts.css?v=18">
+<link rel="stylesheet" href="style.css?v=18">
+<link rel="stylesheet" href="css/scene.css?v=18">
+<link rel="stylesheet" href="css/fx.css?v=18">
+<link rel="stylesheet" href="css/views.css?v=18">
+<link rel="stylesheet" href="css/bar.css?v=18">
+<link rel="stylesheet" href="css/theme.css?v=18">
+<link rel="stylesheet" href="css/helper.css?v=18">
+<link rel="stylesheet" href="css/stage.css?v=18">
 </head>
 <body>
 
@@ -70,6 +70,9 @@
     </div>
     <div class="ticketslot" id="sceneTicket"></div>
   </div>
+  <!-- upgrades on show (issue #21): comfy stools on the guests' side of the bar, the big tip jar on it -->
+  <div class="upg-show stools" aria-hidden="true"><img class="spr" src="assets/models/stool.webp?v=18" width="84" height="180" alt="" draggable="false"><img class="spr" src="assets/models/stool.webp?v=18" width="84" height="180" alt="" draggable="false"></div>
+  <img class="upg-show tipjar spr" src="assets/models/tipjar.webp?v=18" width="109" height="160" alt="" aria-hidden="true" draggable="false">
   <!-- the finished drink waits on a tray on the bar; drop it on the customer (#custZone follows them) -->
   <div class="cust-tray" id="custTray"><div class="slot cupslot handslot" id="slotHand"></div></div>
   <div class="cust-zone" id="custZone" data-drop="customer" hidden></div>
@@ -90,7 +93,10 @@
   </div>
 
   <!-- the back bar behind the barista (issue #10): shelves with cups, bean jars, syrups and milk, a chalk menu (decor only) -->
-  <div class="backbar" aria-hidden="true"></div>
+  <div class="backbar" aria-hidden="true">
+    <!-- the chalk menu's writing, in the picture's own coordinates (same viewBox, scaled the same way) -->
+    <svg class="chalk" viewBox="0 0 1600 200" preserveAspectRatio="xMidYMax slice"><g transform="translate(640 6)" id="chalkMenu"></g></svg>
+  </div>
 
   <!-- the bar, left to right in the order a real barista works: cups → grinder & tamp station → espresso machine
        → milk → syrups & toppings → the pass (serving tray). Rubber bar mats sit under the machines. -->
@@ -217,6 +223,11 @@
         </div>
       </div>
       <div class="cupinfo" id="cupInfo"></div>
+      <!-- the recipe shop's drinks (issue #21): on the bench once bought -->
+      <div class="extras" id="extras">
+        <div class="obj icebucket" id="iceObj" role="button" tabindex="0" data-drag="ice"><img class="spr" src="assets/models/icebucket.webp?v=18" width="191" height="220" alt="" draggable="false"><small class="objtag" data-t="obj.ice">Ice</small></div>
+        <div class="obj cocoatin" id="cocoaObj" role="button" tabindex="0" data-drag="cocoa"><img class="spr" src="assets/models/cocoatin.webp?v=18" width="119" height="172" alt="" draggable="false"><small class="objtag" data-t="obj.cocoa">Cocoa</small></div>
+      </div>
     </section>
 
     <!-- 5 syrups: pump bottles with plain paper labels -->
@@ -319,18 +330,18 @@
 <!-- phones held upright (issue #14): the game is played sideways -->
 <div class="rotate-ov" id="rotateOv"><div><div class="phone" aria-hidden="true"></div><p data-t="rotate">Turn your phone sideways to play</p></div></div>
 
-<script src="js/util.js?v=17"></script>
-<script src="js/i18n.js?v=17"></script>
-<script src="js/audio.js?v=17"></script>
-<script src="js/recipe.js?v=17"></script>
-<script src="js/render.js?v=17"></script>
-<script src="js/scene.js?v=17"></script>
-<script src="js/fx.js?v=17"></script>
-<script src="js/station.js?v=17"></script>
-<script src="js/camera.js?v=17"></script>
-<script src="assets/helper/art.js?v=17"></script>
-<script src="js/helper.js?v=17"></script>
-<script src="js/tutorial.js?v=17"></script>
-<script src="js/main.js?v=17"></script>
+<script src="js/util.js?v=18"></script>
+<script src="js/i18n.js?v=18"></script>
+<script src="js/audio.js?v=18"></script>
+<script src="js/recipe.js?v=18"></script>
+<script src="js/render.js?v=18"></script>
+<script src="js/scene.js?v=18"></script>
+<script src="js/fx.js?v=18"></script>
+<script src="js/station.js?v=18"></script>
+<script src="js/camera.js?v=18"></script>
+<script src="assets/helper/art.js?v=18"></script>
+<script src="js/helper.js?v=18"></script>
+<script src="js/tutorial.js?v=18"></script>
+<script src="js/main.js?v=18"></script>
 </body>
 </html>

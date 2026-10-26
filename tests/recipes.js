@@ -33,32 +33,33 @@ const orderable = (page, day, fresh = []) => page.evaluate(([d, f]) => {
   const saved = page => page.evaluate(() => JSON.parse(localStorage.getItem('cafe-cb-save-v1') || '{}'));
 
   // ---- a new game ----
-  const page = await newPage(JSON.stringify({ lang: 'en', tutorialDone: true, cash: 30 }));
+  const page = await newPage(JSON.stringify({ lang: 'en', tutorialDone: true, cash: 80 }));
   ok('new game: only espresso and latte open', JSON.stringify(await page.evaluate(() => save.recipes)) === '["espresso","latte"]');
   ok('new game: day 1 orders only espresso and latte', JSON.stringify(await orderable(page, 1)) === '["espresso","latte"]');
   ok('new game: day 5 orders only espresso and latte', JSON.stringify(await orderable(page, 5)) === '["espresso","latte"]');
   // the menu shop: a card per recipe; too expensive ones are disabled and say what is missing
   const cards = await page.evaluate(() => [...document.querySelectorAll('#menuRecipes [data-rec]')].map(c => ({
     k: c.dataset.rec, dis: !!(c.querySelector('button') || {}).disabled, need: (c.querySelector('.need') || {}).textContent || '' })));
-  ok('menu: a card for every recipe', cards.map(c => c.k).join() === 'cappuccino,flatwhite,mocha', JSON.stringify(cards));
-  ok('menu: $30 buys a cappuccino ($25)', cards[0] && !cards[0].dis);
-  ok('menu: mocha ($60) disabled, $30 short', cards[2] && cards[2].dis && cards[2].need.includes('30.00'), JSON.stringify(cards[2]));
+  ok('menu: a card for every recipe', cards.map(c => c.k).join() === 'cappuccino,hotchoc,flatwhite,iced,mocha', JSON.stringify(cards));
+  const card = k => cards.find(c => c.k === k) || {};
+  ok('menu: $80 buys a cappuccino ($70)', !card('cappuccino').dis);
+  ok('menu: mocha ($170) disabled, $90 short', card('mocha').dis && card('mocha').need.includes('90.00'), JSON.stringify(card('mocha')));
   await page.evaluate(() => document.querySelector('#menuRecipes [data-r="mocha"]').click());
-  ok('menu: a disabled recipe cannot be bought', (await page.evaluate(() => save.cash)) === 30 && !(await page.evaluate(() => save.recipes.includes('mocha'))));
+  ok('menu: a disabled recipe cannot be bought', (await page.evaluate(() => save.cash)) === 80 && !(await page.evaluate(() => save.recipes.includes('mocha'))));
   // the recipe book greys out what is not bought yet
   await page.click('#howBtn');
   const book = await page.evaluate(() => [...document.querySelectorAll('#bookBody tr[data-d]')].map(tr => tr.dataset.d + ':' + tr.classList.contains('locked')).join());
-  ok('book: locked drinks greyed out', book === 'espresso:false,latte:false,cappuccino:true,flatwhite:true,mocha:true', book);
+  ok('book: locked drinks greyed out', book === 'espresso:false,latte:false,cappuccino:true,flatwhite:true,mocha:true,hotchoc:true,iced:true', book);
   await page.click('#closeBookBtn');
   // buy the cappuccino
   await page.click('#menuRecipes [data-r="cappuccino"]');
   const after = await saved(page);
-  ok('buy: money taken and the recipe saved', after.cash === 5 && after.recipes.includes('cappuccino') && after.intros.includes('cappuccino'), JSON.stringify(after));
+  ok('buy: money taken and the recipe saved', after.cash === 10 && after.recipes.includes('cappuccino') && after.intros.includes('cappuccino'), JSON.stringify(after));
   ok('buy: card now says on the menu, celebration and toast', await page.evaluate(() => {
     const c = document.querySelector('#menuRecipes [data-rec="cappuccino"]');
     return c.classList.contains('own') && !document.querySelector('#toast').hidden;
   }));
-  ok('buy: HUD and menu savings show the new cash', (await page.textContent('#mCash')) === '$5.00' && (await page.textContent('#hudCash')) === '$5.00');
+  ok('buy: HUD and menu savings show the new cash', (await page.textContent('#mCash')) === '$10.00' && (await page.textContent('#hudCash')) === '$10.00');
   // ---- the next day: announced, introduced on its first guest, then ordered ----
   await page.click('#startBtn');
   ok('next day: announced', /Cappuccino/.test(await page.textContent('#toast')));
@@ -79,7 +80,7 @@ const orderable = (page, day, fresh = []) => page.evaluate(([d, f]) => {
   ok('next day: intro done, not shown again', (await saved(page)).intros.length === 0);
 
   // ---- skipping an intro, Turkish, from the day-end screen ----
-  const tr = await newPage(JSON.stringify({ lang: 'tr', tutorialDone: true, cash: 200, recipes: ['espresso', 'latte'], served: 3, day: 2 }));
+  const tr = await newPage(JSON.stringify({ lang: 'tr', tutorialDone: true, cash: 300, recipes: ['espresso', 'latte'], served: 3, day: 2 }));
   ok('save with recipes: not widened by the old-save rule', JSON.stringify(await tr.evaluate(() => save.recipes)) === '["espresso","latte"]');
   ok('TR: shop card text in Turkish', /Menüde|eksik|\$/.test(await tr.textContent('#menuRecipes')) && (await tr.textContent('#menuRecipes h3')) === 'Tarifler');
   await tr.click('#menuRecipes [data-r="mocha"]');
@@ -93,6 +94,43 @@ const orderable = (page, day, fresh = []) => page.evaluate(([d, f]) => {
   const pool = await orderable(tr, 2, ['mocha', 'flatwhite']);
   ok('TR: both bought drinks are ordered', pool.includes('mocha') && pool.includes('flatwhite') && !pool.includes('cappuccino'), pool.join());
 
+  // ---- the two new drinks, each with a step of its own: brewed for real ----
+  const nd = await newPage(JSON.stringify({ lang: 'en', tutorialDone: true, cash: 260, day: 3, served: 9 }));
+  ok('new drinks: not on the bench before they are bought', await nd.evaluate(() => document.querySelector('#extras').hidden && document.querySelector('#iceObj').hidden));
+  ok('new drinks: cold milk refused before the iced latte is bought', await nd.evaluate(() => { B.cup = { ...newCup(), size: 'M' }; const e = check('milk:whole', 'cup'); B.cup = newCup(); return e === 'nope'; }));
+  await nd.click('#menuRecipes [data-r="iced"]');
+  await nd.click('#menuRecipes [data-r="hotchoc"]');
+  ok('new drinks: both bought ($140 + $90)', await nd.evaluate(() => save.cash === 30 && save.recipes.includes('iced') && save.recipes.includes('hotchoc')));
+  await nd.click('#startBtn');
+  for (const drink of ['iced', 'hotchoc']) {
+    if (drink === 'hotchoc') { await nd.click('#nextBtn'); }
+    await nd.waitForFunction(() => CB.G.state === 'ORDER_PENDING' && CB.G.cust && CB.G.cust.state === 'wait', null, { timeout: 12000 });
+    // the first guest orders the first new drink (intro); the next one is set to the other
+    await nd.evaluate(d => { CB.G.order = makeOrder(CB.G.day, [], d); CB.G.typed = 1e9; render(); }, drink);
+    await nd.evaluate(() => Intro.stop());
+    await arrive(nd);
+    if (drink === 'iced') ok('iced latte: ice bucket and cocoa tin on the bench', await nd.evaluate(() => !document.querySelector('#iceObj').hidden && !document.querySelector('#cocoaObj').hidden));
+    const res = await brewOrder(nd);
+    ok(`${drink}: brewed with its new step to 4+ stars`, res.stars >= 4, JSON.stringify(res));
+  }
+  ok('hot chocolate: never hinted as a coffee, never asks for beans', await nd.evaluate(() => {
+    for (let i = 0; i < 500; i++) { const o = makeOrder(7, [], 'hotchoc'); const tx = orderText(o, 'en'); if (/coffee|decaf|dark roast|shot|hot hot/i.test(tx) || /sıcak sıcak/i.test(orderText(o, 'tr')) || o.shots) return false; }
+    return true;
+  }));
+  ok('iced latte: never asks for a temperature', await nd.evaluate(() => { for (let i = 0; i < 300; i++) if (makeOrder(7, [], 'iced').temp) return false; return true; }));
+  // wrong-way checks: hot milk in an iced latte, coffee in a hot chocolate, ice in a latte
+  const wrong = await nd.evaluate(() => {
+    const o = d => ({ ...makeOrder(4, [], d), size: 'M', bean: 'esp', syrups: {}, tops: [], milk: 'whole' });
+    const cup = x => ({ ...newCup(), size: 'M', ...x });
+    const shots = [{ t: 27, q: 1 }, { t: 27, q: 1 }];
+    const hotIced = evaluate({ ...o('iced'), shots: 2 }, cup({ shots, ice: 1, milkPoured: true, milkType: 'whole', foamUsed: 'light', milkTemp: 63 }), 1);
+    const espChoc = evaluate(o('hotchoc'), cup({ shots, choc: 1, milkPoured: true, milkType: 'whole', foamUsed: 'light', milkTemp: 63 }), 1);
+    const iceLatte = evaluate({ ...o('latte'), shots: 2, temp: 'normal' }, cup({ shots, ice: 1, milkPoured: true, milkType: 'whole', foamUsed: 'light', milkTemp: 63 }), 1);
+    return [hotIced, espChoc, iceLatte].map(r => r.checks.filter(c => !c.ok).map(c => c.label).join('+'));
+  });
+  ok('scoring: hot milk in an iced latte, coffee in a hot chocolate, ice in a latte are all caught',
+    wrong[0] === 'Cold milk' && wrong[1] === 'No coffee' && wrong[2] === 'No ice', JSON.stringify(wrong));
+
   // ---- an old save from before the recipe shop keeps its drinks; reset goes back to the starters ----
   const old = await newPage(JSON.stringify({ lang: 'en', day: 4, cash: 50, served: 12, tutorialDone: true, upgrades: ['stools'] }));
   ok('old save: every drink it had is open', (await old.evaluate(() => save.recipes.length)) === 5);
@@ -104,7 +142,7 @@ const orderable = (page, day, fresh = []) => page.evaluate(([d, f]) => {
   ok('reset: defaults untouched', await old.evaluate(() => DEFAULT_SAVE.upgrades.length === 0 && !('recipes' in DEFAULT_SAVE)));
 
   // ---- phone: the shop fits and buys by tap ----
-  const phone = await newPage(JSON.stringify({ lang: 'tr', tutorialDone: true, cash: 40 }), { viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
+  const phone = await newPage(JSON.stringify({ lang: 'tr', tutorialDone: true, cash: 80 }), { viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
   const b = await phone.locator('#menuRecipes [data-r="cappuccino"]').boundingBox();
   await phone.locator('#menuRecipes [data-r="cappuccino"]').scrollIntoViewIfNeeded();
   await phone.tap('#menuRecipes [data-r="cappuccino"]');

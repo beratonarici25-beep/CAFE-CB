@@ -189,6 +189,18 @@ function openBook(from) {
   $('#ovBook').hidden = false;
   $('#closeBookBtn').focus({ preventScroll: true });
 }
+// the chalk menu on the back bar (issue #21): every drink in two columns; the ones not bought yet faint, with a lock
+function renderChalk() {
+  const esc = x => x.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  let h = `<text x="160" y="32" text-anchor="middle" font-family="'Pacifico','Brush Script MT',cursive" font-size="19" fill="#ffd6dc">Cafe C&amp;B</text>`;
+  Object.keys(DRINKS).forEach((k, i) => {
+    const col = i < 4 ? 0 : 1, x = col ? 166 : 22, end = col ? 298 : 152, y = 54 + (i % 4) * 16, open = recipeOpen(k);
+    h += `<g opacity="${open ? 1 : 0.38}"><text x="${x}" y="${y}">${esc(drinkName(k))}</text>` + (open
+      ? `<text x="${end}" y="${y}" text-anchor="end">${DRINKS[k].price.toFixed(2)}</text>`
+      : `<path d="M${end - 8} ${y - 6}h8v7h-8z M${end - 6.5} ${y - 6}v-2.2a2.5 2.5 0 0 1 5 0v2.2" fill="none" stroke="#f5efe6" stroke-width="1.4"/>`) + `</g>`;
+  });
+  $('#chalkMenu').innerHTML = `<g font-family="'Courier Prime','Courier New',monospace" font-weight="700" fill="#f5efe6" font-size="11.5">${h}</g>`;
+}
 // drinks not bought yet stay in the book, greyed out, with their price in the recipe shop (issue #21)
 function markBook() {
   document.querySelectorAll('#bookBody tr[data-d]').forEach(tr => {
@@ -265,6 +277,7 @@ function renderRecipes(el) {
 }
 function refreshShops() {
   render();
+  renderChalk();
   if (G.state === 'DAY_END') fillDay(); else renderMenu();
 }
 function renderShop(el) {
@@ -298,6 +311,7 @@ function applyLang() {
   $('#langBtn2').textContent = L.otherLangLong;
   $('#bookBody').innerHTML = L.howSteps + L.book;
   markBook();
+  renderChalk();
   $('#closeBookBtn').textContent = t(bookFrom === 'menu' ? 'backToMenu' : 'backToBar');
   document.querySelectorAll('.patience').forEach(el => { el.title = L.patience; });
   applyBenchLang();
@@ -320,6 +334,8 @@ function applyLang() {
 
 function render() {
   const L = S();
+  // bought upgrades show in the café (issue #21): html.upg-<id> (css/scene.css, css/bar.css)
+  for (const u of UPGRADES) document.documentElement.classList.toggle('upg-' + u.id, has(u.id));
   $('#bench').classList.toggle('idle', G.state !== 'PREPARING');
   setView(viewFor());
   $('#hudDay').textContent = t('day', G.state === 'MENU' || G.state === 'DAY_END' ? save.day : G.day);
