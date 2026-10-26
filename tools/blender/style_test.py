@@ -6,11 +6,13 @@ whole café is rebuilt (#17). Same model every time; only the shading, the outli
   clean  Cycles, the same materials, no outline, a warmer key light and a punchier look
 
 Nothing is downloaded: the studio light is the procedural soft-box world from models.py.
+The owner picked B (2026-10-26); its settings are in style_b.py for the rebuild (#17).
 Run:  blender -b -P tools/blender/style_test.py -- tools/style-test [toon,pbr,clean] [res]
 """
 import bpy, math, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import models as M  # noqa: E402  (helpers: lathe, box, cyl, tube, render, toon...)
+import style_b as SB  # noqa: E402  (the picked look: materials, light and line for takes B and C)
 
 ARGS = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 OUT = os.path.abspath(ARGS[0] if ARGS else 'tools/style-test')
@@ -20,38 +22,6 @@ M.OUT = OUT
 os.makedirs(OUT, exist_ok=True)
 
 STYLE = 'toon'
-PBR = {}
-
-
-def pbr(name, hexcol, metal=0.0, rough=0.4, aniso=0.0, coat=0.0, emit=0.0, trans=0.0, wood=False):
-    key = (name, hexcol, metal, rough, aniso, coat, emit, trans, wood)
-    if key in PBR:
-        return PBR[key]
-    m = bpy.data.materials.new(name); m.use_nodes = True
-    N = m.node_tree.nodes; L = m.node_tree.links
-    b = N.get('Principled BSDF')
-    col = M.srgb(hexcol) + (1,)
-    b.inputs['Base Color'].default_value = col
-    b.inputs['Metallic'].default_value = metal
-    b.inputs['Roughness'].default_value = rough
-    if aniso:
-        b.inputs['Anisotropic'].default_value = aniso
-    if coat:
-        b.inputs['Coat Weight'].default_value = coat; b.inputs['Coat Roughness'].default_value = 0.08
-    if emit:
-        b.inputs['Emission Color'].default_value = col; b.inputs['Emission Strength'].default_value = emit
-    if trans:
-        b.inputs['Transmission Weight'].default_value = trans; b.inputs['IOR'].default_value = 1.45
-    if wood:
-        # walnut: soft growth rings from a wave texture
-        tc = N.new('ShaderNodeTexCoord'); mp = N.new('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (1, 1, 6)
-        wv = N.new('ShaderNodeTexWave'); wv.wave_type = 'RINGS'; wv.inputs['Scale'].default_value = 2.2; wv.inputs['Distortion'].default_value = 6
-        rp = N.new('ShaderNodeValToRGB')
-        rp.color_ramp.elements[0].color = M.srgb('#4a2716') + (1,); rp.color_ramp.elements[1].color = M.srgb('#8a5634') + (1,)
-        L.new(tc.outputs['Object'], mp.inputs[0]); L.new(mp.outputs[0], wv.inputs[0]); L.new(wv.outputs['Fac'], rp.inputs[0])
-        L.new(rp.outputs[0], b.inputs['Base Color'])
-    PBR[key] = m
-    return m
 
 
 # one palette, three shadings
@@ -67,16 +37,7 @@ def mat(kind):
             'face': lambda: M.toon('face', '#fffaf3'), 'ink': lambda: M.toon('needle', '#4b2e2b'),
             'brass': lambda: M.toon('brass', '#d9a83c', 'metal'), 'coffee': lambda: M.toon('coffee', '#5b3423'),
         }[kind]()
-    return {
-        'steel': lambda: pbr('steel', '#c9d2d7', metal=1, rough=0.32, aniso=0.6), 'chrome': lambda: pbr('chrome', '#e4e9ec', metal=1, rough=0.08),
-        'dark': lambda: pbr('dark', '#2e2a28', rough=0.35, coat=0.6), 'enamel': lambda: pbr('enamel', '#e8968c', rough=0.3, coat=0.9),
-        'walnut': lambda: pbr('walnut', '#6a3f25', rough=0.35, coat=0.5, wood=True), 'glass': lambda: pbr('glass', '#1d2523', rough=0.1, coat=1),
-        'lcd': lambda: pbr('lcd', '#9fe0a6', emit=1.5), 'mint': lambda: pbr('mint', '#8cc7ae', rough=0.25, coat=0.8),
-        'cream': lambda: pbr('cream', '#fff6ea', rough=0.4), 'ceramic': lambda: pbr('ceramic', '#fbf7f0', rough=0.15, coat=0.9),
-        'blush': lambda: pbr('blushc', M.BLUSH, rough=0.4), 'rubber': lambda: pbr('rubber', '#2b2422', rough=0.8),
-        'face': lambda: pbr('face', '#fffaf3', rough=0.5), 'ink': lambda: pbr('needle', '#4b2e2b', rough=0.5),
-        'brass': lambda: pbr('brass', '#d9a83c', metal=1, rough=0.25), 'coffee': lambda: pbr('coffeel', '#5b3423', rough=0.2),
-    }[kind]()
+    return SB.mat(kind)
 
 
 def OL(t):
@@ -154,48 +115,9 @@ def machine():
 def setup(style):
     global STYLE
     STYLE = style
-    M.reset(); PBR.clear()
-    sc = bpy.context.scene
-    if style == 'toon':
-        return
-    sc.render.engine = 'CYCLES'
-    prefs = bpy.context.preferences.addons['cycles'].preferences
-    for dev in ('OPTIX', 'CUDA'):
-        try:
-            prefs.compute_device_type = dev; prefs.get_devices()
-            for d in prefs.devices:
-                d.use = True
-            sc.cycles.device = 'GPU'
-            break
-        except Exception:
-            continue
-    sc.cycles.samples = 96; sc.cycles.use_denoising = True
-    sc.view_settings.view_transform = 'AgX'
-    sc.view_settings.look = 'AgX - Punchy' if style == 'clean' else 'AgX - Base Contrast'
-    # the soft-box world lights the steel; a warm area key from the upper left and a cool fill from the right
-    sc.world.node_tree.nodes['Background'].inputs[1].default_value = 0.9
-    key = bpy.data.objects['key']; key.data.energy = 3.2 if style == 'clean' else 2.6
-    key.data.color = (1.0, 0.88, 0.74) if style == 'clean' else (1.0, 0.93, 0.84)
-    fill = bpy.data.lights.new('fill', 'AREA'); fill.energy = 900; fill.size = 30; fill.color = (0.86, 0.92, 1.0)
-    fo = M.link(bpy.data.objects.new('fill', fill)); fo.location = (40, -30, 25)
-    fo.rotation_euler = (math.radians(60), 0, math.radians(55))
-    # a soft contact shadow catcher under the machine
-    bpy.ops.mesh.primitive_plane_add(size=80, location=(0, 0, 0))
-    fl = bpy.context.active_object; fl.is_shadow_catcher = True; fl['noframe'] = True
-    # (in a collection of its own, so the outline lines leave its edges alone)
-    floor = bpy.data.collections.new('floor'); sc.collection.children.link(floor)
-    sc.collection.objects.unlink(fl); floor.objects.link(fl)
-    if style == 'pbr':
-        # a thin, soft ink line drawn at render time (silhouette, borders, sharp creases), the game's outline colour
-        sc.render.use_freestyle = True; sc.render.line_thickness_mode = 'ABSOLUTE'; sc.render.line_thickness = 1.3 * M.RES
-        fs = bpy.context.view_layer.freestyle_settings; fs.crease_angle = math.radians(120)
-        ls = fs.linesets[0] if len(fs.linesets) else fs.linesets.new('ink')
-        ls.select_silhouette = True; ls.select_border = True; ls.select_crease = True
-        ls.select_by_collection = True; ls.collection = floor; ls.collection_negation = 'EXCLUSIVE'
-        if ls.linestyle is None:
-            ls.linestyle = bpy.data.linestyles.new('ink')
-        ls.linestyle.color = M.srgb('#4b2e2b'); ls.linestyle.alpha = 0.75; ls.linestyle.thickness = 1.3
-
+    M.reset()
+    if style != 'toon':
+        SB.setup(line=style == 'pbr', warm=style == 'clean')
 
 for style in ('toon', 'pbr', 'clean'):
     if ONLY and style not in ONLY:
