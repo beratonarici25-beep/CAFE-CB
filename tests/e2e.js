@@ -243,6 +243,23 @@ if (require.main === module) (async () => {
   ok('no leftover drag ghosts', (await page.locator('.drag-ghost').count()) === 0,
     await page.evaluate(() => [...document.querySelectorAll('.drag-ghost')].map(g => g.className + ' ' + (g.dataset.drag || '')).join(', ')));
 
+  // forgiving drops: a near miss still lands, a drop far from anything flies home; nothing is text-selected
+  const dragTo = async (from, x, y) => {
+    const a = await page.locator(from).first().boundingBox();
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await page.mouse.down();
+    for (let i = 1; i <= 10; i++) await page.mouse.move(a.x + a.width / 2 + (x - a.x - a.width / 2) * i / 10, a.y + a.height / 2 + (y - a.y - a.height / 2) * i / 10);
+    await page.waitForTimeout(350);   // the copy catches up with the pointer
+    await page.mouse.up(); await page.waitForTimeout(450);
+  };
+  await drag(page, '[data-drag="newcup:M"]', '#slotPrep');
+  const tray = await page.locator('#slotServe').boundingBox();
+  await dragTo('#cupObj', tray.x + tray.width + 80, tray.y + tray.height / 2);
+  ok('near miss: a cup dropped 80 px beside the serving tray lands on it', await st(page, () => window.CB.B.cup.at === 'serving'), await st(page, () => window.CB.B.cup.at));
+  await dragTo('#cupObj', 30, 870);
+  ok('a drop far from any target goes back home', await st(page, () => window.CB.B.cup.at === 'serving'));
+  ok('no text gets selected while dragging', await page.evaluate(() => String(getSelection()) === '' && getComputedStyle(document.querySelector('#ticketText')).userSelect === 'none'));
+  await drag(page, '#cupObj', '#trashZone');
+
   // language
   await page.click('#langBtn');
   ok('Turkish labels on the bench', (await page.textContent('.z-machine h3')).includes('Espresso makinesi'));
