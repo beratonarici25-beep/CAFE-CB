@@ -157,6 +157,14 @@ const FX = {
     if (hudEl) this.anim(hudEl, [{ transform: 'none' }, { transform: 'scale(1.25)', offset: .4 }, { transform: 'none' }], { duration: 450, delay: 350 });
   },
 
+  // a recipe was bought (issue #21): a burst of confetti from the card
+  confetti(x, y) {
+    for (let i = 0; i < 34; i++) {
+      const a = rand(-PI * 0.95, -PI * 0.05), sp = rand(180, 420);
+      this.add({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 650, r: rand(2.5, 4.5), color: pick([C.butter, C.mint, C.blush, C.sky, '#e8968c']), life: rand(0.9, 1.4), drag: 1.2 });
+    }
+  },
+
   /* ---------- particles ---------- */
   add(p) { if (reduceMotion) return; p.t = 0; this.parts.push(p); },
   puff(x, y, color, n) {

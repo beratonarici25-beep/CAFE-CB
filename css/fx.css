@@ -3,6 +3,8 @@
 :root { --pop: cubic-bezier(.34, 1.56, .64, 1); }
 
 #fxCv { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 17; }
+/* over the menu and day-end cards while confetti flies from a bought recipe (issue #21) */
+body:has(.overlay:not([hidden])) #fxCv { z-index: 25; }
 
 /* lift + warm glow on things you can grab */
 .obj { transition: transform .22s var(--pop), filter .22s ease; }

@@ -62,11 +62,11 @@ const STR = {
     book: `<div class="scroll"><table>
       <thead><tr><th>Drink</th><th>Cup</th><th>Shots</th><th>Milk</th><th>Foam</th><th>On top</th></tr></thead>
       <tbody>
-        <tr><td><b>Espresso</b></td><td>Small</td><td>1 (double = 2)</td><td>none</td><td>—</td><td>—</td></tr>
-        <tr><td><b>Latte</b></td><td>any</td><td>2</td><td>yes</td><td>Light</td><td>—</td></tr>
-        <tr><td><b>Cappuccino</b></td><td>any</td><td>2</td><td>yes</td><td>Thick</td><td>—</td></tr>
-        <tr><td><b>Flat White</b></td><td>Small</td><td>2</td><td>yes</td><td>None</td><td>—</td></tr>
-        <tr><td><b>Mocha</b></td><td>any</td><td>2</td><td>yes</td><td>Light</td><td>Cocoa + whipped cream</td></tr>
+        <tr data-d="espresso"><td><b>Espresso</b></td><td>Small</td><td>1 (double = 2)</td><td>none</td><td>—</td><td>—</td></tr>
+        <tr data-d="latte"><td><b>Latte</b></td><td>any</td><td>2</td><td>yes</td><td>Light</td><td>—</td></tr>
+        <tr data-d="cappuccino"><td><b>Cappuccino</b></td><td>any</td><td>2</td><td>yes</td><td>Thick</td><td>—</td></tr>
+        <tr data-d="flatwhite"><td><b>Flat White</b></td><td>Small</td><td>2</td><td>yes</td><td>None</td><td>—</td></tr>
+        <tr data-d="mocha"><td><b>Mocha</b></td><td>any</td><td>2</td><td>yes</td><td>Light</td><td>Cocoa + whipped cream</td></tr>
       </tbody></table></div>
       <ul>
         <li>No beans mentioned? Use <b>House Espresso</b>. No milk mentioned? Use <b>Whole</b>.</li>
@@ -136,11 +136,11 @@ const STR = {
     book: `<div class="scroll"><table>
       <thead><tr><th>İçecek</th><th>Bardak</th><th>Shot</th><th>Süt</th><th>Köpük</th><th>Üstü</th></tr></thead>
       <tbody>
-        <tr><td><b>Espresso</b></td><td>Küçük</td><td>1 (duble = 2)</td><td>yok</td><td>—</td><td>—</td></tr>
-        <tr><td><b>Latte</b></td><td>herhangi</td><td>2</td><td>var</td><td>Az</td><td>—</td></tr>
-        <tr><td><b>Kapuçino</b></td><td>herhangi</td><td>2</td><td>var</td><td>Bol</td><td>—</td></tr>
-        <tr><td><b>Flat White</b></td><td>Küçük</td><td>2</td><td>var</td><td>Yok</td><td>—</td></tr>
-        <tr><td><b>Mocha</b></td><td>herhangi</td><td>2</td><td>var</td><td>Az</td><td>Kakao + krem şanti</td></tr>
+        <tr data-d="espresso"><td><b>Espresso</b></td><td>Küçük</td><td>1 (duble = 2)</td><td>yok</td><td>—</td><td>—</td></tr>
+        <tr data-d="latte"><td><b>Latte</b></td><td>herhangi</td><td>2</td><td>var</td><td>Az</td><td>—</td></tr>
+        <tr data-d="cappuccino"><td><b>Kapuçino</b></td><td>herhangi</td><td>2</td><td>var</td><td>Bol</td><td>—</td></tr>
+        <tr data-d="flatwhite"><td><b>Flat White</b></td><td>Küçük</td><td>2</td><td>var</td><td>Yok</td><td>—</td></tr>
+        <tr data-d="mocha"><td><b>Mocha</b></td><td>herhangi</td><td>2</td><td>var</td><td>Az</td><td>Kakao + krem şanti</td></tr>
       </tbody></table></div>
       <ul>
         <li>Çekirdek söylenmediyse <b>Ev Espressosu</b>, süt söylenmediyse <b>Tam yağlı</b> kullan.</li>
@@ -341,6 +341,15 @@ STR.en.helper = {
   hintScorched: 'Too hot, the milk burnt! Empty the pitcher into the trash and start again.',
   hintFoam: 'A latte needs light foam: press the Light key on the machine.',
   hintSteamMore: 'A bit warmer: hold Steam until it reaches 60 °C.',
+  // a new drink's intro (issue #21); {1} is the drink
+  introNew: "New on the menu today: {1}! Here comes someone who wants one. Take the order and I'll show you how it's made.",
+  introNext: 'Next', introGotIt: 'Got it!', introSkip: 'Skip',
+  intro_cappuccino1: 'A cappuccino is made just like a latte: two shots and steamed milk.',
+  intro_cappuccino2: 'The difference is the foam: press Thick before you steam. Lots of foam, like a bubble bath.',
+  intro_flatwhite1: 'A flat white always goes in a Small cup.',
+  intro_flatwhite2: 'Two shots and silky milk with no foam on top: press None before you steam.',
+  intro_mocha1: 'A mocha starts like a latte: two shots and milk with light foam.',
+  intro_mocha2: 'Then finish it with cocoa and whipped cream on top.',
 };
 STR.tr.helper = {
   name: 'Ülkü', role: 'baş barista',
@@ -373,4 +382,24 @@ STR.tr.helper = {
   hintScorched: 'Çok ısındı, süt yandı! Potayı çöpe boşalt ve baştan başla.',
   hintFoam: 'Latte az köpük ister: makinedeki Az tuşuna bas.',
   hintSteamMore: 'Biraz daha sıcak: 60 °C olana kadar Buhar’ı basılı tut.',
+  introNew: 'Bugün menüde yeni bir şey var: {1}! Bak, biri tam onu istiyor. Siparişi al, nasıl yapıldığını göstereyim.',
+  introNext: 'Devam', introGotIt: 'Anladım!', introSkip: 'Geç',
+  intro_cappuccino1: 'Kapuçino da latte gibi yapılır: iki shot ve ısıtılmış süt.',
+  intro_cappuccino2: 'Farkı köpükte: ısıtmadan önce Bol tuşuna bas. Köpük banyosu gibi bol köpük.',
+  intro_flatwhite1: 'Flat white her zaman Küçük bardağa yapılır.',
+  intro_flatwhite2: 'İki shot ve üstü köpüksüz ipeksi süt: ısıtmadan önce Yok tuşuna bas.',
+  intro_mocha1: 'Mocha latte gibi başlar: iki shot ve az köpüklü süt.',
+  intro_mocha2: 'Sonra üstüne kakao ve krem şanti ekle.',
 };
+
+/* ---- the recipe shop (issue #21) ---- */
+Object.assign(STR.en, {
+  onMenu: 'On the menu', needMore: '{0} short', newOnMenu: 'New on the menu today: {0}!',
+  recipeBought: '{0} is yours! It goes on the menu the next time you open the café.', bookLocked: 'locked · {0} in the recipe shop',
+  recDesc: { cappuccino: 'Like a latte, with thick foam.', flatwhite: 'Small cup, two shots, silky milk, no foam.', mocha: 'A latte with cocoa and whipped cream on top. Pays more.' },
+});
+Object.assign(STR.tr, {
+  onMenu: 'Menüde', needMore: '{0} eksik', newOnMenu: 'Bugün menüde yeni: {0}!',
+  recipeBought: '{0} senin oldu! Kafeyi bir dahaki açışında menüde.', bookLocked: 'kilitli · tarif dükkânında {0}',
+  recDesc: { cappuccino: 'Latte gibi, ama bol köpüklü.', flatwhite: 'Küçük bardak, iki shot, ipeksi süt, köpüksüz.', mocha: 'Üstü kakao ve krem şantili latte. Daha çok kazandırır.' },
+});

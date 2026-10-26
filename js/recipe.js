@@ -16,6 +16,11 @@ const DRINKS = {
   mocha: { milk: true, foam: 'light', price: 5, tops: ['cocoa', 'whip'] },
 };
 const UPGRADES = [{ id: 'stools', cost: 40 }, { id: 'grinder', cost: 70 }, { id: 'tipjar', cost: 90 }, { id: 'gauge', cost: 120 }];
+// The recipe shop (issue #21): espresso and latte are on the menu from the start, every other drink is bought with the
+// café's money (all prices here). A locked drink is never ordered.
+const RECIPE_COST = { cappuccino: 25, flatwhite: 35, mocha: 60 };
+const recipeOpen = k => !(k in RECIPE_COST) || save.recipes.includes(k);
+const drinkName = k => cap1(PH[save.lang].drink[k], save.lang);
 const SURPRISE_KEYS = ['decaf', 'oat', 'almond', 'vanilla', 'cinnamon', 'L'];
 const NAMES = ['Mira', 'Theo', 'Ada', 'Jun', 'Rosa', 'Felix', 'Noor', 'Kai', 'Lena', 'Omar', 'Ivy', 'Bastian', 'Yuki', 'Sam', 'Priya', 'Elif', 'Mateo', 'Hana', 'Leo', 'Zara', 'Deniz', 'Ola', 'Can', 'Ayşe', 'Mert', 'Zeynep'];
 const SKIN = ['#f6d3b8', '#ecbd98', '#c98b62', '#9b6544', '#6e4630', '#f2c9a5'];
@@ -81,12 +86,14 @@ function makeCustomer() {
   };
 }
 
-function makeOrder(day) {
+// fresh: drinks bought for today, ordered more often on their first day; force: this drink, whatever the odds
+function makeOrder(day, fresh = [], force = null) {
   const h = Math.min(0.15 + (day - 1) * 0.12, 0.7), H = () => Math.random() < h;
   const r = { greet: ri(6), form: ri(4), q: ri(6) };
-  if (day >= 3 && Math.random() < 0.14) return { surprise: true, constraint: pick(SURPRISE_KEYS), temp: 'normal', r };
-  const pool = day === 1 ? ['latte', 'cappuccino', 'espresso', 'latte'] : Object.keys(DRINKS);
-  const dk = pick(pool), D = DRINKS[dk];
+  if (!force && day >= 3 && Math.random() < 0.14) return { surprise: true, constraint: pick(SURPRISE_KEYS), temp: 'normal', r };
+  const pool = (day === 1 ? ['latte', 'cappuccino', 'espresso', 'latte'] : Object.keys(DRINKS)).filter(recipeOpen);
+  for (const k of fresh) if (recipeOpen(k)) pool.push(k, k);
+  const dk = force || pick(pool), D = DRINKS[dk];
   const o = { drink: dk, surprise: false, r };
   o.size = (dk === 'espresso' || dk === 'flatwhite') ? 'S' : pick(['S', 'M', 'M', 'L']);
   o.bean = Math.random() < (day === 1 ? 0.2 : 0.4) ? pick(['decaf', 'dark']) : 'esp';

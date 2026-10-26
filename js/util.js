@@ -27,7 +27,17 @@ const DEFAULT_SAVE = { cash: 0, day: 1, best: 0, served: 0, upgrades: [], muted:
 let save = { ...DEFAULT_SAVE };
 try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && typeof s === 'object') save = { ...save, ...s }; } catch (e) {}
 if (save.lang !== 'en' && save.lang !== 'tr') save.lang = /^tr/i.test(navigator.language || '') ? 'tr' : 'en';
-if (!Array.isArray(save.upgrades)) save.upgrades = [];
+// fills in what an older (or a just reset) save is missing; also called after "Reset progress"
+function fixSave() {
+  // own copies: the arrays in DEFAULT_SAVE must never be the ones that get pushed to
+  save.upgrades = Array.isArray(save.upgrades) ? [...save.upgrades] : [];
+  // the recipes bought in the recipe shop (issue #21). A save from before the shop keeps every drink it already had.
+  if (!Array.isArray(save.recipes)) save.recipes = save.served > 0 || save.day > 1 ? ['espresso', 'latte', 'cappuccino', 'flatwhite', 'mocha'] : ['espresso', 'latte'];
+  else save.recipes = [...save.recipes];
+  // bought but not yet introduced: the helper shows them at the start of the next day
+  save.intros = Array.isArray(save.intros) ? [...save.intros] : [];
+}
+fixSave();
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
 const has = id => save.upgrades.includes(id);
 const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
