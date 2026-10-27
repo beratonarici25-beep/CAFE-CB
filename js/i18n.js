@@ -22,7 +22,7 @@ const STR = {
     openCafe: 'Open the café', openDay: 'Open day {0}', howTo: 'How to brew', reset: 'Reset progress', resetConfirm: 'Tap again to erase everything',
     upgrades: 'Upgrades', owned: 'Owned',
     nextCustomer: 'Next customer', closeShop: 'Close up shop', dayDone: 'Day {0} done!', earned: 'Earned', avgStars: 'Avg stars', toMenu: 'Main menu',
-    tip: 'tip {0}', backToBar: 'Back to the bar', backToMenu: 'Back to the menu', recipeBook: 'Recipe book', starsOf: '{0} of 5 stars',
+    tip: 'tip {0}', backToBar: 'Back to the bar', backToMenu: 'Back to the menu', recipeBook: 'Recipe guide', starsOf: '{0} of 5 stars',
     pickFirst: 'Pick a cup first.', plenty: 'That is plenty of syrup.', paused: 'Day paused. Open the café to start a fresh day.',
     sizes: { S: 'Small', M: 'Medium', L: 'Large' },
     beans: { esp: 'House Espresso', decaf: 'Decaf', dark: 'Dark Roast' },
@@ -101,7 +101,7 @@ const STR = {
     openCafe: 'Kafeyi aç', openDay: '{0}. günü aç', howTo: 'Nasıl yapılır', reset: 'İlerlemeyi sıfırla', resetConfirm: 'Her şeyi silmek için tekrar dokun',
     upgrades: 'Geliştirmeler', owned: 'Sahipsin',
     nextCustomer: 'Sıradaki müşteri', closeShop: 'Dükkânı kapat', dayDone: '{0}. gün bitti!', earned: 'Kazanç', avgStars: 'Ort. yıldız', toMenu: 'Ana menü',
-    tip: 'bahşiş {0}', backToBar: 'Tezgâha dön', backToMenu: 'Menüye dön', recipeBook: 'Tarif defteri', starsOf: '5 üzerinden {0} yıldız',
+    tip: 'bahşiş {0}', backToBar: 'Tezgâha dön', backToMenu: 'Menüye dön', recipeBook: 'Tarif rehberi', starsOf: '5 üzerinden {0} yıldız',
     pickFirst: 'Önce bir bardak seç.', plenty: 'Bu kadar şurup yeter.', paused: 'Gün durduruldu. Yeni bir gün için kafeyi aç.',
     sizes: { S: 'Küçük', M: 'Orta', L: 'Büyük' },
     beans: { esp: 'Ev Espressosu', decaf: 'Kafeinsiz', dark: 'Koyu Kavrum' },
@@ -160,6 +160,74 @@ const STR = {
         <li>Her şey sayılır: bardaktakiler, ne kadar iyi yapıldığı ve müşterinin ne kadar beklediği.</li>
       </ul>`,
   },
+};
+STR.en.recipeGuide = {
+  listHeading: 'Drinks', selected: 'Recipe details', stepsHeading: 'Preparation order', available: 'On the menu', notesHeading: 'General notes',
+  fields: { cup: 'Cup', coffee: 'Coffee', milk: 'Milk', foam: 'Foam', extras: 'Extras' },
+  recipes: {
+    espresso: { cup: 'Small', coffee: '1 shot (2 for a double)', milk: 'None', foam: '—', extras: '—' },
+    latte: { cup: 'Any size', coffee: '2 shots', milk: 'Whole by default', foam: 'Light', extras: '—' },
+    cappuccino: { cup: 'Any size', coffee: '2 shots', milk: 'Whole by default', foam: 'Thick', extras: '—' },
+    flatwhite: { cup: 'Small', coffee: '2 shots', milk: 'Whole by default', foam: 'None', extras: '—' },
+    mocha: { cup: 'Any size', coffee: '2 shots', milk: 'Whole by default', foam: 'Light', extras: 'Cocoa + whipped cream' },
+    hotchoc: { cup: 'Any size', coffee: 'None', milk: 'Whole by default', foam: 'Light', extras: '1 spoon of cocoa in the cup' },
+    iced: { cup: 'Any size', coffee: '2 shots', milk: 'Cold, straight from the bottle', foam: 'None', extras: '1 scoop of ice in the cup' },
+  },
+  steps: {
+    standard: [
+      ['Cup & order', 'Take a cup and check its size and requests on the ticket.'],
+      ['Grind & tamp', 'Grind 17–19 g, then tamp the portafilter.'],
+      ['Brew & finish', 'Pull each shot for 25–30 s. Add milk and extras as the recipe asks.'],
+      ['Serve', 'Put the cup on the serving tray, ring the bell, then hand it to the customer.'],
+    ],
+    iced: [
+      ['Cup & order', 'Take a cup and check its size and requests on the ticket.'],
+      ['Add ice', 'Put a scoop of ice in the cup.'],
+      ['Brew espresso', 'Grind, tamp and pull each shot for 25–30 s.'],
+      ['Add cold milk & serve', 'Pour cold milk straight from the bottle, then serve.'],
+    ],
+    hotchoc: [
+      ['Cup & order', 'Take a cup and check its size and requests on the ticket.'],
+      ['Add cocoa', 'Put one spoon of cocoa directly in the cup.'],
+      ['Steam milk', 'Steam milk with light foam, then pour it into the cup.'],
+      ['Serve', 'Put the cup on the serving tray, ring the bell, then hand it to the customer.'],
+    ],
+  },
+  notes: 'House Espresso and whole milk are the defaults. Steam milk to 60–67 °C; warm is 50–57 °C and extra hot is 70–76 °C. Add syrups or toppings only when asked.',
+};
+STR.tr.recipeGuide = {
+  listHeading: 'İçecekler', selected: 'Tarif ayrıntısı', stepsHeading: 'Hazırlama sırası', available: 'Menüde', notesHeading: 'Genel notlar',
+  fields: { cup: 'Bardak', coffee: 'Kahve', milk: 'Süt', foam: 'Köpük', extras: 'Ekler' },
+  recipes: {
+    espresso: { cup: 'Küçük', coffee: '1 shot (duble 2)', milk: 'Yok', foam: '—', extras: '—' },
+    latte: { cup: 'Her boy', coffee: '2 shot', milk: 'Varsayılan: tam yağlı', foam: 'Az', extras: '—' },
+    cappuccino: { cup: 'Her boy', coffee: '2 shot', milk: 'Varsayılan: tam yağlı', foam: 'Bol', extras: '—' },
+    flatwhite: { cup: 'Küçük', coffee: '2 shot', milk: 'Varsayılan: tam yağlı', foam: 'Yok', extras: '—' },
+    mocha: { cup: 'Her boy', coffee: '2 shot', milk: 'Varsayılan: tam yağlı', foam: 'Az', extras: 'Kakao + krem şanti' },
+    hotchoc: { cup: 'Her boy', coffee: 'Yok', milk: 'Varsayılan: tam yağlı', foam: 'Az', extras: 'Bardağa 1 kaşık kakao' },
+    iced: { cup: 'Her boy', coffee: '2 shot', milk: 'Soğuk, doğrudan şişeden', foam: 'Yok', extras: 'Bardağa 1 kepçe buz' },
+  },
+  steps: {
+    standard: [
+      ['Bardak ve sipariş', 'Bardağı al; boy ve özel istekleri fişten kontrol et.'],
+      ['Öğüt ve sıkıştır', '17–19 g öğüt, sonra portafiltreyi sıkıştır.'],
+      ['Demle ve tamamla', 'Her shot’ı 25–30 sn çek. Sütü ve ekleri tarife göre hazırla.'],
+      ['Servis et', 'Bardağı servis tepsisine koy, zile bas ve müşteriye ver.'],
+    ],
+    iced: [
+      ['Bardak ve sipariş', 'Bardağı al; boy ve özel istekleri fişten kontrol et.'],
+      ['Buz ekle', 'Bardağa bir kepçe buz koy.'],
+      ['Kahveyi demle', 'Öğüt, sıkıştır ve her shot’ı 25–30 sn çek.'],
+      ['Soğuk süt ve servis', 'Sütü doğrudan şişeden bardağa dök, sonra servis et.'],
+    ],
+    hotchoc: [
+      ['Bardak ve sipariş', 'Bardağı al; boy ve özel istekleri fişten kontrol et.'],
+      ['Kakao ekle', 'Bardağa bir kaşık kakao koy.'],
+      ['Sütü ısıt', 'Sütü az köpükle ısıtıp bardağa dök.'],
+      ['Servis et', 'Bardağı servis tepsisine koy, zile bas ve müşteriye ver.'],
+    ],
+  },
+  notes: 'Varsayılan çekirdek Ev Espressosu, süt tam yağlıdır. Sütü 60–67 °C ısıt; ılık 50–57 °C, çok sıcak 70–76 °C. Şurup ve süslemeyi yalnızca istenince ekle.',
 };
 // Phrases customers use. Both languages read the same random choices stored on the order.
 const PH = {

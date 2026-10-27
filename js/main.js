@@ -183,11 +183,12 @@ $('#nextDayBtn').addEventListener('click', startDay);
 $('#toMenuBtn').addEventListener('click', () => setState('MENU'));
 // the recipe book opens over the main menu or over the bar; its close button says where it goes back to (issue #8)
 let bookFrom = 'bar';
+let selectedRecipe = 'latte';
 function openBook(from) {
   sfx.init(); sfx.click();
   bookFrom = from;
   $('#closeBookBtn').textContent = t(from === 'menu' ? 'backToMenu' : 'backToBar');
-  markBook();
+  renderBook();
   $('#ovBook').hidden = false;
   $('#closeBookBtn').focus({ preventScroll: true });
 }
@@ -203,14 +204,41 @@ function renderChalk() {
   });
   $('#chalkMenu').innerHTML = `<g font-family="'Courier Prime','Courier New',monospace" font-weight="700" fill="#f5efe6" font-size="11.5">${h}</g>`;
 }
-// drinks not bought yet stay in the book, greyed out, with their price in the recipe shop (issue #21)
-function markBook() {
-  document.querySelectorAll('#bookBody tr[data-d]').forEach(tr => {
-    const k = tr.dataset.d, lock = !recipeOpen(k);
-    tr.classList.toggle('locked', lock);
-    const old = tr.querySelector('.lock'); if (old) old.remove();
-    if (lock) tr.cells[0].insertAdjacentHTML('beforeend', `<small class="lock">${t('bookLocked', money(RECIPE_COST[k]))}</small>`);
-  });
+// The recipe guide keeps the drink index, ingredients and preparation order together.
+function renderBook() {
+  const copy = S().recipeGuide;
+  const keys = Object.keys(DRINKS);
+  if (!keys.includes(selectedRecipe)) selectedRecipe = keys[0];
+  $('#bookBody').innerHTML = `<div class="recipe-book-layout"><nav class="recipe-index" aria-label="${copy.listHeading}">` +
+    `<h3>${copy.listHeading}</h3><div class="recipe-choices">` + keys.map(k => {
+      const open = recipeOpen(k), chosen = selectedRecipe === k;
+      const status = open ? copy.available : t('bookLocked', money(RECIPE_COST[k]));
+      return `<button class="recipe-choice${chosen ? ' selected' : ''}${open ? '' : ' locked'}" type="button" data-recipe="${k}" aria-pressed="${chosen}">` +
+        `<span>${drinkName(k)}</span><small>${status}</small></button>`;
+    }).join('') + `</div></nav><section class="recipe-detail" id="recipeDetail" aria-live="polite"></section></div>`;
+  $('#bookBody').querySelectorAll('[data-recipe]').forEach(b => b.addEventListener('click', () => {
+    selectedRecipe = b.dataset.recipe;
+    $('#bookBody').querySelectorAll('[data-recipe]').forEach(item => {
+      const chosen = item.dataset.recipe === selectedRecipe;
+      item.classList.toggle('selected', chosen);
+      item.setAttribute('aria-pressed', String(chosen));
+    });
+    renderBookDetail();
+  }));
+  renderBookDetail();
+}
+function renderBookDetail() {
+  const copy = S().recipeGuide, recipe = copy.recipes[selectedRecipe];
+  const steps = copy.steps[selectedRecipe] || copy.steps.standard;
+  const fields = [
+    [copy.fields.cup, recipe.cup], [copy.fields.coffee, recipe.coffee],
+    [copy.fields.milk, recipe.milk], [copy.fields.foam, recipe.foam], [copy.fields.extras, recipe.extras],
+  ];
+  $('#recipeDetail').innerHTML = `<div class="recipe-detail-head"><div><small>${copy.selected}</small><h3>${drinkName(selectedRecipe)}</h3></div>` +
+    `<span class="recipe-status ${recipeOpen(selectedRecipe) ? 'available' : 'locked'}">${recipeOpen(selectedRecipe) ? copy.available : t('bookLocked', money(RECIPE_COST[selectedRecipe]))}</span></div>` +
+    `<dl class="recipe-specs">${fields.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>` +
+    `<h4>${copy.stepsHeading}</h4><ol class="recipe-steps">${steps.map(step => `<li><b>${step[0]}</b><span>${step[1]}</span></li>`).join('')}</ol>` +
+    `<p class="recipe-note"><b>${copy.notesHeading}:</b> ${copy.notes}</p>`;
 }
 function closeBook() {
   if ($('#ovBook').hidden) return;
@@ -311,8 +339,7 @@ function applyLang() {
   document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
   $('#langBtn').textContent = L.otherLang;
   $('#langBtn2').textContent = L.otherLangLong;
-  $('#bookBody').innerHTML = L.howSteps + L.book;
-  markBook();
+  renderBook();
   renderChalk();
   $('#closeBookBtn').textContent = t(bookFrom === 'menu' ? 'backToMenu' : 'backToBar');
   document.querySelectorAll('.patience').forEach(el => { el.title = L.patience; });
@@ -500,6 +527,7 @@ function start() {
   applyLang();
   setState('MENU');
   requestAnimationFrame(frame);
+  window.dispatchEvent(new CustomEvent('cafecb:game-ready'));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 }
 start();
