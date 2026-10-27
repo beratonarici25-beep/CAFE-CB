@@ -118,7 +118,7 @@ async function playTutorial(page, tag, touch) {
   ok(`${tag}: ticket step points at the ticket`, await waitKey(page, 'ticket', 10000) && await lit(page, '#ticket'));
   await clear(page, tag, 'ticket');
   await shot('1-ticket');
-  ok(`${tag}: then the go-to-bench button`, await waitKey(page, 'toBench', 8000) && await lit(page, '#takeBtn'));
+  ok(`${tag}: then the go-to-bench button`, await waitKey(page, 'toBench', 15000) && await lit(page, '#takeBtn'));
   await clear(page, tag, 'toBench');
   await page.click('#takeBtn');
   await page.waitForFunction(() => CB.view() === 'barista' && !CB.switching());

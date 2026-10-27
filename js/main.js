@@ -15,6 +15,8 @@ function setState(s) {
   G.state = s;
   for (const [k, id] of Object.entries(OVERLAYS)) $('#' + id).hidden = k !== s;
   if (s !== 'PREPARING') { clearHeld(); G.peek = false; }
+  // a new drink's intro ends the moment its drink goes out (not a frame later)
+  if (s !== 'ORDER_PENDING' && s !== 'PREPARING' && typeof Intro !== 'undefined') Intro.stop();
   if (s === 'MENU') renderMenu();
   render();
 }
