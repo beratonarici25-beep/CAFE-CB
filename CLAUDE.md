@@ -7,7 +7,7 @@ Kullanıcı **"demoya başlıyoruz"** (veya benzeri: "demoya başla", "demo işl
 
 1. `gh issue view 24 --comments` ile yol haritasını oku.
 2. Sıradaki işaretlenmemiş issue'yu seç. Başlamadan önce o issue'yu **yorumlarıyla birlikte** oku (`gh issue view <no> --comments`); sonradan eklenen kullanıcı kararları yorumlarda ve issue'nun en üstünde.
-3. İşi yap, testleri çalıştır, commit at, issue'yu kapat ve #24'teki maddeyi işaretle. Kullanıcıya kısaca ne bittiğini söyle, sonra sıradakine geç.
+3. İşi yap (testleri sadece kullanıcı "test et" derse çalıştır), commit at, issue'yu kapat ve #24'teki maddeyi işaretle. Kullanıcıya kısaca ne bittiğini söyle, sonra sıradakine geç.
 
 Demo sırası (#24 ile aynı):
 1. #27 Mobil: Android APK + iPhone'da bağlantıdan direkt oynama (fontlar da burada oyunun içine alınır)
@@ -35,7 +35,8 @@ Demo sırası (#24 ile aynı):
 - Hikâye ve müdavimler (#22): beklemede, demoya dahil değil.
 
 ## Her işte kurallar
-- Her değişiklikten sonra testler: `node tests/e2e.js`, `node tests/tutorial.js`, `node tests/fuzz.js 3000`, `FUZZ_TUT=1 node tests/fuzz.js 1500` (+ işle eklenen yeni testler).
+- Testleri **sadece kullanıcı "test et" deyince** çalıştır: `node tests/e2e.js`, `node tests/tutorial.js`, `node tests/fuzz.js 3000`, `FUZZ_TUT=1 node tests/fuzz.js 1500` (+ işle eklenen yeni testler).
+- Bir işte projenin tamamını okuma; sadece işle ilgili dosyalara/bölümlere bak.
 - Her yeni metin `en` ve `tr` (`js/i18n.js`).
 - Eski kayıtlar bozulmamalı.
 - İnternetten bir şey (HDRI, doku, model, eklenti, font) **indirmeden önce kullanıcıdan izin al**; sadece açık lisanslı kaynaklar, `assets/CREDITS.md`'ye yaz.

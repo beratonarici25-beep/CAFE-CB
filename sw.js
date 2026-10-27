@@ -4,14 +4,14 @@
    (together with the ?v= on the links in index.html): the old cache is then dropped. */
 const VERSION = 'cafe-cb-27';
 const CORE = [
-  './', 'index.html', 'manifest.webmanifest', 'style.css?v=27',
-  'css/scene.css?v=27', 'css/fx.css?v=27', 'css/views.css?v=27', 'css/bar.css?v=27', 'css/theme.css?v=27', 'css/helper.css?v=27', 'css/stage.css?v=27', 'css/intro.css?v=27',
-  'js/intro.js?v=27', 'js/util.js?v=27', 'js/i18n.js?v=27', 'js/audio.js?v=27', 'js/recipe.js?v=27', 'js/render.js?v=27', 'js/scene.js?v=27', 'js/fx.js?v=27',
-  'js/station.js?v=27', 'js/camera.js?v=27', 'assets/helper/art.js?v=27', 'js/helper.js?v=27', 'js/tutorial.js?v=27', 'js/main.js?v=27',
+  './', 'index.html', 'manifest.webmanifest', 'style.css?v=28',
+  'css/scene.css?v=28', 'css/fx.css?v=28', 'css/views.css?v=28', 'css/bar.css?v=28', 'css/theme.css?v=28', 'css/helper.css?v=28', 'css/stage.css?v=28', 'css/intro.css?v=28',
+  'js/intro.js?v=28', 'js/util.js?v=28', 'js/i18n.js?v=28', 'js/audio.js?v=28', 'js/recipe.js?v=28', 'js/render.js?v=28', 'js/scene.js?v=28', 'js/fx.js?v=28',
+  'js/station.js?v=28', 'js/camera.js?v=28', 'assets/helper/art.js?v=28', 'js/helper.js?v=28', 'js/tutorial.js?v=28', 'js/main.js?v=28',
   'assets/favicon-64.png', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/icon-512-any.png', 'assets/apple-touch-icon.png',
   'assets/cover/logo-menu.webp', 'assets/intro/cup.webp', 'assets/intro/text.webp',
   'assets/backbar.svg', 'assets/bg-seating.svg', 'assets/bg-wall.svg',
-  'assets/fonts/fonts.css?v=27', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
+  'assets/fonts/fonts.css?v=28', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
     .flatMap(f => [`assets/fonts/${f}-latin.woff2`, `assets/fonts/${f}-latin-ext.woff2`]),
   ...['bell', 'bin', 'binlid', 'cup-L', 'cup-M', 'cup-S', 'cust-beard', 'cust-collar-round', 'cust-collar-v', 'cust-hair-bun-front',
     'cust-hair-curly-back', 'cust-hair-curly-front', 'cust-hair-long-back', 'cust-hair-long-front', 'cust-hair-short-front',
