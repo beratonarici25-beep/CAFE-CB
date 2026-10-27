@@ -2,7 +2,7 @@
    too. The page itself is fetched from the network first (so a new version shows up at once) and from the cache when
    offline; everything else comes from the cache and is fetched only the first time. Bump VERSION with every release
    (together with the ?v= on the links in index.html): the old cache is then dropped. */
-const VERSION = 'cafe-cb-27';
+const VERSION = 'cafe-cb-28';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'style.css?v=28',
   'css/scene.css?v=28', 'css/fx.css?v=28', 'css/views.css?v=28', 'css/bar.css?v=28', 'css/theme.css?v=28', 'css/helper.css?v=28', 'css/stage.css?v=28', 'css/intro.css?v=28',
