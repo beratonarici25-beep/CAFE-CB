@@ -88,4 +88,4 @@
 .upg-show { display: none; position: absolute; pointer-events: none; }
 .upg-stools .upg-show.stools { display: flex; gap: 44%; z-index: 1; left: 8%; right: 30%; bottom: calc(var(--counter-h, 44px) - 104px); }
 .upg-show.stools .spr { width: 92px; height: auto; }
-.upg-tipjar .upg-show.tipjar { display: block; z-index: 3; width: 62px; height: auto; left: 66%; bottom: calc(var(--counter-h, 44px) - var(--top-d, 15px) * .55 - 10px); filter: drop-shadow(3px 5px 3px rgba(40,20,10,.25)); }
+.upg-tipjar .upg-show.tipjar { display: block; z-index: 3; width: 62px; height: auto; left: auto; right: 5%; bottom: calc(var(--counter-h, 44px) - var(--top-d, 15px) * .55 - 10px); filter: drop-shadow(3px 5px 3px rgba(40,20,10,.25)); }
