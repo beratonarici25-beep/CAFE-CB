@@ -22,7 +22,7 @@ const DRINKS = {
 const UPGRADES = [{ id: 'stools', cost: 40 }, { id: 'grinder', cost: 70 }, { id: 'tipjar', cost: 90 }, { id: 'gauge', cost: 120 }];
 // The recipe shop (issue #21): espresso and latte are on the menu from the start, every other drink is bought with the
 // café's money (all prices here). A locked drink is never ordered.
-const RECIPE_COST = { cappuccino: 70, hotchoc: 90, flatwhite: 110, iced: 140, mocha: 170 };
+const RECIPE_COST = { cappuccino: 10, hotchoc: 10, flatwhite: 10, iced: 10, mocha: 10 };
 const recipeOpen = k => !(k in RECIPE_COST) || save.recipes.includes(k);
 const drinkName = k => cap1(PH[save.lang].drink[k], save.lang);
 const SURPRISE_KEYS = ['decaf', 'oat', 'almond', 'vanilla', 'cinnamon', 'L'];

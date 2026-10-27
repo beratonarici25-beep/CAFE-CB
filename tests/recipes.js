@@ -33,7 +33,7 @@ const orderable = (page, day, fresh = []) => page.evaluate(([d, f]) => {
   const saved = page => page.evaluate(() => JSON.parse(localStorage.getItem('cafe-cb-save-v1') || '{}'));
 
   // ---- a new game ----
-  const page = await newPage(JSON.stringify({ lang: 'en', tutorialDone: true, cash: 80 }));
+  const page = await newPage(JSON.stringify({ lang: 'en', tutorialDone: true, cash: 15 }));
   ok('new game: only espresso and latte open', JSON.stringify(await page.evaluate(() => save.recipes)) === '["espresso","latte"]');
   ok('new game: day 1 orders only espresso and latte', JSON.stringify(await orderable(page, 1)) === '["espresso","latte"]');
   ok('new game: day 5 orders only espresso and latte', JSON.stringify(await orderable(page, 5)) === '["espresso","latte"]');
@@ -42,10 +42,7 @@ const orderable = (page, day, fresh = []) => page.evaluate(([d, f]) => {
     k: c.dataset.rec, dis: !!(c.querySelector('button') || {}).disabled, need: (c.querySelector('.need') || {}).textContent || '' })));
   ok('menu: a card for every recipe', cards.map(c => c.k).join() === 'cappuccino,hotchoc,flatwhite,iced,mocha', JSON.stringify(cards));
   const card = k => cards.find(c => c.k === k) || {};
-  ok('menu: $80 buys a cappuccino ($70)', !card('cappuccino').dis);
-  ok('menu: mocha ($170) disabled, $90 short', card('mocha').dis && card('mocha').need.includes('90.00'), JSON.stringify(card('mocha')));
-  await page.evaluate(() => document.querySelector('#menuRecipes [data-r="mocha"]').click());
-  ok('menu: a disabled recipe cannot be bought', (await page.evaluate(() => save.cash)) === 80 && !(await page.evaluate(() => save.recipes.includes('mocha'))));
+  ok('menu: $15 buys a cappuccino ($10)', !card('cappuccino').dis);
   // the recipe book greys out what is not bought yet
   await page.click('#howBtn');
   const book = await page.evaluate(() => [...document.querySelectorAll('#bookBody tr[data-d]')].map(tr => tr.dataset.d + ':' + tr.classList.contains('locked')).join());
@@ -54,12 +51,16 @@ const orderable = (page, day, fresh = []) => page.evaluate(([d, f]) => {
   // buy the cappuccino
   await page.click('#menuRecipes [data-r="cappuccino"]');
   const after = await saved(page);
-  ok('buy: money taken and the recipe saved', after.cash === 10 && after.recipes.includes('cappuccino') && after.intros.includes('cappuccino'), JSON.stringify(after));
+  ok('buy: money taken and the recipe saved', after.cash === 5 && after.recipes.includes('cappuccino') && after.intros.includes('cappuccino'), JSON.stringify(after));
   ok('buy: card now says on the menu, celebration and toast', await page.evaluate(() => {
     const c = document.querySelector('#menuRecipes [data-rec="cappuccino"]');
     return c.classList.contains('own') && !document.querySelector('#toast').hidden;
   }));
-  ok('buy: HUD and menu savings show the new cash', (await page.textContent('#mCash')) === '$10.00' && (await page.textContent('#hudCash')) === '$10.00');
+  ok('buy: HUD and menu savings show the new cash', (await page.textContent('#mCash')) === '$5.00' && (await page.textContent('#hudCash')) === '$5.00');
+  const mocha = await page.evaluate(() => { const c = document.querySelector('#menuRecipes [data-rec="mocha"]'); return { dis: c.querySelector('button').disabled, need: (c.querySelector('.need') || {}).textContent || '' }; });
+  ok('menu: mocha ($10) disabled with $5, $5 short', mocha.dis && mocha.need.includes('5.00'), JSON.stringify(mocha));
+  await page.evaluate(() => document.querySelector('#menuRecipes [data-r="mocha"]').click());
+  ok('menu: a disabled recipe cannot be bought', (await page.evaluate(() => save.cash)) === 5 && !(await page.evaluate(() => save.recipes.includes('mocha'))));
   // ---- the next day: announced, introduced on its first guest, then ordered ----
   await page.click('#startBtn');
   ok('next day: announced', /Cappuccino/.test(await page.textContent('#toast')));
@@ -100,7 +101,7 @@ const orderable = (page, day, fresh = []) => page.evaluate(([d, f]) => {
   ok('new drinks: cold milk refused before the iced latte is bought', await nd.evaluate(() => { B.cup = { ...newCup(), size: 'M' }; const e = check('milk:whole', 'cup'); B.cup = newCup(); return e === 'nope'; }));
   await nd.click('#menuRecipes [data-r="iced"]');
   await nd.click('#menuRecipes [data-r="hotchoc"]');
-  ok('new drinks: both bought ($140 + $90)', await nd.evaluate(() => save.cash === 30 && save.recipes.includes('iced') && save.recipes.includes('hotchoc')));
+  ok('new drinks: both bought ($10 + $10)', await nd.evaluate(() => save.cash === 240 && save.recipes.includes('iced') && save.recipes.includes('hotchoc')));
   await nd.click('#startBtn');
   for (const drink of ['iced', 'hotchoc']) {
     if (drink === 'hotchoc') { await nd.click('#nextBtn'); }
