@@ -39,9 +39,12 @@
 #ovDay .card { position: relative; }
 #ovDay .card::before { background: rgba(172,201,236,.75); transform: rotate(2deg); }
 
-/* recipe book: a lined notebook with a spiral binding */
+/* recipe book: a lined notebook with a spiral binding.
+   The overlay scrolls, not the card, and without backdrop blur: iOS Safari left taps at the pre-scroll spot
+   inside a scrolled card under a blurred fixed layer (tapping below a recipe picked it). */
+.overlay.book-ov { align-items: start; -webkit-backdrop-filter: none; backdrop-filter: none; -webkit-overflow-scrolling: touch; }
 .card.book {
-  position: relative; width: min(980px, 100%); padding-left: 40px; max-height: calc(100dvh - 32px); overflow-y: auto;
+  position: relative; width: min(980px, 100%); padding-left: 40px; margin-block: auto;
   background:
     linear-gradient(90deg, transparent 30px, rgba(232,150,140,.5) 30px 32px, transparent 32px),
     repeating-linear-gradient(transparent 0 25px, rgba(172,201,236,.45) 25px 26px),
