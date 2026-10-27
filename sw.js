@@ -2,16 +2,16 @@
    too. The page itself is fetched from the network first (so a new version shows up at once) and from the cache when
    offline; everything else comes from the cache and is fetched only the first time. Bump VERSION with every release
    (together with the ?v= on the links in index.html): the old cache is then dropped. */
-const VERSION = 'cafe-cb-19';
+const VERSION = 'cafe-cb-20';
 const CORE = [
-  './', 'index.html', 'manifest.webmanifest', 'style.css?v=19',
-  'css/scene.css?v=19', 'css/fx.css?v=19', 'css/views.css?v=19', 'css/bar.css?v=19', 'css/theme.css?v=19', 'css/helper.css?v=19', 'css/stage.css?v=19',
-  'js/util.js?v=19', 'js/i18n.js?v=19', 'js/audio.js?v=19', 'js/recipe.js?v=19', 'js/render.js?v=19', 'js/scene.js?v=19', 'js/fx.js?v=19',
-  'js/station.js?v=19', 'js/camera.js?v=19', 'assets/helper/art.js?v=19', 'js/helper.js?v=19', 'js/tutorial.js?v=19', 'js/main.js?v=19',
+  './', 'index.html', 'manifest.webmanifest', 'style.css?v=20',
+  'css/scene.css?v=20', 'css/fx.css?v=20', 'css/views.css?v=20', 'css/bar.css?v=20', 'css/theme.css?v=20', 'css/helper.css?v=20', 'css/stage.css?v=20',
+  'js/util.js?v=20', 'js/i18n.js?v=20', 'js/audio.js?v=20', 'js/recipe.js?v=20', 'js/render.js?v=20', 'js/scene.js?v=20', 'js/fx.js?v=20',
+  'js/station.js?v=20', 'js/camera.js?v=20', 'assets/helper/art.js?v=20', 'js/helper.js?v=20', 'js/tutorial.js?v=20', 'js/main.js?v=20',
   'assets/favicon-64.png', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/icon-512-any.png', 'assets/apple-touch-icon.png',
   'assets/cover/logo-menu.webp',
   'assets/backbar.svg', 'assets/bg-seating.svg', 'assets/bg-wall.svg',
-  'assets/fonts/fonts.css?v=19', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
+  'assets/fonts/fonts.css?v=20', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
     .flatMap(f => [`assets/fonts/${f}-latin.woff2`, `assets/fonts/${f}-latin-ext.woff2`]),
   ...['bell', 'bin', 'binlid', 'cup-L', 'cup-M', 'cup-S', 'cust-beard', 'cust-collar-round', 'cust-collar-v', 'cust-hair-bun-front',
     'cust-hair-curly-back', 'cust-hair-curly-front', 'cust-hair-long-back', 'cust-hair-long-front', 'cust-hair-short-front',
