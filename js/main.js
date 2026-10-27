@@ -405,6 +405,12 @@ function fitStage() {
   const s = cam ? Math.min(r.height / CAM_H, w / CAM_MIN_W) : fitAll;
   UI.s = s; UI.ox = r.left; UI.oy = r.top; UI.w = w / s; UI.h = r.height / s; UI.cam = cam;
   const v = $('#views');
+  // the notch and home bar strips (css/stage.css), in stage pixels
+  let probe = $('#safeProbe');
+  if (!probe) { probe = document.createElement('div'); probe.id = 'safeProbe'; document.body.appendChild(probe); }
+  const pc = getComputedStyle(probe);
+  UI.safe = { l: parseFloat(pc.paddingLeft) / s || 0, r: parseFloat(pc.paddingRight) / s || 0, b: parseFloat(pc.paddingBottom) / s || 0 };
+  for (const k of ['l', 'r', 'b']) v.style.setProperty('--safe-' + k, UI.safe[k].toFixed(1) + 'px');
   setStyle(v, 'width', UI.w + 'px'); setStyle(v, 'height', UI.h + 'px');
   setStyle(v, 'transform', `scale(${s})`);
   document.documentElement.classList.toggle('small-stage', cam);

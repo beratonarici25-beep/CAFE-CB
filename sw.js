@@ -2,16 +2,16 @@
    too. The page itself is fetched from the network first (so a new version shows up at once) and from the cache when
    offline; everything else comes from the cache and is fetched only the first time. Bump VERSION with every release
    (together with the ?v= on the links in index.html): the old cache is then dropped. */
-const VERSION = 'cafe-cb-24';
+const VERSION = 'cafe-cb-25';
 const CORE = [
-  './', 'index.html', 'manifest.webmanifest', 'style.css?v=24',
-  'css/scene.css?v=24', 'css/fx.css?v=24', 'css/views.css?v=24', 'css/bar.css?v=24', 'css/theme.css?v=24', 'css/helper.css?v=24', 'css/stage.css?v=24', 'css/intro.css?v=24',
-  'js/intro.js?v=24', 'js/util.js?v=24', 'js/i18n.js?v=24', 'js/audio.js?v=24', 'js/recipe.js?v=24', 'js/render.js?v=24', 'js/scene.js?v=24', 'js/fx.js?v=24',
-  'js/station.js?v=24', 'js/camera.js?v=24', 'assets/helper/art.js?v=24', 'js/helper.js?v=24', 'js/tutorial.js?v=24', 'js/main.js?v=24',
+  './', 'index.html', 'manifest.webmanifest', 'style.css?v=25',
+  'css/scene.css?v=25', 'css/fx.css?v=25', 'css/views.css?v=25', 'css/bar.css?v=25', 'css/theme.css?v=25', 'css/helper.css?v=25', 'css/stage.css?v=25', 'css/intro.css?v=25',
+  'js/intro.js?v=25', 'js/util.js?v=25', 'js/i18n.js?v=25', 'js/audio.js?v=25', 'js/recipe.js?v=25', 'js/render.js?v=25', 'js/scene.js?v=25', 'js/fx.js?v=25',
+  'js/station.js?v=25', 'js/camera.js?v=25', 'assets/helper/art.js?v=25', 'js/helper.js?v=25', 'js/tutorial.js?v=25', 'js/main.js?v=25',
   'assets/favicon-64.png', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/icon-512-any.png', 'assets/apple-touch-icon.png',
   'assets/cover/logo-menu.webp', 'assets/intro/cup.webp', 'assets/intro/text.webp',
   'assets/backbar.svg', 'assets/bg-seating.svg', 'assets/bg-wall.svg',
-  'assets/fonts/fonts.css?v=24', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
+  'assets/fonts/fonts.css?v=25', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
     .flatMap(f => [`assets/fonts/${f}-latin.woff2`, `assets/fonts/${f}-latin-ext.woff2`]),
   ...['bell', 'bin', 'binlid', 'cup-L', 'cup-M', 'cup-S', 'cust-beard', 'cust-collar-round', 'cust-collar-v', 'cust-hair-bun-front',
     'cust-hair-curly-back', 'cust-hair-curly-front', 'cust-hair-long-back', 'cust-hair-long-front', 'cust-hair-short-front',

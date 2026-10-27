@@ -26,7 +26,7 @@ const Cam = (() => {
       setStyle(el, 'marginBottom', k === 1 ? '' : (-el.offsetHeight * (1 - k)).toFixed(1) + 'px');
     }
     if (!UI.cam) { px = to = max = 0; apply(); return; }
-    max = Math.max(0, c.offsetLeft + c.offsetWidth + 18 - UI.w);
+    max = Math.max(0, c.offsetLeft + c.offsetWidth + 18 + (UI.safe ? UI.safe.r : 0) - UI.w);
     px = clamp(px, 0, max); to = clamp(to, 0, max);
     apply();
   }
@@ -37,14 +37,14 @@ const Cam = (() => {
     const els = (Array.isArray(list) ? list : [list]).map(x => typeof x === 'string' ? document.querySelector(x) : x)
       .filter(el => el && counter().contains(el) && el.getClientRects().length);
     if (!els.length) return;
-    const m = 40, rs = els.map(el => stageRect(el));
+    const sf = UI.safe || { l: 0, r: 0 }, ml = 40 + sf.l, mr = 40 + sf.r, rs = els.map(el => stageRect(el));
     // everything at once when it fits, otherwise just the first
     const all = { left: Math.min(...rs.map(r => r.left)), right: Math.max(...rs.map(r => r.right)) };
-    const r = all.right - all.left <= UI.w - m * 2 ? all : rs[0];
+    const r = all.right - all.left <= UI.w - ml - mr ? all : rs[0];
     // stageRect is measured with the current pan; the target pan is relative to that
     let x = to;
-    if (r.left < m) x = px + r.left - m;
-    else if (r.right > UI.w - m) x = px + r.right - (UI.w - m);
+    if (r.left < ml) x = px + r.left - ml;
+    else if (r.right > UI.w - mr) x = px + r.right - (UI.w - mr);
     set(x);
     if (now) { px = to; apply(); }
   }
