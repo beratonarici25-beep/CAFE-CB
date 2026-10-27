@@ -392,6 +392,7 @@ const cupCv = $('#cupCv'), cupG = cupCv.getContext('2d');
 const dims = { sw: 0, sh: 0, cw: 0, ch: 0, k: 1, counterH: 44, topD: 15 };
 // scale the stage so the design height (or the narrowest bench width) fits the window (issue #14)
 function fitStage() {
+  if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
   const top = Math.ceil($('.topbar').getBoundingClientRect().height);
   document.documentElement.style.setProperty('--top-h', top + 'px');
   const st = $('#stage'), r = st.getBoundingClientRect();
@@ -441,7 +442,8 @@ function fit() {
 if (window.ResizeObserver) { const ro = new ResizeObserver(fit); ro.observe(sceneCv); ro.observe(cupCv); ro.observe($('#stage')); }
 window.addEventListener('resize', fit);
 // iPhone Safari: the toolbars grow and shrink without always firing a window resize
-if (window.visualViewport) visualViewport.addEventListener('resize', fit);
+if (window.visualViewport) { visualViewport.addEventListener('resize', fit); visualViewport.addEventListener('scroll', () => window.scrollTo(0, 0)); }
+window.addEventListener('scroll', () => { if (window.scrollX || window.scrollY) window.scrollTo(0, 0); });
 
 function drawCupObj() {
   const g = cupG, W = dims.cw, H = dims.ch;

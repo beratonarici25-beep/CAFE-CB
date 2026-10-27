@@ -4,6 +4,13 @@
    monitor; a wider window only gives the columns more room. The top bar, overlays, helper and toasts stay outside
    the stage at their real size. */
 html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+/* iPhone Safari still scrolls the page a few pixels under overflow: hidden (toolbars shrinking); the top bar then
+   showed in one place and took taps lower down. Pin the page and the bar so there is nothing to scroll. */
+body { position: fixed; inset: 0; }
+.topbar { position: fixed; top: 0; left: 0; right: 0; }
+/* the top bar keys are small on a phone: a finger a little above or below still counts */
+.hud .iconbtn, .hud .pill { position: relative; }
+.hud .iconbtn::after { content: ""; position: absolute; inset: -6px -3px; }
 /* phones (issue #27): no pull-to-refresh, double-tap zoom, text selection or long-press image menu on the game */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
