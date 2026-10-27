@@ -184,7 +184,9 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 
 /* a slimmer top bar on short screens (a phone held sideways), so the stage gets the height */
 @media (max-height: 500px) {
-  .topbar { padding-block: 3px; gap: 8px; }
+  /* iPhone Safari (sideways) keeps the top strip of the screen for its own toolbar: a tap there only brings the
+     toolbar back, so the keys sit below it */
+  .topbar { padding-block: 16px 4px; gap: 8px; }
   .brand { font-size: 16px; }
   .hud { gap: 5px; }
   .pill, .iconbtn { font-size: 12px; padding: 3px 9px; }
