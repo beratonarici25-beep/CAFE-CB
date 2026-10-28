@@ -183,6 +183,24 @@ def body_B():
         if neck.z + 2 < p.z < ezs:
             u = (p.z - neck.z - 2) / (ezs - neck.z - 2); u = u * u * (3 - 2 * u)
             P[i] = Vector((p.x, p.y, p.z + 0.16 * (ezs - p.z) * u))
+    # flat, soft lips: smooth the face around the mouth (the real lip ridges look lumpy in this style)
+    fr_ = [P[i] for i in body_ids if abs(P[i].x) < 0.8 and P[i].z > neck.z + 2]
+    nose_ = min(fr_, key=lambda p: p.y)
+    chin_ = min((p for p in fr_ if p.y < nose_.y + 4.5), key=lambda p: p.z)
+    mz_ = nose_.z - 0.5 * (nose_.z - chin_.z)
+    nbr = {}
+    for f in faces['body']:
+        for k, a_ in enumerate(f):
+            nbr.setdefault(a_, set()).update((f[k - 1], f[(k + 1) % len(f)]))
+    wgt = {}
+    for i in body_ids:
+        d_ = math.hypot(P[i].x / 3.6, (P[i].z - mz_) / 2.0)
+        if d_ < 1.0 and P[i].y < nose_.y + 6:
+            wgt[i] = 1 - d_ * d_
+    for _ in range(14):
+        new_ = {i: sum((P[j].y for j in nbr[i]), 0.0) / len(nbr[i]) for i in wgt}
+        for i, w in wgt.items():
+            P[i] = Vector((P[i].x, P[i].y + (new_[i] - P[i].y) * min(1.0, w * 1.4), P[i].z))
     me = bpy.data.meshes.new('mh'); bm = bmesh.new()
     idx = {}
     for i in sorted(body_ids):
@@ -205,7 +223,7 @@ def body_B():
     front = [P[i] for i in body_ids if abs(P[i].x) < 0.8 and P[i].z > neck.z + 2]
     nose = min(front, key=lambda p: p.y)
     chinp = min((p for p in front if p.y < nose.y + 4.5), key=lambda p: p.z)
-    mz = nose.z - 0.37 * (nose.z - chinp.z)
+    mz = nose.z - 0.5 * (nose.z - chinp.z)
     finish(o, body_mat(sh, mz, nose.y + 3.0, neck.z), outline=0.14)
     # eyes in the sockets (scaled the same way as the head)
     def headpt(p):
@@ -367,7 +385,7 @@ def body_mat(sh, mz, lip_y, neck_z):
     bare_arm = op('MAXIMUM', bare_arm, step(hn.outputs['Fac'], 0.5, 0.2))
     top = op('MULTIPLY', below, op('SUBTRACT', 1.0, bare_arm))
     # lips: an ellipse on the front of the face
-    ex = op('DIVIDE', X, 1.9); ez = op('DIVIDE', op('SUBTRACT', Z, mz), 0.5)
+    ex = op('DIVIDE', X, 2.5); ez = op('DIVIDE', op('SUBTRACT', Z, mz), 0.52)
     d = op('ADD', op('MULTIPLY', ex, ex), op('MULTIPLY', ez, ez))
     lips = op('MULTIPLY', op('SUBTRACT', 1.0, step(d, 1.0, 0.15)), op('SUBTRACT', 1.0, step(Y, lip_y, 0.3)))
     def mix(fac, a, b):
@@ -379,7 +397,7 @@ def body_mat(sh, mz, lip_y, neck_z):
                 L.new(v, n.inputs[k])
         return n.outputs[0]
     c = mix(top, srgb(SKIN) + (1,), srgb(TOP) + (1,))
-    c = mix(lips, c, srgb('#ec9a90') + (1,))
+    c = mix(lips, c, srgb('#dd6f78') + (1,))
     L.new(c, mul.inputs[2])
     return m
 
