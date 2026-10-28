@@ -23,7 +23,7 @@ const STR = {
     upgrades: 'Upgrades', owned: 'Owned',
     rSales: 'Sales ({0})', rTips: 'Tips', rCost: 'Ingredients', rRent: 'Rent', rNet: 'Net profit', rDebt: 'You owe', rRentNext: 'Rent on day {0}',
     rMood: 'Happy / upset', rRep: 'Café rating',
-    landlord: 'Landlord: "Your tab is {0}. It comes out of tomorrow's takings first."',
+    landlord: 'Landlord: "Your tab is {0}. It comes out of tomorrow\'s takings first."',
     noteTop: 'Best of the day: {0}!', noteGreat: 'What a day! The guests loved you.', noteOk: 'A fair day. A steadier hand tomorrow!', noteBad: 'A rough day. Check the recipe book!',
     nextCustomer: 'Next customer', closeShop: 'Close up shop', dayDone: 'Day {0} done!', earned: 'Earned', avgStars: 'Avg stars', toMenu: 'Main menu',
     tip: 'tip {0}', backToBar: 'Back to the bar', backToMenu: 'Back to the menu', recipeBook: 'Recipe guide', starsOf: '{0} of 5 stars',
