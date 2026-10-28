@@ -2,18 +2,18 @@
    too. The page itself is fetched from the network first (so a new version shows up at once) and from the cache when
    offline; everything else comes from the cache and is fetched only the first time. Bump VERSION with every release
    (together with the ?v= on the links in index.html): the old cache is then dropped. */
-const VERSION = 'cafe-cb-32';
+const VERSION = 'cafe-cb-33';
 const CORE = [
-  './', 'index.html', 'manifest.webmanifest', 'style.css?v=32',
-  'css/scene.css?v=32', 'css/fx.css?v=32', 'css/views.css?v=32', 'css/bar.css?v=32', 'css/theme.css?v=32', 'css/helper.css?v=32', 'css/stage.css?v=32', 'css/intro.css?v=32',
-  'js/intro.js?v=32', 'js/util.js?v=32', 'js/economy.js?v=32', 'js/i18n.js?v=32', 'js/audio.js?v=32', 'js/recipe.js?v=32', 'js/render.js?v=32', 'js/scene.js?v=32', 'js/fx.js?v=32',
-  'js/station.js?v=32', 'js/camera.js?v=32', 'js/helper.js?v=32', 'js/tutorial.js?v=32', 'js/main.js?v=32',
+  './', 'index.html', 'manifest.webmanifest', 'style.css?v=33',
+  'css/scene.css?v=33', 'css/fx.css?v=33', 'css/views.css?v=33', 'css/bar.css?v=33', 'css/theme.css?v=33', 'css/helper.css?v=33', 'css/stage.css?v=33', 'css/intro.css?v=33',
+  'js/intro.js?v=33', 'js/util.js?v=33', 'js/economy.js?v=33', 'js/i18n.js?v=33', 'js/audio.js?v=33', 'js/recipe.js?v=33', 'js/render.js?v=33', 'js/scene.js?v=33', 'js/fx.js?v=33',
+  'js/station.js?v=33', 'js/camera.js?v=33', 'js/helper.js?v=33', 'js/tutorial.js?v=33', 'js/main.js?v=33',
   'assets/favicon-64.png', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/icon-512-any.png', 'assets/apple-touch-icon.png',
   'assets/cover/logo-menu.webp', 'assets/intro/cup.webp', 'assets/intro/text.webp',
   ...['talk', 'wave', 'cheer', 'warn'].map(f => `assets/helper/${f}.webp`), ...['talk', 'wave', ...['L', 'R'].flatMap(x => ['down', 'level', 'up'].map(h => `point-${x}-${h}`))].map(f => `assets/helper/${f}-open.webp`),
   ...['L', 'R'].flatMap(x => ['down', 'level', 'up'].map(h => `assets/helper/point-${x}-${h}.webp`)),
   'assets/backbar.svg', 'assets/bg-seating.svg', 'assets/bg-wall.svg',
-  'assets/fonts/fonts.css?v=32', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
+  'assets/fonts/fonts.css?v=33', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
     .flatMap(f => [`assets/fonts/${f}-latin.woff2`, `assets/fonts/${f}-latin-ext.woff2`]),
   ...['bell', 'bin', 'binlid', 'cup-L', 'cup-M', 'cup-S', 'cust-beard', 'cust-collar-round', 'cust-collar-v', 'cust-hair-bun-front',
     'cust-hair-curly-back', 'cust-hair-curly-front', 'cust-hair-long-back', 'cust-hair-long-front', 'cust-hair-short-front',

@@ -79,12 +79,14 @@ def body_A():
 
 
 def eyeball(name, c, r):
-    """a whole eyeball sitting in a MakeHuman eye socket: the iris is on its front"""
-    sphere(name + 'w', r, toon('sclera', '#fbf7f2', lo=0.85), loc=c, outline=0.0, segs=32)
-    f = c.y - r * 0.93
-    sphere(name + 'i', 1.0, toon('iris', '#5a3420', 'gloss', lo=0.7), loc=(c.x, f, c.z), scale=(r * 0.56, r * 0.14, r * 0.56), outline=0.0)
-    sphere(name + 'p', 1.0, toon('pupil', '#1a0f0b', lo=1.0), loc=(c.x, f - r * 0.08, c.z), scale=(r * 0.27, r * 0.1, r * 0.27), outline=0.0)
-    sphere(name + 'h', 1.0, toon('hi', '#ffffff', 'flat', lo=1.0), loc=(c.x - r * 0.18, f - r * 0.16, c.z + r * 0.2), scale=(r * 0.1, r * 0.04, r * 0.1), outline=0.0)
+    """a big cartoon eye on the face (c is on the skin): a tall white oval, a large dark-brown iris, a pupil, two catch lights"""
+    ry = r * 0.28
+    sphere(name + 'w', 1.0, toon('sclera', '#fffaf4', lo=0.92), loc=(c.x, c.y - 0.1, c.z), scale=(r * 1.05, ry, r * 1.25), outline=0.0, segs=32)
+    f = c.y - 0.1 - ry * 0.85
+    sphere(name + 'i', 1.0, toon('iris', '#7a4528', 'gloss', lo=0.8), loc=(c.x, f, c.z - r * 0.08), scale=(r * 0.82, ry * 0.5, r * 0.98), outline=0.0)
+    sphere(name + 'p', 1.0, toon('pupil', '#1b0f0b', lo=1.0), loc=(c.x, f - ry * 0.25, c.z - r * 0.1), scale=(r * 0.5, ry * 0.4, r * 0.6), outline=0.0)
+    sphere(name + 'h', 1.0, toon('hi', '#ffffff', 'flat', lo=1.0), loc=(c.x - r * 0.3, f - ry * 0.5, c.z + r * 0.3), scale=(r * 0.24, ry * 0.2, r * 0.24), outline=0.0)
+    sphere(name + 'h2', 1.0, toon('hi', '#ffffff', 'flat', lo=1.0), loc=(c.x + r * 0.28, f - ry * 0.5, c.z - r * 0.42), scale=(r * 0.1, ry * 0.2, r * 0.1), outline=0.0)
 
 
 def eye(name, x, z, y, r, look=(0, 0)):
@@ -167,13 +169,20 @@ def body_B():
     for i in body_ids:
         P[i] = armdown(P[i])
     # a slightly bigger head (cute proportions), grown from the neck
-    hk = 1.1
+    hk = 1.3
     for i in body_ids:
         p = P[i]
         if p.z > neck.z + 2:
             t = min(1.0, (p.z - neck.z - 2) / 4.0)
             f = 1 + (hk - 1) * t
-            P[i] = Vector((p.x * f * (1 + 0.09 * t), (p.y - neck.y) * f + neck.y, (p.z - neck.z) * f + neck.z))
+            P[i] = Vector((p.x * f * (1 + 0.14 * t), (p.y - neck.y) * f + neck.y, (p.z - neck.z) * f + neck.z))
+    # a shorter lower face: points between the neck and the eyes move up toward the eyes, so the chin is closer
+    ezs = neck.z + (eyeL.z - neck.z) * hk
+    for i in body_ids:
+        p = P[i]
+        if neck.z + 2 < p.z < ezs:
+            u = (p.z - neck.z - 2) / (ezs - neck.z - 2); u = u * u * (3 - 2 * u)
+            P[i] = Vector((p.x, p.y, p.z + 0.16 * (ezs - p.z) * u))
     me = bpy.data.meshes.new('mh'); bm = bmesh.new()
     idx = {}
     for i in sorted(body_ids):
@@ -201,20 +210,24 @@ def body_B():
     # eyes in the sockets (scaled the same way as the head)
     def headpt(p):
         t = min(1.0, max(0.0, (p.z - neck.z - 2) / 4.0)); f = 1 + (hk - 1) * t
-        return Vector((p.x * f * (1 + 0.09 * t), (p.y - neck.y) * f + neck.y, (p.z - neck.z) * f + neck.z))
+        return Vector((p.x * f * (1 + 0.14 * t), (p.y - neck.y) * f + neck.y, (p.z - neck.z) * f + neck.z))
     eL, eR = headpt(eyeL), headpt(eyeR)
     r = 1.22 * hk
     bvh = BVHTree.FromObject(o, bpy.context.evaluated_depsgraph_get())
     lid = toon('lid', '#3a2318', lo=1.0); brow = toon('brow', '#3f2619', lo=0.8)
     for s, e in ((1, eL), (-1, eR)):
-        eyeball("eye" + str(s), e, 1.4 * hk)
         def onface(x, z, off=0.25):
             hit = bvh.ray_cast(Vector((x, -60, z)), Vector((0, 1, 0)))
             return (x, (hit[0].y if hit[0] else e.y - 1) - off, z)
-        tube('lid', smooth_curve([onface(e.x - s * 1.7 * hk, e.z - 0.1, 0.05), onface(e.x, e.z + 1.15 * hk, 0.15), onface(e.x + s * 1.75 * hk, e.z + 0.25, 0.1), onface(e.x + s * 2.3 * hk, e.z + 0.75, 0.1)], 6), 0.22, lid, outline=0)
-        tube('brow', smooth_curve([onface(e.x - s * 1.7, e.z + 2.5 + BROW), onface(e.x + s * 0.3, e.z + 3.1 + BROW * 0.5), onface(e.x + s * 2.2, e.z + 2.6 - BROW * 0.3)], 6), 0.3, brow, outline=0)
+        ring = [bvh.ray_cast(Vector((e.x + 2.6 * math.cos(a), -60, e.z + 2.6 * math.sin(a))), Vector((0, 1, 0)))[0] for a in [k * math.pi / 4 for k in range(8)]]
+        fy_ = min(h.y for h in ring if h) if any(ring) else e.y
+        eyeball("eye" + str(s), Vector((e.x, fy_ - 0.15, e.z)), 1.95)
+        tube('lid', smooth_curve([onface(e.x - s * 1.7 * hk, e.z - 0.1, 0.05), onface(e.x, e.z + 1.15 * hk, 0.15), onface(e.x + s * 1.75 * hk, e.z + 0.25, 0.1), onface(e.x + s * 2.3 * hk, e.z + 0.75, 0.1)], 6), 0.34, lid, outline=0)
+        tube('brow', smooth_curve([onface(e.x - s * 1.9, e.z + 4.1 + BROW), onface(e.x + s * 0.3, e.z + 4.7 + BROW * 0.5), onface(e.x + s * 2.4, e.z + 4.2 - BROW * 0.3)], 6), 0.42, brow, outline=0)
         bl = onface(s * (abs(e.x) + 1.3), e.z - 3.6, -0.05)
-        sphere('blush', 1.0, toon('blush', '#f2948a', alpha=0.0, edge=0.45), loc=bl, scale=(1.5, 0.22, 0.85), outline=0)
+        sphere('blush', 1.0, toon('blush', '#f2948a', alpha=0.0, edge=0.45), loc=bl, scale=(2.1, 0.22, 1.2), outline=0)
+    cx_, cy_, cz_ = onface(0, mz - 1.6, 0.0)
+    sphere('chinpatch', 1.0, toon('chinpatch', SKIN, lo=0.72), loc=(cx_, cy_ + 0.05, cz_ + 0.2), scale=(3.3, 0.25, 1.4), outline=0)
     mouth(onface, mz)
     # landmarks for the shared parts
     zs = [P[i].z for i in body_ids if P[i].z > neck.z]
@@ -236,19 +249,22 @@ BROW = 0.0        # tilts the inner ends of the brows up (worried) or down
 
 
 def mouth(onface, mz):
-    ink = toon('lipline', '#a9524c', lo=0.9)
-    if MOUTH == 'smile':       # a soft closed smile along the lips
-        tube('smile', smooth_curve([onface(-1.55, mz + 0.3, 0.05), onface(0, mz - 0.12, 0.12), onface(1.55, mz + 0.3, 0.05)], 8), 0.15, ink, outline=0)
-    elif MOUTH == 'open':      # an open, laughing mouth with a little tongue
-        x, y, z = onface(0, mz - 0.2, -0.05)
-        sphere('mouth', 1.0, toon('mouthin', '#5b1d22', lo=1.0), loc=(x, y + 0.05, z + 0.1), scale=(1.45, 0.3, 0.8), outline=0)
-        sphere('teeth', 1.0, toon('teeth', '#fbf6ee', lo=0.9), loc=(x, y - 0.12, z + 0.5), scale=(1.15, 0.12, 0.22), outline=0)
-        sphere('tongue', 1.0, toon('tongue', '#e07a7a', lo=0.8), loc=(x, y - 0.1, z - 0.35), scale=(0.8, 0.16, 0.32), outline=0)
+    ink = toon('lipline', '#8a3a3a', lo=0.9)
+    if MOUTH == 'smile':       # a wide, happy curve
+        tube('smile', smooth_curve([onface(-2.3, mz + 0.55, 0.05), onface(-1.0, mz - 0.1, 0.1), onface(1.0, mz - 0.1, 0.1), onface(2.3, mz + 0.55, 0.05)], 10), 0.24, ink, outline=0)
+    elif MOUTH == 'open':      # an open laugh: a dark D with teeth and a tongue
+        x, y, z = onface(0, mz - 0.1, -0.08)
+        sphere('mouth', 1.0, toon('mouthin', '#5b1d22', lo=1.0), loc=(x, y + 0.05, z - 0.1), scale=(1.9, 0.3, 1.05), outline=0)
+        sphere('teeth', 1.0, toon('teeth', '#fffaf2', lo=0.95), loc=(x, y - 0.1, z + 0.55), scale=(1.55, 0.12, 0.34), outline=0)
+        sphere('tongue', 1.0, toon('tongue', '#ec8484', lo=0.85), loc=(x, y - 0.12, z - 0.5), scale=(1.0, 0.16, 0.38), outline=0)
+        tube('corners', smooth_curve([onface(-2.5, mz + 0.8, 0.05), onface(-1.9, mz + 0.2, 0.08)], 4), 0.2, ink, outline=0)
+        tube('corners', smooth_curve([onface(2.5, mz + 0.8, 0.05), onface(1.9, mz + 0.2, 0.08)], 4), 0.2, ink, outline=0)
     elif MOUTH == 'o':         # a small worried "o"
-        x, y, z = onface(0, mz - 0.1, -0.05)
-        sphere('mouth', 1.0, toon('mouthin', '#5b1d22', lo=1.0), loc=(x, y + 0.05, z), scale=(0.75, 0.3, 0.7), outline=0)
+        x, y, z = onface(0, mz - 0.1, -0.08)
+        sphere('mouth', 1.0, toon('mouthin', '#5b1d22', lo=1.0), loc=(x, y + 0.05, z), scale=(0.95, 0.3, 0.9), outline=0)
+        sphere('tongue', 1.0, toon('tongue', '#ec8484', lo=0.85), loc=(x, y - 0.1, z - 0.3), scale=(0.55, 0.14, 0.3), outline=0)
     else:                      # a flat line
-        tube('flat', smooth_curve([onface(-1.3, mz, 0.05), onface(0, mz - 0.05, 0.1), onface(1.3, mz, 0.05)], 6), 0.15, ink, outline=0)
+        tube('flat', smooth_curve([onface(-1.5, mz, 0.05), onface(0, mz - 0.05, 0.1), onface(1.5, mz, 0.05)], 6), 0.2, ink, outline=0)
 
 
 def make_rig(o, order, P0, faces, armdown):
@@ -351,7 +367,7 @@ def body_mat(sh, mz, lip_y, neck_z):
     bare_arm = op('MAXIMUM', bare_arm, step(hn.outputs['Fac'], 0.5, 0.2))
     top = op('MULTIPLY', below, op('SUBTRACT', 1.0, bare_arm))
     # lips: an ellipse on the front of the face
-    ex = op('DIVIDE', X, 2.25); ez = op('DIVIDE', op('SUBTRACT', Z, mz), 0.62)
+    ex = op('DIVIDE', X, 1.9); ez = op('DIVIDE', op('SUBTRACT', Z, mz), 0.5)
     d = op('ADD', op('MULTIPLY', ex, ex), op('MULTIPLY', ez, ez))
     lips = op('MULTIPLY', op('SUBTRACT', 1.0, step(d, 1.0, 0.15)), op('SUBTRACT', 1.0, step(Y, lip_y, 0.3)))
     def mix(fac, a, b):
@@ -363,7 +379,7 @@ def body_mat(sh, mz, lip_y, neck_z):
                 L.new(v, n.inputs[k])
         return n.outputs[0]
     c = mix(top, srgb(SKIN) + (1,), srgb(TOP) + (1,))
-    c = mix(lips, c, srgb('#cf6f6a') + (1,))
+    c = mix(lips, c, srgb('#ec9a90') + (1,))
     L.new(c, mul.inputs[2])
     return m
 
@@ -411,9 +427,24 @@ def hair(H):
                 y = y0 + 0.08 * drop
             pts.append((x, y, z))
         locks.append(tube('lock', smooth_curve(pts, 4), 1.45 if front else 1.9, m, outline=0.1))
+    # bangs: locks from the part, over the forehead, swept to the sides above the brows
+    for j in range(24):
+        u = (j + 0.5) / 24
+        sd = -1 if u < 0.5 else 1
+        bb = (u if u < 0.5 else 1 - u) * 2
+        theta = sd * (0.1 + bb * 0.75)
+        z_end = H['eye_z'] + 6.2 - 1.4 * bb * bb
+        pts = []
+        for t in range(9):
+            z = top + 0.3 - t * (top + 0.3 - z_end) / 8
+            x, y = head_surf(theta, z, 0.85 + 0.15 * bb)
+            if t == 0:
+                x = sd * 0.3
+            pts.append((x, y, z))
+        tube('bang', smooth_curve(pts, 4), 1.0, m, outline=0.08)
     # a cap under the locks so no scalp shows between them
-    cap = sphere('cap', 1.0, m, loc=(0, cy + 0.6, cz + 0.2), scale=(rx + 0.7, ry + 0.9, top - cz + 0.7), outline=0.1, segs=64)
-    M.keep(cap, lambda x, y, z: (z > H['eye_z'] + 6.0 - 0.07 * x * x or y > cy - 1.0) and z > H['eye_z'] - 1.5)
+    cap = sphere('cap', 1.0, m, loc=(0, cy - 0.5, cz + 0.2), scale=(rx + 0.9, ry + 2.3, top - cz + 0.9), outline=0.1, segs=64)
+    M.keep(cap, lambda x, y, z: (z > H['eye_z'] + 7.4 - 0.1 * x * x or y > cy - 1.0) and z > H['eye_z'] - 1.5)
     # long hair hanging down the back, seen between the neck and the side locks
     back = bpy.data.meshes.new('back'); bm = bmesh.new(); rows = []
     for zi in range(11):
@@ -433,18 +464,18 @@ def glasses(H):
     ez, ex, fy = H['eye_z'], H['eye_x'], H['face_y']
     fr = toon('frame', FRAMEC, 'gloss', lo=0.8); gold = toon('gold', GOLD, 'metal')
     lens = toon('lens', '#dfe9ee', 'glass', alpha=0.08, edge=0.35)
-    y = fy - 1.1
-    R = 2.45
+    y = fy - 1.5
+    R = 3.4
     for s in (-1, 1):
-        cx = s * (ex + 0.25)
+        cx = s * (ex + 0.1)
         ring = [(cx + R * math.cos(a), y + 0.25 * abs(math.cos(a)), ez - 0.15 + R * 1.0 * math.sin(a)) for a in [i * 2 * math.pi / 40 for i in range(41)]]
-        tube('rim', ring, 0.36, fr, outline=0.06)
-        disc = sphere('lens', 1.0, lens, loc=(cx, y + 0.15, ez - 0.15), scale=(R, 0.12, R), outline=0)
-        # temples back to the ears, gold near the hinge
-        hx = s * (ex + 0.25 + R)
-        tube('hinge', [(hx, y + 0.2, ez + 0.6), (s * (H['rx'] + 0.2), y + 2.4, ez + 0.9)], 0.3, gold, outline=0.04)
-        tube('temple', [(s * (H['rx'] + 0.2), y + 2.4, ez + 0.9), (s * (H['rx'] + 0.5), H.get('cy', 0.3) + 1.0, ez + 0.4)], 0.3, fr, outline=0.04)
-    tube('bridge', smooth_curve([(-ex + R - 0.1, y, ez + 0.4), (0, y - 0.25, ez + 0.9), (ex - R + 0.1, y, ez + 0.4)], 6), 0.3, fr, outline=0.05)
+        tube('rim', ring, 0.45, fr, outline=0.06)
+        sphere('lens', 1.0, lens, loc=(cx, y + 0.15, ez - 0.15), scale=(R, 0.12, R), outline=0)
+        # short gold hinges; the temples run back into the hair
+        hx = s * (ex + 0.1 + R)
+        tube('hinge', [(hx, y + 0.2, ez + 0.6), (s * (H['rx'] - 0.3), y + 1.4, ez + 0.8)], 0.34, gold, outline=0.04)
+        tube('temple', [(s * (H['rx'] - 0.3), y + 1.4, ez + 0.8), (s * (H['rx'] + 0.2), H.get('cy', 0.3) + 0.5, ez + 0.4)], 0.34, fr, outline=0.04)
+    tube('bridge', smooth_curve([(-ex + R - 0.1, y, ez + 0.4), (0, y - 0.3, ez + 0.9), (ex - R + 0.1, y, ez + 0.4)], 6), 0.36, fr, outline=0.05)
 
 
 BODY = []
@@ -528,7 +559,9 @@ def build(name):
     M.reset()
     MOUTH, BROW, arms = POSES[name]
     H = body_B()
-    hair(H); glasses(H); apron(H)
+    hair(H)
+    if not os.environ.get('NOGLASS'): glasses(H)
+    apron(H)
     for side, kw in arms:
         raise_arm(side, **kw)
     render(name, H)
