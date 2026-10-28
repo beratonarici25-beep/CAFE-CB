@@ -42,6 +42,7 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `css/helper.css` | Helper character poses and the tutorial spotlight |
 | `css/stage.css` | The stage: the views laid out at one design height and scaled to the window (no scrolling), the wide bench layout, the "turn your phone" screen |
 | `js/util.js` | Helpers, palette, save file |
+| `js/economy.js` | Money: ingredient cost, daily rent, debt, reputation (all numbers in `ECON`) |
 | `js/i18n.js` | All text (`STR` UI, `PH` customer phrases); every key needs `en` and `tr` |
 | `js/audio.js` | Synthesised sound effects |
 | `js/recipe.js` | Drinks, orders, scoring, bench state and the `Rules` for each move |
@@ -65,6 +66,7 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `tests/tutorial.js` | Plays the tutorial with drags (desktop) and taps (phone); skip, replay, language, old saves |
 | `tests/sizes.js` | Drag ghosts keep their size, machine keys fit their label, a phone held upright asks to be turned |
 | `tests/recipes.js` | Recipe shop: locked drinks never ordered, buying, intros, the two new drinks brewed, old saves, reset |
+| `tests/economy.js` | Plays 30 days of money with a good, medium and bad barista (node only) |
 | `tools/balance.js` | Recipe shop balance: what a good and an average player unlock over the demo |
 | `tests/layout.js` | At every window size (1280×720 to 3440×1440, phones held sideways) the game fits without scrolling (phones: every station once the camera pans to it, and a swipe pans) and an order can be brewed |
 

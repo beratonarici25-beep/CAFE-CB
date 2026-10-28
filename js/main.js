@@ -67,7 +67,8 @@ function peek(on) {
 
 function startDay() {
   sfx.init();
-  G.day = save.day; G.idx = 0; G.total = Math.min(4 + G.day, 9); G.earned = 0; G.stars = [];
+  G.day = save.day; G.idx = 0; G.total = Math.max(3, Math.min(4 + G.day, 9) + repGuests(save.rep)); G.earned = 0; G.stars = [];
+  G.sales = 0; G.tips = 0; G.cost = 0; G.top = null; G.sum = null;
   G.patMax = 70 * (has('stools') ? 1.25 : 1);
   G.cust = null;
   // the recipes bought since the last day are new on the menu today (issue #21)
@@ -111,6 +112,8 @@ function serve() {
   G.cust.mood = r.stars >= 5 ? 'delighted' : r.stars === 4 ? 'happy' : r.stars === 3 ? 'neutral' : 'upset';
   G.cust.react = r.stars >= 3 ? 'bounce' : 'shake'; G.cust.reactT = 0;
   save.cash += r.pay + r.tip; save.served++; G.earned += r.pay + r.tip; G.stars.push(r.stars);
+  G.sales += r.pay; G.tips += r.tip; G.cost = cents(G.cost + r.cost);
+  if (!G.order.surprise && r.stars > (G.top ? G.top.stars : 3)) G.top = { drink: G.order.drink, stars: r.stars };
   persist();
   $('#say').textContent = r.quote;
   r.stars >= 3 ? sfx.coins(r.tip > 0) : sfx.sad();
@@ -152,16 +155,37 @@ function onLeft() {
   if (G.idx >= G.total) endDay(); else nextCustomer();
 }
 function fillDay() {
-  const avg = G.stars.length ? G.stars.reduce((a, b) => a + b, 0) / G.stars.length : 0;
+  const u = G.sum;
   $('#dTitle').textContent = t('dayDone', G.day);
-  $('#dEarn').textContent = money(G.earned);
-  $('#dStars').textContent = avg.toFixed(1);
-  $('#dCash').textContent = money(save.cash);
+  const row = (k, v, cls = '') => `<div class="${cls}"><span>${k}</span><b>${v}</b></div>`;
+  const signed = n => (n < 0 ? '−' : '+') + money(Math.abs(n));
+  $('#dReceipt').innerHTML = [
+    row(t('rSales', u.n), '+' + money(u.sales)),
+    row(t('rTips'), '+' + money(u.tips)),
+    row(t('rCost'), '−' + money(u.cost)),
+    u.rent ? row(t('rRent'), '−' + money(u.rent)) : '',
+    row(t('rNet'), signed(u.net), 'net'),
+    row(t('savings'), money(u.cash)),
+    u.debt ? row(t('rDebt'), money(u.debt), 'debt') : '',
+    rentFor(save.day) ? row(t('rRentNext', save.day), money(rentFor(save.day)), 'soft') : '',
+  ].join('');
+  $('#dStars').textContent = u.avg.toFixed(1);
+  $('#dMood').textContent = `${u.happy} / ${u.angry}`;
+  $('#dRep').textContent = save.rep.toFixed(1);
+  // the landlord's warning first, else the best drink of the day, else a word on the day
+  $('#dNote').textContent = u.debt ? t('landlord', money(u.debt))
+    : u.top ? t('noteTop', drinkName(u.top)) : t(u.avg >= 4 ? 'noteGreat' : u.avg >= 3 ? 'noteOk' : 'noteBad');
   $('#nextDayBtn').textContent = t('openDay', save.day);
   renderRecipes($('#dayRecipes'));
   renderShop($('#dayShop'));
 }
 function endDay() {
+  const n = G.stars.length, avg = n ? G.stars.reduce((a, b) => a + b, 0) / n : 0;
+  const s = settleDay(G.day, save.cash, save.debt, G.sales, G.tips, G.cost);
+  G.sum = { ...s, sales: G.sales, tips: G.tips, cost: G.cost, n, avg, top: G.top && G.top.drink,
+    happy: G.stars.filter(x => x >= 4).length, angry: G.stars.filter(x => x <= 2).length };
+  save.cash = s.cash; save.debt = s.debt;
+  if (n) save.rep = repAfter(save.rep, avg);
   save.best = Math.max(save.best, G.earned);
   save.day = G.day + 1;
   persist();
@@ -328,6 +352,7 @@ function renderMenu() {
   $('#mCash').textContent = money(save.cash);
   $('#mDay').textContent = save.day;
   $('#mBest').textContent = money(save.best);
+  $('#mRep').textContent = save.rep.toFixed(1);
   $('#startBtn').textContent = save.day > 1 ? t('openDay', save.day) : t('openCafe');
   renderRecipes($('#menuRecipes'));
   renderShop($('#menuShop'));

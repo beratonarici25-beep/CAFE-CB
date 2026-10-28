@@ -23,7 +23,7 @@ const C = {
 /* ---------------- save ---------------- */
 const SAVE_KEY = 'cafe-cb-save-v1';
 // tutorialDone (issue #12): old saves without it get the tutorial once, like a fresh save
-const DEFAULT_SAVE = { cash: 0, day: 1, best: 0, served: 0, upgrades: [], muted: false, lang: null, tutorialDone: false };
+const DEFAULT_SAVE = { cash: 0, day: 1, best: 0, served: 0, upgrades: [], muted: false, lang: null, tutorialDone: false, debt: 0, rep: 3 };
 let save = { ...DEFAULT_SAVE };
 try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && typeof s === 'object') save = { ...save, ...s }; } catch (e) {}
 if (save.lang !== 'en' && save.lang !== 'tr') save.lang = /^tr/i.test(navigator.language || '') ? 'tr' : 'en';
@@ -36,6 +36,9 @@ function fixSave() {
   else save.recipes = [...save.recipes];
   // bought but not yet introduced: the helper shows them at the start of the next day
   save.intros = Array.isArray(save.intros) ? [...save.intros] : [];
+  // money owed and the café's name (issue #19); a save from before them starts clean and neutral
+  save.debt = Number.isFinite(save.debt) && save.debt > 0 ? save.debt : 0;
+  save.rep = Number.isFinite(save.rep) ? Math.min(5, Math.max(1, save.rep)) : 3;
 }
 fixSave();
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }

@@ -217,7 +217,7 @@ function evaluate(o, c, patience) {
   // a quick, decent drink earns a little extra on top of the star tip
   const late = patience <= 0, fast = !late && patience >= 0.6 && stars >= 3;
   const pay = empty ? 0 : Math.round((acc >= 0.6 ? base : acc >= 0.3 ? base * 0.4 : 0) * (late ? 0.6 : 1) * 4) / 4;
-  const tip = Math.round(((stars >= 4 ? base * (stars === 5 ? 0.35 : 0.15) : 0) + (fast ? base * 0.1 : 0)) * (has('tipjar') ? 1.5 : 1) * 4) / 4;
+  const tip = Math.round(((stars >= 4 ? base * (stars === 5 ? 0.35 : 0.15) : 0) + (fast ? base * 0.1 : 0)) * (has('tipjar') ? 1.5 : 1) * repTipMult(save.rep) * 4) / 4;
 
   let quote;
   const miss = checks.find(x => !x.ok), q = o.r.q;
@@ -226,5 +226,5 @@ function evaluate(o, c, patience) {
   else if (miss) quote = miss.say;
   else if (patience <= 0) quote = L.forever;
   else quote = L.meh[q % L.meh.length];
-  return { checks, acc, parts, quality, speed, stars, pay, tip, fast, late, quote };
+  return { checks, acc, parts, quality, speed, stars, pay, tip, cost: cents(base * ECON.costRate), fast, late, quote };
 }
