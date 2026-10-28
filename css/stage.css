@@ -181,6 +181,12 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 .cam #sceneTicket { flex-basis: 300px; }
 .cam .say { font-size: 24px; }
 .cam .z-milk { grid-template-columns: 226px 160px; grid-template-areas: "h h" "fridge pitcher" "fridge ctl"; }
+/* the keys and buttons on the shrunk machines are under a third of their size on a phone: bigger there (a tap that
+   just misses one still counts, see nearKey() in js/station.js) */
+.cam .mach-panel, .cam .mach-head { grid-template-columns: 1fr 150px; }
+.cam .panel-right .key, .cam .grinder-body .key { font-size: 15px; padding: 14px 1px 7px; }
+.cam .mbtn.steam { font-size: 17px; padding-block: 10px; }
+.cam .mbtn.round, .cam .mbtn.brew { width: 70px; height: 70px; font-size: 17px; }
 
 /* a slimmer top bar on short screens (a phone held sideways), so the stage gets the height */
 @media (max-height: 500px) {

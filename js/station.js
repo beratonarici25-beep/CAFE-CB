@@ -323,6 +323,13 @@ function onPointerDown(e) {
   }
   const src = e.target.closest('[data-drag]');
   if (!src || !canDrag(src.dataset.drag)) {
+    const key = nearKey(e);
+    if (key) {
+      e.preventDefault();
+      if ('hold' in key.dataset) key.dispatchEvent(new PointerEvent('pointerdown', { pointerId: e.pointerId, pointerType: e.pointerType, isPrimary: e.isPrimary, button: 0, clientX: e.clientX, clientY: e.clientY }));
+      else key.click();
+      return;
+    }
     const tapAway = () => { if (held && !e.target.closest('button, .key')) clearHeld(); };
     // on a phone a swipe over the bench pans the camera; only a tap puts a held object back
     if (!Cam.grab(e, tapAway)) tapAway();
@@ -499,8 +506,22 @@ function makeChips(el, keys, fn) {
     el.appendChild(b);
   }
 }
+// on a phone the keys and buttons on the shrunk machines are tiny: a tap on the bench that misses one by a little
+// (not on anything else that takes a tap or a drag) presses the nearest
+function nearKey(e) {
+  if (!UI.cam || !e.target.closest('#bench') || e.target.closest('button, .key, [data-press], [data-drag], .meter')) return null;
+  let best = null, bd = 16;
+  for (const el of $('#bench').querySelectorAll('.key, .mbtn')) {
+    if (el.disabled) continue;
+    const r = el.getBoundingClientRect(); if (!r.width) continue;
+    const d = Math.hypot(Math.max(r.left - e.clientX, 0, e.clientX - r.right), Math.max(r.top - e.clientY, 0, e.clientY - r.bottom));
+    if (d < bd) { bd = d; best = el; }
+  }
+  return best;
+}
 function holdable(btn, onStart, onEnd) {
   let on = false;
+  btn.dataset.hold = '';
   const start = () => { if (btn.disabled || on) return; on = true; btn.classList.add('active'); sfx.init(); sfx.button(); onStart(); };
   const end = () => { if (!on) return; on = false; btn.classList.remove('active'); onEnd(); };
   btn.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.preventDefault(); try { btn.setPointerCapture(e.pointerId); } catch (_) {} start(); });
