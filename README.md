@@ -60,7 +60,7 @@ Geliştirmeye devam edicem, katkılara açığım.
 | `tools/logo.py` | Cleans the logo master into `logo.png` and `logo-menu.webp` (Python, Pillow + NumPy) |
 | `tools/icons.js` | Renders the PNG app icons and the favicon from `assets/cover/logo.png` |
 | `tools/blender/models.py` | Builds every 3D model from primitives in Blender and renders them (toon shading, ink outline, one upper-left light) |
-| `assets/` | Background SVGs (café wall, seating, back bar), the app icons and favicon; `assets/helper/art.js` is the helper's SVG; `assets/CREDITS.md` lists sources |
+| `assets/` | Background SVGs (café wall, seating, back bar), the app icons and favicon; `assets/helper/*.webp` are the helper's poses (`tools/blender/helper_style.py`, needs the MPFB2 add-on's `data` folder); `assets/CREDITS.md` lists sources |
 | `tests/e2e.js` | End-to-end test that brews real orders by dragging, through both views |
 | `tests/fuzz.js` | Random-play monkey test with state invariants |
 | `tests/tutorial.js` | Plays the tutorial with drags (desktop) and taps (phone); skip, replay, language, old saves |

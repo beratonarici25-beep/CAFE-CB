@@ -12,7 +12,9 @@ const Helper = (() => {
   const root = document.createElement('div');
   root.className = 'helper side-left';
   root.hidden = true;
-  root.innerHTML = `<div class="hl-figure">${HELPER_ART}</div>
+  root.innerHTML = `<div class="hl-figure"><div class="hl-pic">
+      <img class="helper-art hl-shut" alt="" draggable="false"><img class="helper-art hl-open" alt="" draggable="false">
+      <span class="hl-badge" id="hlName"></span></div></div>
     <div class="hl-bubble" role="status" aria-live="polite">
       <div class="hl-who"><b class="hl-name"></b><span class="hl-role"></span></div>
       <p class="hl-text"></p>
@@ -21,10 +23,22 @@ const Helper = (() => {
   document.body.appendChild(root);
   const $q = s => root.querySelector(s);
   let cur = null, talkTimer = 0, side = 'left', vert = 'bottom';
-
   const POSES = ['talk', 'point', 'cheer', 'warn', 'wave'];
+  // her pictures (issue #18, rendered by tools/blender/helper_style.py): one per pose, and the pointing arm in three
+  // heights on each side; most also have a talking twin with the mouth open that flickers in while she speaks
+  const SPEAKS = ['talk', 'wave', ...['L', 'R'].flatMap(s => ['down', 'level', 'up'].map(h => `point-${s}-${h}`))];
+  let pose = 'talk', reach = 'level';
+  const shut = $q('.hl-shut'), open = $q('.hl-open');
+  function paint() {
+    const f = pose === 'point' ? `point-${side === 'right' ? 'R' : 'L'}-${reach}` : pose;
+    const a = `assets/helper/${f}.webp`, b = `assets/helper/${SPEAKS.includes(f) ? f + '-open' : f}.webp`;
+    if (shut.getAttribute('src') !== a) shut.src = a;
+    if (open.getAttribute('src') !== b) open.src = b;
+  }
   function setPose(p) {
+    pose = p;
     for (const k of POSES) root.classList.toggle('pose-' + k, k === p);
+    paint();
   }
   const name = () => t('helper.name');
   function render() {
@@ -45,7 +59,7 @@ const Helper = (() => {
     box.hidden = !box.children.length;
   }
   const setSpot = (s, v) => {
-    if (s !== side) { root.classList.toggle('side-left', s === 'left'); root.classList.toggle('side-right', s === 'right'); side = s; }
+    if (s !== side) { root.classList.toggle('side-left', s === 'left'); root.classList.toggle('side-right', s === 'right'); side = s; paint(); }
     if (v !== vert) { root.classList.toggle('at-top', v === 'top'); vert = v; }
   };
   const visible = q => q.width > 0 && q.height > 0 && q.right > 0 && q.bottom > 0 && q.left < window.innerWidth && q.top < window.innerHeight;
@@ -62,13 +76,14 @@ const Helper = (() => {
     if (typeof fit === 'function') fit();
   }
   const view = () => window.CB && CB.view ? CB.view() : null;
-  // the pointing arm turns toward the first lit target (0deg hangs down, positive turns clockwise)
+  // the pointing arm reaches toward the first lit target: down, level or up (the picture nearest that angle)
   function aim(r) {
-    if (!r) { root.style.removeProperty('--arm'); return; }
+    if (!r) { reach = 'level'; paint(); return; }
     const f = $q('.hl-figure').getBoundingClientRect(), right = side === 'right';
-    const sx = f.left + f.width * (right ? 39 : 121) / 160, sy = f.top + f.height * 149 / 222;
-    const deg = Math.atan2(-(r.left + r.width / 2 - sx), r.top + r.height / 2 - sy) * 180 / PI;
-    root.style.setProperty('--arm', (right ? clamp(deg, 25, 170) : clamp(deg, -170, -25)).toFixed(0) + 'deg');
+    const sx = f.left + f.width / 2 + (right ? -1 : 1) * f.height * 0.218, sy = f.top + f.height * 0.667;
+    const deg = Math.abs(Math.atan2(-(r.left + r.width / 2 - sx), r.top + r.height / 2 - sy) * 180 / PI);
+    reach = deg < 67 ? 'down' : deg < 112 ? 'level' : 'up';
+    paint();
   }
   // stand where she covers nothing: not what she talks about, and no other button either (issues #15, #23).
   // Biggest first: every corner at full size, then smaller; if even the smallest covers something, the strip.

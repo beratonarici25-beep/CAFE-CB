@@ -9,7 +9,7 @@ No real brand names or logos are used (labels on bottles, bags and cartons are p
 | --- | --- | --- |
 | `bg-wall.svg`, `bg-seating.svg` (café background) | Original | Same as this repository |
 | `backbar.svg` (shelves, jars, bags, syrups, cartons, chalk menu) | Original | Same as this repository |
-| `helper/art.js` (the head barista, Jesica / Ülkü) | Original; described from a reference photo that is **not** included | Same as this repository |
+| `helper/*.webp` (the head barista, Jesica / Ülkü: 18 pictures) | Rendered in Blender by `tools/blender/helper_style.py` from the MakeHuman base mesh, body targets and default rig (weights) of the MPFB2 add-on (extensions.blender.org/add-ons/mpfb, v2.0.18). The add-on is only a tool on the maker's computer and is not in this repository; the MakeHuman base mesh and targets are CC0, so the renders are free to use. Hair, glasses, apron and face are original. Described from a reference photo that is **not** included | Same as this repository |
 | `cover/cafecb-logo-orijinal.jpg` (the CafeCB logo) and everything made from it: `cover/logo.png`, `cover/logo-menu.webp`, `icon-*.png`, `apple-touch-icon.png`, `favicon-64.png` | Provided by the game's owner; corners cleaned and resized by `tools/logo.py` and `tools/icons.js` | Same as this repository |
 | `models/*.webp` (machine parts, grinder hopper, portafilter, tamper, pitcher, cups, bottles, shakers, knock box, bin, bell, customer layers) | Original 3D models built from primitives by `tools/blender/models.py`, rendered in Blender | Same as this repository |
 | Customers, cups, coins (`js/render.js`) | Drawn in code | Same as this repository |
