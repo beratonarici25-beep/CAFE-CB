@@ -246,6 +246,9 @@ def body_B():
         sphere('blush', 1.0, toon('blush', '#f2948a', alpha=0.0, edge=0.45), loc=bl, scale=(2.1, 0.22, 1.2), outline=0)
     cx_, cy_, cz_ = onface(0, mz - 1.6, 0.0)
     sphere('chinpatch', 1.0, toon('chinpatch', SKIN, lo=0.72), loc=(cx_, cy_ + 0.05, cz_ + 0.2), scale=(3.3, 0.25, 1.4), outline=0)
+    for sd in (-1, 1):   # skin over the mesh's creases at the corners of the mouth, which the outline pass draws as whiskers
+        wx, wy, wz = onface(sd * 3.0, mz + 0.3, 0.0)
+        sphere('cornerpatch', 1.0, toon('cornerpatch', SKIN, lo=0.72), loc=(wx, wy + 0.05, wz), scale=(1.3, 0.25, 0.9), outline=0)
     mouth(onface, mz)
     # landmarks for the shared parts
     zs = [P[i].z for i in body_ids if P[i].z > neck.z]
@@ -268,15 +271,21 @@ BROW = 0.0        # tilts the inner ends of the brows up (worried) or down
 
 def mouth(onface, mz):
     ink = toon('lipline', '#8a3a3a', lo=0.9)
-    if MOUTH == 'smile':       # a wide, happy curve
-        tube('smile', smooth_curve([onface(-2.3, mz + 0.55, 0.05), onface(-1.0, mz - 0.1, 0.1), onface(1.0, mz - 0.1, 0.1), onface(2.3, mz + 0.55, 0.05)], 10), 0.24, ink, outline=0)
+    up = toon('lipup', '#d9606c', 'gloss', lo=0.8); lo = toon('liplo', '#e8777f', 'gloss', lo=0.8)
+    if MOUTH == 'smile':       # two soft rouged lips with a thin smiling line between them
+        x, y, z = onface(0, mz + 0.3, -0.1)
+        sphere('lipup', 1.0, up, loc=(x, y, z), scale=(1.95, 0.3, 0.4), outline=0)
+        x, y, z = onface(0, mz - 0.4, -0.1)
+        sphere('liplo', 1.0, lo, loc=(x, y, z), scale=(1.65, 0.34, 0.55), outline=0)
+        tube('smile', smooth_curve([onface(-2.3, mz + 0.35, -0.2), onface(-1.0, mz - 0.02, -0.28), onface(1.0, mz - 0.02, -0.28), onface(2.3, mz + 0.35, -0.2)], 10), 0.1, ink, outline=0)
     elif MOUTH == 'open':      # an open laugh: a dark D with teeth and a tongue
         x, y, z = onface(0, mz - 0.1, -0.08)
+        ux, uy, uz = onface(0, mz + 0.8, -0.1); lx, ly, lz = onface(0, mz - 1.15, -0.1)
+        sphere('lipup', 1.0, up, loc=(ux, uy, uz), scale=(1.95, 0.3, 0.36), outline=0)
+        sphere('liplo', 1.0, lo, loc=(lx, ly, lz), scale=(1.7, 0.34, 0.5), outline=0)
         sphere('mouth', 1.0, toon('mouthin', '#5b1d22', lo=1.0), loc=(x, y + 0.05, z - 0.1), scale=(1.9, 0.3, 1.05), outline=0)
         sphere('teeth', 1.0, toon('teeth', '#fffaf2', lo=0.95), loc=(x, y - 0.1, z + 0.55), scale=(1.55, 0.12, 0.34), outline=0)
         sphere('tongue', 1.0, toon('tongue', '#ec8484', lo=0.85), loc=(x, y - 0.12, z - 0.5), scale=(1.0, 0.16, 0.38), outline=0)
-        tube('corners', smooth_curve([onface(-2.5, mz + 0.8, 0.05), onface(-1.9, mz + 0.2, 0.08)], 4), 0.2, ink, outline=0)
-        tube('corners', smooth_curve([onface(2.5, mz + 0.8, 0.05), onface(1.9, mz + 0.2, 0.08)], 4), 0.2, ink, outline=0)
     elif MOUTH == 'o':         # a small worried "o"
         x, y, z = onface(0, mz - 0.1, -0.08)
         sphere('mouth', 1.0, toon('mouthin', '#5b1d22', lo=1.0), loc=(x, y + 0.05, z), scale=(0.95, 0.3, 0.9), outline=0)
@@ -397,7 +406,7 @@ def body_mat(sh, mz, lip_y, neck_z):
                 L.new(v, n.inputs[k])
         return n.outputs[0]
     c = mix(top, srgb(SKIN) + (1,), srgb(TOP) + (1,))
-    c = mix(lips, c, srgb('#dd6f78') + (1,))
+    c = mix(lips, c, srgb(SKIN) + (1,))
     L.new(c, mul.inputs[2])
     return m
 
