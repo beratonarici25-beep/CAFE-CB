@@ -7,7 +7,7 @@
 .scene .talk { z-index: 3; padding-top: 64px; }
 
 /* depth (issue #9): the far wall is softest, the seating a little blurred, a leafy plant right in front is out of focus */
-.layer.far { background: url(../assets/bg-wall.svg) center bottom / cover no-repeat; filter: blur(.5px) saturate(.95); }
+.layer.far { background: url(../assets/cafe/wall.webp?v=39) center bottom / cover no-repeat; filter: blur(.5px); }
 /* warm pools of light the bulbs throw on the wall, and a little haze in the air further back */
 .layer.bulbs {
   background:
@@ -29,7 +29,7 @@
     radial-gradient(ellipse 28% 18% at 40% 78%, #5f9c58 60%, transparent 62%);
   filter: blur(7px); opacity: .9;
 }
-.layer.seating { background: url(../assets/bg-seating.svg) center bottom / cover no-repeat; filter: blur(1.8px) saturate(.9); opacity: .95; }
+.layer.seating { background: url(../assets/cafe/seating.webp?v=39) center bottom / cover no-repeat; filter: blur(1.8px); }
 
 /* window daylight and a warm vignette */
 .layer.sun {
@@ -74,14 +74,6 @@
 
 /* Foreground: the barista counter the player works on, in the same marble + walnut as the bar */
 :root { --bench: #ece1d3; }
-.counter {
-  background:
-    linear-gradient(170deg, transparent 0 18%, rgba(150,140,130,.16) 18.4%, transparent 19.2% 52%, rgba(150,140,130,.12) 52.4%, transparent 53.4%),
-    linear-gradient(20deg, transparent 0 34%, rgba(150,140,130,.12) 34.3%, transparent 35% 78%, rgba(150,140,130,.14) 78.3%, transparent 79%),
-    linear-gradient(#fbf8f3, #ece5db);
-  border-color: #4b2e2b;
-  box-shadow: 0 10px 0 #6a3f25, 0 13px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.8);
-}
 
 /* upgrades on show (issue #21): the comfy stools stand on the guests' side, their seats over the bar top, behind the
    customers (the canvas draws them in front); the big tip jar sits on the bar beside the tray */

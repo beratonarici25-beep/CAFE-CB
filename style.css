@@ -245,7 +245,7 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 /* --- slots (drop spots) --- */
 .slot {
   position: relative; display: grid; place-items: center; border-radius: 14px;
-  border: 2px dashed rgba(75,46,43,.28); min-height: 64px;
+  border: 2px solid transparent; min-height: 64px;
 }
 .slotlabel {
   position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; pointer-events: none;

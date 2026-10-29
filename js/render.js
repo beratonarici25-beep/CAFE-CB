@@ -364,37 +364,28 @@ function drawCup(g, c, x, y, s, slosh = 0) {
 // The bar counter in front of the customers: a marble top seen slightly from above (2.5D) over a walnut front.
 // Cached; redrawn only on resize.
 let counterCache = null;
+const counterArt = { top: new Image(), front: new Image() };
+for (const [k, f] of [['top', 'counter-top'], ['front', 'counter-front']]) {
+  counterArt[k].onload = () => { counterCache = null; };
+  counterArt[k].src = `assets/cafe/${f}.webp?v=39`;
+}
 function counterImage(W, H, cy, topD) {
-  const dpr = pxRatio(), key = W + 'x' + H + 'x' + topD + 'x' + dpr;
+  const dpr = pxRatio(), ready = counterArt.top.complete && counterArt.front.complete && counterArt.top.naturalWidth > 0;
+  const key = W + 'x' + H + 'x' + topD + 'x' + dpr + ready;
   if (counterCache && counterCache.key === key) return counterCache.cv;
   const cv = document.createElement('canvas');
   cv.width = Math.ceil(W * dpr); cv.height = Math.ceil((H - cy + 4) * dpr);
   const g = cv.getContext('2d');
   g.scale(dpr, dpr); g.translate(0, -cy + 4);
   const front = cy + topD;            // front edge of the marble top
-  // walnut front with vertical panels
-  const wood = g.createLinearGradient(0, front, 0, H);
-  wood.addColorStop(0, '#7a4a2c'); wood.addColorStop(1, '#5a341f');
-  g.fillStyle = wood; g.fillRect(0, front + 6, W, H - front);
-  g.strokeStyle = 'rgba(30,15,8,.45)'; g.lineWidth = 2;
-  for (let x = 40; x < W; x += 90) g.strokeRect(x - 34, front + 14, 68, H - front - 20);
-  g.strokeStyle = 'rgba(255,220,180,.12)'; g.lineWidth = 1;
-  for (let x = 6; x < W; x += 14) { g.beginPath(); g.moveTo(x, front + 8); g.bezierCurveTo(x + 3, front + 16, x - 3, H - 10, x + 2, H); g.stroke(); }
-  // marble top: lighter at the back, a touch darker toward you, veins running across the depth
-  const top = g.createLinearGradient(0, cy - 2, 0, front);
-  top.addColorStop(0, '#fffdf9'); top.addColorStop(1, '#e9e2d8');
-  g.fillStyle = top; g.fillRect(0, cy - 2, W, topD + 2);
-  g.strokeStyle = 'rgba(150,140,130,.42)'; g.lineWidth = 1;
-  for (let x = -30, k = 0; x < W; x += 70, k++) {
-    g.beginPath(); g.moveTo(x, cy + (k % 3) * 2);
-    g.bezierCurveTo(x + 22, cy + topD * 0.4, x + 30, cy + topD * 0.55, x + 58 + (k % 2) * 14, front - 1); g.stroke();
+  if (ready) {
+    // the Blender renders (tools/blender/cafe.py): the marble top, then the walnut front, tiled sideways
+    g.drawImage(counterArt.top, 0, cy - 2, W, topD + 2);
+    const fh = H - front, fw = fh * counterArt.front.naturalWidth / counterArt.front.naturalHeight;
+    for (let x = 0; x < W; x += fw) g.drawImage(counterArt.front, x, front, fw + 1, fh);
+    g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(0, front, W, 3);
+    g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(0, cy - 2, W, 2);
   }
-  g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(0, cy, W, 2);
-  // the thick front lip of the slab
-  g.fillStyle = '#d9d0c4'; g.fillRect(0, front, W, 6);
-  g.strokeStyle = C.ink; g.lineWidth = 3;
-  g.beginPath(); g.moveTo(0, cy - 2); g.lineTo(W, cy - 2); g.moveTo(0, front); g.lineTo(W, front); g.moveTo(0, front + 6); g.lineTo(W, front + 6); g.stroke();
-  g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(0, front + 7, W, 7);
   counterCache = { key, cv };
   return cv;
 }

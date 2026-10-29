@@ -16,48 +16,37 @@
 /* ---------- back bar: shelves behind the barista ---------- */
 .backbar {
   height: 168px; margin: -6px 6px -30px; position: relative; z-index: 0; pointer-events: none;
-  background: url(../assets/backbar.svg) center bottom / cover no-repeat;
-  filter: saturate(.92);
+  background: url(../assets/cafe/backbar.webp?v=39) center bottom / cover no-repeat;
 }
 .counter { position: relative; z-index: 1; }
 
 /* ---------- the counter: marble top, walnut front, everything sits on it ---------- */
 .counter {
   margin-bottom: 30px;
-  background:
-    radial-gradient(ellipse 60% 80% at 12% 0%, rgba(255,246,225,.55), transparent 70%),
-    linear-gradient(168deg, transparent 0 18%, rgba(150,140,130,.16) 18.4%, transparent 19.2% 52%, rgba(150,140,130,.12) 52.4%, transparent 53.4%),
-    linear-gradient(24deg, transparent 0 34%, rgba(150,140,130,.12) 34.3%, transparent 35% 78%, rgba(150,140,130,.14) 78.3%, transparent 79%),
-    linear-gradient(var(--marble-hi), var(--marble-lo));
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.9), inset 0 -6px 10px rgba(120,100,80,.12);
+  /* the marble bar top is a Blender render (tools/blender/cafe.py); the front below it is a walnut strip that tiles sideways */
+  background: url(../assets/cafe/counter-top.webp?v=39) 0 0 / 100% 100% no-repeat, #ece5db;
+  box-shadow: inset 0 -10px 14px -6px rgba(120,100,80,.25), inset 0 8px 10px -6px rgba(60,40,25,.35);
 }
-/* the walnut front panel under the slab's lip */
 .counter::after {
-  content: ""; position: absolute; left: -3px; right: -3px; top: calc(100% + 3px); height: 26px; pointer-events: none;
-  border: 3px solid var(--ink); border-top: 0; border-radius: 0 0 16px 16px;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 46px, rgba(30,15,8,.35) 46px 48px, transparent 48px 50px),
-    repeating-linear-gradient(90deg, rgba(255,220,180,.07) 0 3px, transparent 3px 11px),
-    linear-gradient(var(--walnut-hi), var(--walnut) 40%, var(--walnut-lo));
-  box-shadow: 0 8px 12px rgba(40,20,10,.25);
+  content: ""; position: absolute; left: -3px; right: -3px; top: calc(100% - 2px); height: 30px; pointer-events: none;
+  background: url(../assets/cafe/counter-front.webp?v=39) 0 0 / auto 100% repeat-x;
+  border-radius: 0 0 14px 14px; box-shadow: 0 10px 14px rgba(40,20,10,.3);
 }
 
 /* stations are areas of the counter, not cards: only a small label plate marks each one */
 .zone { background: transparent; border: 0; box-shadow: none; padding: 6px 4px; }
 .zone h3 {
-  justify-self: start; width: fit-content; max-width: 100%;
-  background: linear-gradient(#fffaf3, #f1e6da); border: 2px solid rgba(75,46,43,.55); border-radius: 9px;
-  padding: 2px 9px 2px 4px; font-size: 14px; box-shadow: var(--drop-sm), inset 0 1px 0 #fff;
+  justify-self: start; width: fit-content; max-width: 100%; font-size: 12px; letter-spacing: .02em; color: #4b2e2b;
+  background: linear-gradient(#f3e2b0, #d6b565 55%, #c39f4d); border: 0; border-radius: 4px; padding: 1px 8px;
+  box-shadow: 1px 2px 3px rgba(40,20,10,.35), inset 0 1px 0 rgba(255,255,255,.7), inset 0 -1px 0 rgba(120,80,20,.4); opacity: .92;
 }
+.zone h3 .step { display: none; }
 .zone h3 .hint { margin-left: 4px; }
 .z-serve { background: transparent; }
 
 /* black rubber bar mats under the machines */
-.barmat {
-  background: radial-gradient(circle, var(--rubber-dot) 1.6px, transparent 2px) 0 0 / 9px 9px, var(--rubber);
-  border-radius: 14px; padding: 10px 8px 12px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.7), var(--drop-sm);
-}
+/* the machines stand straight on the bar top; the shadow comes from the machine bodies themselves */
+.barmat { padding: 10px 8px 12px; }
 
 /* ---------- cups: paper cup stacks, lids, sleeves ---------- */
 .z-cups { justify-items: center; }
@@ -97,16 +86,15 @@
 }
 .hopper-lid { position: absolute; left: -3px; right: -3px; top: -1px; height: 8px; background: linear-gradient(#4a3532, #241614); border-radius: 4px; z-index: 2; }
 .grinder-body {
-  background: linear-gradient(100deg, #7a5650 0%, #4b2e2b 30%, #33201e 75%, #241614);
-  border: 3px solid var(--ink); border-radius: 14px 14px 8px 8px;
-  box-shadow: inset 3px 3px 0 rgba(255,255,255,.12), var(--drop);
+  background: url(../assets/cafe/grinder.webp?v=39) 0 0 / 100% 100% no-repeat; border: 0; border-radius: 14px 14px 8px 8px;
+  box-shadow: 7px 11px 12px -5px rgba(40,20,10,.42);
 }
-.grinder-body .chute { background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi) 35%, var(--steel-lo)); border: 2px solid var(--ink); border-top: 0; height: 14px; bottom: -14px; }
-.grinder .slot { border-color: rgba(255,250,243,.35); }
-.grinder-foot { width: min(100%, 200px); height: 12px; margin-top: 4px; border: 3px solid var(--ink); border-radius: 6px; background: linear-gradient(#4b2e2b, #241614); }
+.grinder-body .chute { background: none; border: 0; height: 14px; bottom: -14px; }
+.grinder .slot { border-color: transparent; }
+.grinder-foot { display: none; }
 
 .tampstation { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
-.tampstation > .slot { background: linear-gradient(rgba(255,255,255,.35), rgba(255,255,255,0)); }
+.tampstation > .slot { background: none; }
 .tampmat { display: grid; gap: 6px; justify-items: center; }
 .tamperslot {
   width: 64px; border: 0;
@@ -140,14 +128,12 @@
 .machine-mat { padding: 8px 8px 10px; }
 .machine {
   position: relative; gap: 7px; padding: 6px 16px 10px;
+  /* the steel body with its enamel side panels is a Blender render; a soft sheen on top gives the brushed steel its light */
   background:
-    linear-gradient(90deg, rgba(255,255,255,0) 0, rgba(255,255,255,.55) 14%, rgba(255,255,255,0) 30%, rgba(0,0,0,0) 72%, rgba(0,0,0,.14) 100%),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.09) 0 1px, rgba(0,0,0,.025) 1px 3px),
-    linear-gradient(#eef2f4, #bcc6cc);
+    linear-gradient(105deg, rgba(255,255,255,.5) 0, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 70%, rgba(40,60,70,.16) 100%),
+    url(../assets/cafe/machine.webp?v=39) 0 0 / 100% 100% no-repeat;
   border-radius: 16px 16px 8px 8px;
-  /* brand-coloured side panels, lit on the left */
-  box-shadow: inset 9px 0 0 #f0a79e, inset 12px 0 0 rgba(75,46,43,.35), inset -9px 0 0 #c96f66, inset -12px 0 0 rgba(75,46,43,.35),
-    inset 0 3px 0 rgba(255,255,255,.85), 5px 9px 12px rgba(20,10,5,.45);
+  box-shadow: 9px 14px 14px -6px rgba(40,20,10,.45);
 }
 /* cup warmer on top with a few ceramic cups upside down */
 .mach-top {
@@ -170,7 +156,7 @@
   background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi) 30%, var(--steel) 60%, var(--steel-lo));
   box-shadow: 0 3px 0 rgba(0,0,0,.18);
 }
-.group .slot { border-color: rgba(75,46,43,.3); }
+.group .slot { border-color: transparent; }
 .mach-right { display: grid; gap: 8px; justify-items: center; }
 .gauges { display: flex; gap: 6px; }
 .gauge-dial {
@@ -192,16 +178,8 @@
   width: 58px; height: 14px; margin-top: 3px; border-radius: 50% 8px 8px 50%; border: 2px solid var(--ink);
   background: linear-gradient(90deg, var(--steel) 0 30%, #6e3d22 30%, #9a5e3a 60%, #4a2716);
 }
-.mach-tray {
-  position: relative; background: linear-gradient(#a9b3b9, #7f8b92); border: 2px solid var(--ink); border-radius: 12px;
-  padding: 8px 6px 18px 8px; box-shadow: inset 0 3px 6px rgba(0,0,0,.35);
-}
-/* drip tray grill along the bottom */
-.mach-tray::after {
-  content: ""; position: absolute; left: 8px; right: 8px; bottom: 5px; height: 9px; border-radius: 4px; border: 2px solid var(--ink);
-  background: repeating-linear-gradient(90deg, #4b555b 0 3px, #d7dee2 3px 6px, #9aa4aa 6px 8px);
-}
-.mach-tray .cupslot, .wandbox .slot { background: none; border-color: rgba(255,255,255,.55); }
+.mach-tray { position: relative; background: none; border: 0; border-radius: 12px; padding: 8px 6px 18px 8px; }
+.mach-tray .cupslot, .wandbox .slot { background: none; border-color: transparent; }
 .wandbox { position: relative; }
 .wand-pipe { background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi) 40%, var(--steel-lo)); top: -46px; height: 52px; }
 .hotwater {
@@ -211,17 +189,10 @@
 
 /* ---------- milk: under-counter fridge with a glass door, steel pitcher ---------- */
 .fridge {
-  position: relative; padding: 7px; border: 3px solid var(--ink); border-radius: 10px;
-  background: var(--steel-grad); box-shadow: var(--drop);
+  position: relative; padding: 7px; background: url(../assets/cafe/fridge.webp?v=39) 0 0 / 100% 100% no-repeat; border: 0; border-radius: 10px;
+  box-shadow: 7px 11px 12px -5px rgba(40,20,10,.42);
 }
-.fridge::before {
-  content: ""; position: absolute; right: 9px; top: 12px; bottom: 12px; width: 5px; border-radius: 3px; z-index: 2;
-  background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi), var(--steel-lo)); border: 1.5px solid var(--ink);
-}
-.fridge .bottles {
-  position: relative; padding: 8px 14px 6px 6px; border: 2px solid var(--ink); border-radius: 6px; overflow: hidden;
-  background: linear-gradient(#cfe4ea, #a9c9d2); box-shadow: inset 0 0 12px rgba(30,60,80,.35);
-}
+.fridge .bottles { position: relative; padding: 8px 14px 6px 6px; overflow: hidden; background: none; border: 0; }
 /* the glass door's reflection */
 .fridge .bottles::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -275,7 +246,7 @@
 .z-prep .cupinfo { background: rgba(255,250,243,.85); border-radius: 8px; padding: 2px 6px; }
 .servetray {
   background: radial-gradient(ellipse 46% 18px at 50% calc(100% - 18px), #c98b62 0 70%, #8c5a35 88%, transparent 92%);
-  border: 2px dashed rgba(79,158,112,.6);
+  border: 0;
 }
 .pass-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
 .mbtn.bellbtn { background: linear-gradient(#fff3cf, #f2c46a); }
@@ -337,7 +308,6 @@
 }
 .bottle-obj.syrup .pumphead::after { display: none; }
 .bottle-obj.syrup .pumphead:hover { background: rgba(255,214,140,.35); }
-.fridge .bottles { padding-top: 10px; }
 
 /* espresso machine parts */
 .mach-top { display: block; height: auto; border: 0; box-shadow: none; margin: -2px 6px -2px; }
