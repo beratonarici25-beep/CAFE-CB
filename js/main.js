@@ -81,7 +81,7 @@ function nextCustomer() {
   G.cust = makeCustomer();
   // the first guest of the day orders the new drink, so the helper can show how it is made
   G.order = Tutorial.active && G.idx === 0 ? Tutorial.order() : makeOrder(G.day, G.fresh || [], Intro.active && G.idx === 0 ? Intro.drink : null);
-  G.typed = 0; G.patience = 1; G.served = null; G.result = null; G.ticket++;
+  G.typed = 0; G.patience = 1; G.grace = 0; G.served = null; G.result = null; G.ticket++;
   resetBench();
   $('#say').textContent = '';
   $('#bubble').hidden = true;
@@ -121,6 +121,19 @@ function serve() {
   setState('COMPLETED');
   clearTimeout(G.resultTimer);
   G.resultTimer = setTimeout(showResult, 1500);
+}
+// the patience bar has been empty for WALKOUT_GRACE seconds: the customer leaves without paying
+const WALKOUT_GRACE = 4;
+function walkOut() {
+  stopAllSounds();
+  B.cup = newCup(); layout();
+  G.peek = false;
+  G.stars.push(1); G.idx++;
+  G.cust.mood = 'upset'; G.cust.react = 'shake'; G.cust.reactT = 0; G.cust.state = 'leave';
+  toast(t('walkedOut', G.cust.name));
+  sfx.sad();
+  $('#bubble').hidden = true;
+  setState('COMPLETED');
 }
 function fillResult() {
   const r = G.result;
@@ -509,6 +522,7 @@ function update(dt) {
       if ((G.state === 'ORDER_PENDING' || G.state === 'PREPARING' || G.state === 'READY_TO_SERVE') && !Tutorial.active && !Intro.active) {
         G.patience = Math.max(0, G.patience - dt / G.patMax);
         c.mood = G.patience > 0.55 ? 'happy' : G.patience > 0.25 ? 'neutral' : 'annoyed';
+        if (G.patience === 0 && (G.grace += dt) >= WALKOUT_GRACE) walkOut();
       }
     }
     if (c.reactT != null) c.reactT += dt;
