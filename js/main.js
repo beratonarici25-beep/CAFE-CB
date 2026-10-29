@@ -156,7 +156,7 @@ function serve() {
 const WALKOUT_GRACE = 4;
 // The day runs on a clock: the café opens at 9:00 and the last guest is the one at the bar at 22:00.
 const OPEN_MIN = 9 * 60, CLOSE_MIN = 22 * 60, CLOCK_RATE = 2; // game minutes per second
-const gapAt = m => 25 * Math.pow(1 - (m - OPEN_MIN) / (CLOSE_MIN - OPEN_MIN), 1.5); // seconds between guests: 25 s at opening, none at closing
+const gapAt = m => (15 + 5 * Math.random()) * Math.pow(1 - (m - OPEN_MIN) / (CLOSE_MIN - OPEN_MIN), 1.5); // seconds between guests: 15–20 s at opening, none at closing
 const clockText = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.floor(m % 60 / 10) * 10).padStart(2, '0');
 const closing = () => G.clock >= CLOSE_MIN;
 function walkOut() {
