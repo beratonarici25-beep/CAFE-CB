@@ -113,12 +113,15 @@ function hearOut() {
   render();
 }
 function showDoor() {
-  if (G.state !== 'ORDER_PENDING' || G.chat === 'kicked') return;
+  const mid = G.state === 'PREPARING' || G.state === 'READY_TO_SERVE';
+  if ((G.state !== 'ORDER_PENDING' && !mid) || G.chat === 'kicked' || !G.cust || G.cust.state !== 'wait') return;
   sfx.click();
-  G.chat = 'kicked'; G.typed = 0;
+  // sent away mid-order: the half-made drink goes, and they say their piece at once (the customer view stays on screen)
+  if (mid) { stopAllSounds(); B.cup = newCup(); layout(); G.peek = true; }
+  G.chat = 'kicked'; G.typed = mid ? Infinity : 0;
   G.cust.mood = 'upset'; G.cust.react = 'shake'; G.cust.reactT = 0;
   G.kickStars = G.cust.rude ? 2 : 1;
-  $('#say').textContent = '';
+  $('#say').textContent = mid ? curText() : '';
   render();
   setTimeout(() => {
     if (!G.cust || G.chat !== 'kicked') return;
@@ -131,7 +134,7 @@ function showDoor() {
 }
 // the cup was dropped on the customer: they check it, react, and leave their money on the bar
 function serve() {
-  if (G.state !== 'READY_TO_SERVE') return;
+  if (G.state !== 'READY_TO_SERVE' || G.chat) return;
   const cup = B.cup;
   if (!cup.size) { toast(t('pickFirst')); return; }
   stopAllSounds();
@@ -247,7 +250,7 @@ function endDay() {
 /* ---------------- menus, HUD, language ---------------- */
 $('#takeBtn').addEventListener('click', takeOrder);
 $('#keepBtn').addEventListener('click', hearOut);
-$('#kickBtn').addEventListener('click', showDoor);
+document.querySelectorAll('.kickbtn').forEach(b => b.addEventListener('click', showDoor));
 $('#peekBtn').addEventListener('click', () => peek(true));
 $('#backBtn').addEventListener('click', () => peek(false));
 $('#nextBtn').addEventListener('click', afterResult);
@@ -453,8 +456,9 @@ function render() {
   $('#takeBtn').hidden = !!G.chat;
   $('#keepBtn').hidden = G.chat !== 'rude' || !talking;
   $('#kickBtn').hidden = !talking;
-  $('#peekActions').hidden = G.state !== 'PREPARING';
-  $('#handHint').hidden = G.state !== 'READY_TO_SERVE';
+  $('#peekActions').hidden = G.state !== 'PREPARING' || G.chat === 'kicked';
+  $('#serveActions').hidden = G.state !== 'READY_TO_SERVE' || !waiting || G.chat === 'kicked';
+  $('#handHint').hidden = G.state !== 'READY_TO_SERVE' || G.chat === 'kicked';
   $('#custZone').hidden = G.state !== 'READY_TO_SERVE' || !waiting;
   const text = curText();
   // the ticket appears once the order has been said, and then stays pinned in both views until the drink is handed over
