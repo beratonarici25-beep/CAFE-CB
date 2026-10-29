@@ -4,7 +4,7 @@
 const ECON = {
   costRate: 0.25,   // ingredients: this share of what the drink would cost, whatever the guest paid
   freeDays: 1,      // the first day (the tutorial) has no rent
-  rentBase: 4, rentPerDay: 0.5, rentMax: 10,   // rent is due at the end of every day
+  rentBase: 10, rentPerDay: 0.5, rentMax: 20,   // rent is due at the end of every day
   repKeep: 0.7,     // reputation is a running average: a day's stars count for the other 30%
   repStart: 3,
 };
