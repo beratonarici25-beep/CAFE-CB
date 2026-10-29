@@ -67,7 +67,7 @@ function peek(on) {
 
 function startDay() {
   sfx.init();
-  G.day = save.day; G.idx = 0; G.total = Math.max(3, Math.min(4 + G.day, 9) + repGuests(save.rep)); G.earned = 0; G.stars = [];
+  G.day = save.day; G.idx = 0; G.clock = OPEN_MIN; G.gap = 0; G.earned = 0; G.stars = [];
   G.sales = 0; G.tips = 0; G.cost = 0; G.top = null; G.sum = null;
   G.patMax = 70 * (has('stools') ? 1.25 : 1);
   G.cust = null;
@@ -79,6 +79,9 @@ function startDay() {
 }
 function nextCustomer() {
   G.cust = makeCustomer();
+  // the shop is quiet in the morning and busy in the evening: the next guest waits outside, longer early in the day
+  // (the tutorial and a new drink's intro start at once)
+  G.gap = Tutorial.active || Intro.active ? 0 : gapAt(G.clock) / (1 + 0.1 * repGuests(save.rep));
   // now and then a guest starts rude: a short chat where you hear them out (they lose patience faster, but tip well) or show them the door
   G.chat = !Tutorial.active && !Intro.active && G.day >= 2 && Math.random() < 0.1 ? 'rude' : null;
   G.cust.rude = !!G.chat; G.rudeN = ri(3);
@@ -119,7 +122,7 @@ function showDoor() {
   setTimeout(() => {
     if (!G.cust || G.chat !== 'kicked') return;
     toast(t('kickedOut', G.cust.name));
-    G.idx++; G.chat = null;
+    G.stars.push(2); G.idx++; G.chat = null;
     G.cust.state = 'leave';
     $('#bubble').hidden = true;
     setState('COMPLETED');
@@ -151,6 +154,11 @@ function serve() {
 }
 // the patience bar has been empty for WALKOUT_GRACE seconds: the customer leaves without paying
 const WALKOUT_GRACE = 4;
+// The day runs on a clock: the café opens at 9:00 and the last guest is the one at the bar at 22:00.
+const OPEN_MIN = 9 * 60, CLOSE_MIN = 22 * 60, CLOCK_RATE = 2; // game minutes per second
+const gapAt = m => 25 * Math.pow(1 - (m - OPEN_MIN) / (CLOSE_MIN - OPEN_MIN), 1.5); // seconds between guests: 25 s at opening, none at closing
+const clockText = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.floor(m % 60 / 10) * 10).padStart(2, '0');
+const closing = () => G.clock >= CLOSE_MIN;
 function walkOut() {
   stopAllSounds();
   B.cup = newCup(); layout();
@@ -172,7 +180,7 @@ function fillResult() {
   const bars = [{ name: L.bars.order, v: r.acc, txt: Math.round(r.acc * 100) + '%' }, ...r.parts, { name: L.bars.speed, v: r.speed, txt: Math.round(r.speed * 100) + '%' }];
   $('#rBars').innerHTML = bars.map(b => `<div class="bar"><span>${b.name}</span><i><em style="width:${Math.round(b.v * 100)}%;background:${b.v >= 0.75 ? 'var(--mint)' : b.v >= 0.4 ? 'var(--butter)' : 'var(--blush-deep)'}"></em></i><span>${b.txt}</span></div>`).join('');
   $('#rMoney').innerHTML = `<span>+${money(r.pay)}</span>${r.tip ? `<span class="tip">${t('tip', money(r.tip))}</span>` : ''}`;
-  $('#nextBtn').textContent = G.idx + 1 >= G.total ? t('closeShop') : t('nextCustomer');
+  $('#nextBtn').textContent = closing() ? t('closeShop') : t('nextCustomer');
 }
 function showResult() {
   if (G.state !== 'COMPLETED' || !G.cust || !G.result) return;
@@ -192,7 +200,7 @@ function afterResult() {
 }
 function onLeft() {
   G.cust = null; G.served = null;
-  if (G.idx >= G.total) endDay(); else nextCustomer();
+  if (closing()) endDay(); else nextCustomer();
 }
 function fillDay() {
   const u = G.sum;
@@ -319,7 +327,7 @@ $('#menuBtn').addEventListener('click', () => {
   if (G.state === 'MENU') return;
   if (['ORDER_PENDING', 'PREPARING', 'READY_TO_SERVE', 'COMPLETED', 'RESULT'].includes(G.state)) toast(t('paused'));
   clearTimeout(G.resultTimer);
-  G.cust = null; G.order = null; G.total = 0; resetBench(); $('#bubble').hidden = true; setState('MENU');
+  G.cust = null; G.order = null; G.clock = null; resetBench(); $('#bubble').hidden = true; setState('MENU');
 });
 $('#muteBtn').addEventListener('click', () => {
   sfx.init(); save.muted = !save.muted; sfx.setMuted(save.muted); persist(); render();
@@ -435,7 +443,7 @@ function render() {
   $('#bench').classList.toggle('idle', G.state !== 'PREPARING');
   setView(viewFor());
   $('#hudDay').textContent = t('day', G.state === 'MENU' || G.state === 'DAY_END' ? save.day : G.day);
-  $('#hudCust').textContent = G.total && G.state !== 'MENU' && G.state !== 'DAY_END' ? t('guest', Math.min(G.idx + 1, G.total), G.total) : L.closed;
+  $('#hudCust').textContent = G.clock != null && G.state !== 'MENU' && G.state !== 'DAY_END' ? clockText(Math.min(G.clock, CLOSE_MIN)) : L.closed;
   $('#hudCash').textContent = money(save.cash);
   $('#muteBtn').textContent = save.muted ? L.soundOff : L.soundOn;
   const waiting = G.cust && G.cust.state === 'wait';
@@ -530,8 +538,20 @@ function drawCupObj() {
 /* ---------------- main loop ---------------- */
 function update(dt) {
   const c = G.cust;
+  // the clock runs while the café is open for business (not on the menu, the score card, the tutorial or an intro)
+  if (G.clock != null && c && G.state !== 'RESULT' && !Tutorial.active && !Intro.active) {
+    const before = G.clock;
+    G.clock += dt * CLOCK_RATE;
+    if (Math.floor(before / 10) !== Math.floor(G.clock / 10)) render();
+  }
   if (c) {
     if (c.state === 'enter') {
+      if (G.gap > 0) {
+        // nobody else comes after closing time
+        if (closing()) { G.cust = null; endDay(); return; }
+        G.gap -= dt;
+        return;
+      }
       const tx = custTargetX();
       c.x = Math.min(tx, c.x + 240 * dt);
       if (c.x >= tx) { c.state = 'wait'; onArrive(); render(); }
