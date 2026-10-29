@@ -413,7 +413,8 @@ function drawScene() {
   g.clearRect(0, 0, W, H);
   const cy = H - dims.counterH, topD = dims.topD, c = G.cust;
   // soft floor shadow where the customer stands
-  if (c) {
+  // (a guest still waiting outside for their turn is not drawn: main.js, G.gap)
+  if (c && !(c.state === 'enter' && G.gap > 0)) {
     g.fillStyle = 'rgba(40,20,10,.18)';
     g.beginPath(); g.ellipse(c.x, cy + 2, 70 * k, 10 * k, 0, 0, TAU); g.fill();
     g.save(); g.translate(c.x, cy); g.scale(k, k); drawCustomer(g, c, 0, 0); g.restore();
