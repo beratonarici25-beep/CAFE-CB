@@ -333,19 +333,39 @@ def wall():
     sc = stage(line=1.5); lights(key=2.2)
     sc.world.node_tree.nodes['Background'].inputs[1].default_value = 1.2
     W, H = 160, 86
-    conc = tex_mat('concrete', 'noisecol', c1='#b8afa3', c2='#cdc5ba', nscale=1.2, scale=(0.3, 0.3, 0.3), rough=0.85)
-    brick = tex_mat('bricks', 'brick', c1='#b8623f', c2='#a24e32', mortar='#d8c3a8', bs=1.0, bw=1.4, bh=0.55, ms=0.06, off=0.5,
+    # warm plaster above, sage painted panelling below, a walnut beam under the ceiling: lived-in, but soft and rounded
+    conc = tex_mat('plaster', 'noisecol', c1='#e3d3b8', c2='#efe2cb', nscale=1.2, scale=(0.3, 0.3, 0.3), rough=0.85)
+    brick = tex_mat('bricks', 'brick', c1='#c0694a', c2='#a8553a', mortar='#e2cfb4', bs=1.0, bw=1.4, bh=0.55, ms=0.06, off=0.5,
                     rot=(math.pi / 2, 0, 0), bump=0.9, rough=0.8)
     bx(W + 4, 1, H + 2, (W / 2, 2.6, -1), conc, bevel=0.01)
     for x0, x1 in ((0, 26), (136, 160)):
         bx(x1 - x0, 1.2, H + 2, ((x0 + x1) / 2, 2.0, -1), brick, bevel=0.01)
+    sage = col('sage', '#8fae96', rough=0.5, coat=0.3)
+    trim = col('trim', '#f1e6d2', rough=0.4, coat=0.3)
+    beam = col('beam', '#6a3f25', rough=0.35, coat=0.5, wood=True)
+    F = 19.0   # the floor line: the seating render stands its chairs on it (its z=0 lands here)
+    bx(W - 52, 1.0, 17.5, (80, 1.9, F), sage, bevel=0.2)              # wainscot panels
+    for xp in range(30, 134, 13):
+        bx(11.4, 0.3, 13.0, (xp + 6.5, 1.5, F + 2.2), trim, bevel=0.15)   # raised panel fields: cream frame, sage inset
+        bx(9.4, 0.3, 11.0, (xp + 6.5, 1.25, F + 3.2), sage, bevel=0.2)
+    bx(W - 50, 1.6, 1.3, (80, 1.5, F + 17.5), trim, bevel=0.3)        # chair rail
+    bx(W - 50, 1.6, 2.4, (80, 1.5, F), trim, bevel=0.3)               # skirting board
+    bx(W + 4, 3.4, 4.2, (W / 2, 1.2, H - 4.2), beam, bevel=0.5)       # ceiling beam
     for x0 in (32, 82):
-        xc, ww, z0, hh = x0 + 22, 44, 22, 52
+        xc, ww, z0, hh = x0 + 22, 44, 40, 40
         bx(ww, 0.4, hh, (xc, 1.6, z0), sky(), bevel=0.01)
-        for bxn, (bw, bh, bxo) in enumerate(((11, 28, -16), (14, 38, -4), (12, 22, 9), (9, 32, 17))):
-            bx(bw, 0.5, bh, (xc + bxo, 1.45, z0), col('bld' + str(bxn), ('#d9d2c8', '#cfc7bc', '#e3dcd2', '#c9c1b6')[bxn], rough=0.9), bevel=0.05)
-        ball(6.0, (xc + 12, 1.3, z0 + 30), col('tree', '#8fb08a', rough=0.8))
-        fr = col('frame', '#1f1a19', rough=0.45, coat=0.4)
+        # a pastel little street instead of grey boxes: houses with window dots, a tree on a trunk
+        for bxn, (bw, bh, bxo) in enumerate(((11, 22, -16), (14, 32, -4), (12, 17, 9), (9, 26, 17))):
+            hc = ('#f2c9b4', '#e9d9a8', '#c9dccb', '#f0b9b2')[bxn]
+            bx(bw, 0.5, bh, (xc + bxo, 1.45, z0), col('bld' + str(bxn), hc, rough=0.9), bevel=0.15)
+            wd = col('bldw' + str(bxn), '#8fb3c4', rough=0.3, coat=0.5)
+            for wi in range(int(bw // 4.5)):
+                for wj in range(int((bh - 6) // 6)):
+                    bx(2.2, 0.3, 3.0, (xc + bxo - bw / 2 + 3.0 + wi * 4.4, 1.2, z0 + 5.0 + wj * 6.2), wd, bevel=0.2)
+        cy(0.7, 7.5, (xc + 12, 1.1, z0), col('trunk', '#6a4a35', rough=0.8))
+        ball(5.2, (xc + 12, 1.0, z0 + 11.0), col('tree', '#8fb08a', rough=0.8))
+        ball(3.4, (xc + 8.4, 1.0, z0 + 8.4), col('tree2', '#a3c29a', rough=0.8))
+        fr = col('frame', '#2a2220', rough=0.45, coat=0.4)
         bx(ww + 1.6, 1.0, 1.0, (xc, 0.9, z0 - 0.5), fr, bevel=0.1); bx(ww + 1.6, 1.0, 1.0, (xc, 0.9, z0 + hh - 0.5), fr, bevel=0.1)
         for xx in (xc - ww / 2, xc, xc + ww / 2):
             bx(1.0 if xx != xc else 0.6, 1.0, hh, (xx, 0.9, z0), fr, bevel=0.1)
@@ -370,6 +390,11 @@ def seating():
     leather = col('leather', '#9a5a36', rough=0.35, coat=0.6)
     dark = col('legs', '#1f1a19', rough=0.4)
     top = col('tabletop', '#b7814f', rough=0.3, coat=0.5, wood=True)
+    # honey oak plank floor under everything, so chairs and tables sit on something and cast soft contact shadows
+    planks = tex_mat('floor', 'brick', c1='#c99562', c2='#b98450', mortar='#8f5f38', bs=1.0, bw=9.0, bh=1.4, ms=0.03, off=0.35, bump=0.3, rough=0.4)
+    bx(W + 8, 600, 1.0, (W / 2, -296, -1.0), planks, bevel=0.02)
+    bx(46, 22, 0.35, (82, -4.5, 0.0), col('rug', '#e8b8a8', rough=0.9), bevel=0.15)
+    bx(40, 17, 0.4, (82, -4.5, 0.0), col('rug2', '#f4e3cf', rough=0.9), bevel=0.15)
 
     def table(x, y):
         cy(0.45, 5.6, (x, y, 0), dark); cy(2.0, 0.5, (x, y, 0), dark)

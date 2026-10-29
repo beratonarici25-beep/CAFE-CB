@@ -7,7 +7,7 @@
 .scene .talk { z-index: 3; padding-top: 64px; }
 
 /* depth (issue #9): the far wall is softest, the seating a little blurred, a leafy plant right in front is out of focus */
-.layer.far { background: url(../assets/cafe/wall.webp?v=40) center bottom / cover no-repeat; filter: blur(.5px); }
+.layer.far { background: url(../assets/cafe/wall.webp?v=41) center bottom / cover no-repeat; filter: blur(.5px); }
 /* warm pools of light the bulbs throw on the wall, and a little haze in the air further back */
 .layer.bulbs {
   background:
@@ -29,7 +29,7 @@
     radial-gradient(ellipse 28% 18% at 40% 78%, #5f9c58 60%, transparent 62%);
   filter: blur(7px); opacity: .9;
 }
-.layer.seating { background: url(../assets/cafe/seating.webp?v=40) center bottom / cover no-repeat; filter: blur(1.8px); }
+.layer.seating { background: url(../assets/cafe/seating.webp?v=41) center bottom / cover no-repeat; filter: blur(1.8px); }
 
 /* window daylight and a warm vignette */
 .layer.sun {
