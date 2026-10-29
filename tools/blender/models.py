@@ -223,11 +223,15 @@ def sphere(name, r, mat, loc=(0, 0, 0), scale=(1, 1, 1), outline=0.12, segs=32):
     return finish(o, mat, outline)
 
 
-def tube(name, pts, radius, mat, outline=0.12):
+def tube(name, pts, radius, mat, outline=0.12, taper=0.0):
+    """taper: fraction of the pipe's end that narrows to a point (0 = a plain pipe)"""
     cu = bpy.data.curves.new(name, 'CURVE'); cu.dimensions = '3D'
     sp = cu.splines.new('POLY'); sp.points.add(len(pts) - 1)
-    for p, q in zip(sp.points, pts):
+    for i, (p, q) in enumerate(zip(sp.points, pts)):
         p.co = (q[0], q[1], q[2], 1)
+        if taper:
+            f = i / max(1, len(pts) - 1)
+            p.radius = max(0.05, min(1.0, (1 - f) / taper))
     cu.bevel_depth = radius; cu.bevel_resolution = 6; cu.use_fill_caps = True
     o = link(bpy.data.objects.new(name, cu))
     bpy.context.view_layer.objects.active = o; o.select_set(True)

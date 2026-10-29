@@ -27,7 +27,7 @@ M = importlib.util.module_from_spec(spec); spec.loader.exec_module(M)
 toon, finish, link, sphere, tube, smooth_curve, lathe, srgb = M.toon, M.finish, M.link, M.sphere, M.tube, M.smooth_curve, M.lathe, M.srgb
 
 SKIN = '#f3cfae'; TOP = '#2b2524'; APRON = '#d9b07c'; FRAMEC = '#1d1a1a'; GOLD = '#d4a94c'
-HAIR_STOPS = [(0.0, '#2e1c14'), (0.32, '#4a2c1c'), (0.62, '#8f5a32'), (1.0, '#d39a5e')]
+HAIR_STOPS = [(0.0, '#3a241a'), (0.3, '#5a3622'), (0.6, '#8f5a32'), (1.0, '#cf9358')]
 
 
 def toon_grad(name, stops, z_top, z_bot, kind='gloss'):
@@ -240,7 +240,7 @@ def body_B():
         ring = [bvh.ray_cast(Vector((e.x + 2.6 * math.cos(a), -60, e.z + 2.6 * math.sin(a))), Vector((0, 1, 0)))[0] for a in [k * math.pi / 4 for k in range(8)]]
         fy_ = min(h.y for h in ring if h) if any(ring) else e.y
         eyeball("eye" + str(s), Vector((e.x, fy_ - 0.15, e.z)), 1.95)
-        tube('lid', smooth_curve([onface(e.x - s * 1.7 * hk, e.z - 0.1, 0.05), onface(e.x, e.z + 1.15 * hk, 0.15), onface(e.x + s * 1.75 * hk, e.z + 0.25, 0.1), onface(e.x + s * 2.3 * hk, e.z + 0.75, 0.1)], 6), 0.34, lid, outline=0)
+        tube('lid', smooth_curve([onface(e.x - s * 1.35 * hk, e.z + 1.3, 0.05), onface(e.x, e.z + 2.3 * hk, 0.15), onface(e.x + s * 1.35 * hk, e.z + 1.3, 0.1)], 6), 0.2, lid, outline=0)
         tube('brow', smooth_curve([onface(e.x - s * 1.9, e.z + 4.1 + BROW), onface(e.x + s * 0.3, e.z + 4.7 + BROW * 0.5), onface(e.x + s * 2.4, e.z + 4.2 - BROW * 0.3)], 6), 0.42, brow, outline=0)
         bl = onface(s * (abs(e.x) + 1.3), e.z - 3.6, -0.05)
         sphere('blush', 1.0, toon('blush', '#f2948a', alpha=0.0, edge=0.45), loc=bl, scale=(2.1, 0.22, 1.2), outline=0)
@@ -271,13 +271,22 @@ BROW = 0.0        # tilts the inner ends of the brows up (worried) or down
 
 def mouth(onface, mz):
     ink = toon('lipline', '#8a3a3a', lo=0.9)
-    up = toon('lipup', '#d9606c', 'gloss', lo=0.8); lo = toon('liplo', '#e8777f', 'gloss', lo=0.8)
+    up = toon('lipup', '#c9686a', 'gloss', lo=0.8); lo = toon('liplo', '#d97b78', 'gloss', lo=0.8)
     if MOUTH == 'smile':       # two soft rouged lips with a thin smiling line between them
-        x, y, z = onface(0, mz + 0.3, -0.1)
-        sphere('lipup', 1.0, up, loc=(x, y, z), scale=(1.95, 0.3, 0.4), outline=0)
-        x, y, z = onface(0, mz - 0.4, -0.1)
-        sphere('liplo', 1.0, lo, loc=(x, y, z), scale=(1.65, 0.34, 0.55), outline=0)
-        tube('smile', smooth_curve([onface(-2.3, mz + 0.35, -0.2), onface(-1.0, mz - 0.02, -0.28), onface(1.0, mz - 0.02, -0.28), onface(2.3, mz + 0.35, -0.2)], 10), 0.1, ink, outline=0)
+        # upper lip: two soft mounds with a dip between them (cupid's bow), fuller lower lip below
+        for sx in (-0.8, 0.8):
+            x, y, z = onface(sx, mz + 0.34, -0.1)
+            sphere('lipup', 1.0, up, loc=(x, y, z), scale=(1.2, 0.3, 0.38), outline=0)
+        x, y, z = onface(0, mz + 0.18, -0.1)
+        sphere('lipup', 1.0, up, loc=(x, y, z), scale=(1.95, 0.3, 0.3), outline=0)
+        x, y, z = onface(0, mz - 0.42, -0.1)
+        sphere('liplo', 1.0, lo, loc=(x, y, z), scale=(1.6, 0.34, 0.58), outline=0)
+        # thin smiling line between the lips, a tiny tick at each corner, a soft shine on the lower lip
+        tube('smile', smooth_curve([onface(-2.3, mz + 0.4, -0.2), onface(-1.0, mz - 0.02, -0.28), onface(1.0, mz - 0.02, -0.28), onface(2.3, mz + 0.4, -0.2)], 10), 0.09, ink, outline=0, taper=0.0)
+        for sx in (-1, 1):
+            tube('corner', [onface(sx * 2.3, mz + 0.4, -0.2), onface(sx * 2.55, mz + 0.62, -0.18)], 0.07, ink, outline=0)
+        x, y, z = onface(-0.45, mz - 0.5, -0.45)
+        sphere('lipshine', 1.0, toon('lipshine', '#fbd0d0', lo=0.95), loc=(x, y, z), scale=(0.45, 0.1, 0.14), outline=0)
     elif MOUTH == 'open':      # an open laugh: a dark D with teeth and a tongue
         x, y, z = onface(0, mz - 0.1, -0.08)
         ux, uy, uz = onface(0, mz + 0.8, -0.1); lx, ly, lz = onface(0, mz - 1.15, -0.1)
@@ -453,22 +462,29 @@ def hair(H):
                 x = x0 * (1 + 0.025 * drop)
                 y = y0 + 0.08 * drop
             pts.append((x, y, z))
-        locks.append(tube('lock', smooth_curve(pts, 4), 1.45 if front else 1.9, m, outline=0.1))
-    # bangs: locks from the part, over the forehead, swept to the sides above the brows
-    for j in range(24):
-        u = (j + 0.5) / 24
+        locks.append(tube('lock', smooth_curve(pts, 4), 1.45 if front else 1.9, m, outline=0.1, taper=0.22))
+    # bangs: many thin locks from the part, over the forehead, swept to the sides above the brows;
+    # uneven lengths with pointed tips, and a few wisps hanging lower in front of the face
+    NB = 44
+    for j in range(NB):
+        u = (j + 0.5) / NB
         sd = -1 if u < 0.5 else 1
         bb = (u if u < 0.5 else 1 - u) * 2
-        theta = sd * (0.1 + bb * 0.75)
-        z_end = H['eye_z'] + 6.2 - 1.4 * bb * bb
+        theta = sd * (0.3 + bb * 0.6)          # curtain bangs: the forehead stays open at the middle
+        wob = math.sin(j * 2.9)
+        z_end = H['eye_z'] + 5.0 + 1.2 * bb * bb
+        sweep = 0.8 + 1.4 * (1 - bb)           # the longest locks sweep farthest out to the sides
         pts = []
         for t in range(9):
-            z = top + 0.3 - t * (top + 0.3 - z_end) / 8
+            f = t / 8
+            z = top + 0.3 - f * (top + 0.3 - z_end)
             x, y = head_surf(theta, z, 0.85 + 0.15 * bb)
             if t == 0:
                 x = sd * 0.3
+            else:
+                x += sd * sweep * f * f               # tips curl out to the side
             pts.append((x, y, z))
-        tube('bang', smooth_curve(pts, 4), 1.0, m, outline=0.08)
+        tube('bang', smooth_curve(pts, 4), 0.95, m, outline=0.05, taper=0.2)
     # a cap under the locks so no scalp shows between them
     cap = sphere('cap', 1.0, m, loc=(0, cy - 0.5, cz + 0.2), scale=(rx + 0.9, ry + 2.3, top - cz + 0.9), outline=0.1, segs=64)
     M.keep(cap, lambda x, y, z: (z > H['eye_z'] + 7.4 - 0.1 * x * x or y > cy - 1.0) and z > H['eye_z'] - 1.5)
@@ -492,12 +508,12 @@ def glasses(H):
     fr = toon('frame', FRAMEC, 'gloss', lo=0.8); gold = toon('gold', GOLD, 'metal')
     lens = toon('lens', '#dfe9ee', 'glass', alpha=0.08, edge=0.35)
     y = fy - 1.5
-    R = 3.4
+    R = 3.55; RZ = 3.2     # slightly wide, rounded-oval lenses
     for s in (-1, 1):
         cx = s * (ex + 0.1)
-        ring = [(cx + R * math.cos(a), y + 0.25 * abs(math.cos(a)), ez - 0.15 + R * 1.0 * math.sin(a)) for a in [i * 2 * math.pi / 40 for i in range(41)]]
+        ring = [(cx + R * math.cos(a), y + 0.25 * abs(math.cos(a)), ez - 0.15 + RZ * math.sin(a)) for a in [i * 2 * math.pi / 40 for i in range(41)]]
         tube('rim', ring, 0.45, fr, outline=0.06)
-        sphere('lens', 1.0, lens, loc=(cx, y + 0.15, ez - 0.15), scale=(R, 0.12, R), outline=0)
+        sphere('lens', 1.0, lens, loc=(cx, y + 0.15, ez - 0.15), scale=(R, 0.12, RZ), outline=0)
         # short gold hinges; the temples run back into the hair
         hx = s * (ex + 0.1 + R)
         tube('hinge', [(hx, y + 0.2, ez + 0.6), (s * (H['rx'] - 0.3), y + 1.4, ez + 0.8)], 0.34, gold, outline=0.04)
