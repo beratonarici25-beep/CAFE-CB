@@ -113,16 +113,17 @@ function hearOut() {
   render();
 }
 function showDoor() {
-  if (G.state !== 'ORDER_PENDING' || G.chat !== 'rude') return;
+  if (G.state !== 'ORDER_PENDING' || G.chat === 'kicked') return;
   sfx.click();
   G.chat = 'kicked'; G.typed = 0;
   G.cust.mood = 'upset'; G.cust.react = 'shake'; G.cust.reactT = 0;
+  G.kickStars = G.cust.rude ? 2 : 1;
   $('#say').textContent = '';
   render();
   setTimeout(() => {
     if (!G.cust || G.chat !== 'kicked') return;
     toast(t('kickedOut', G.cust.name));
-    G.stars.push(2); G.idx++; G.chat = null;
+    G.stars.push(G.kickStars); G.idx++; G.chat = null;
     G.cust.state = 'leave';
     $('#bubble').hidden = true;
     setState('COMPLETED');
@@ -447,8 +448,11 @@ function render() {
   $('#hudCash').textContent = money(save.cash);
   $('#muteBtn').textContent = save.muted ? L.soundOff : L.soundOn;
   const waiting = G.cust && G.cust.state === 'wait';
-  $('#talkActions').hidden = G.state !== 'ORDER_PENDING' || !waiting || !!G.chat;
-  $('#rudeActions').hidden = G.state !== 'ORDER_PENDING' || !waiting || G.chat !== 'rude' || G.typed < curText().length;
+  const talking = G.state === 'ORDER_PENDING' && waiting && G.chat !== 'kicked' && G.typed >= curText().length;
+  $('#talkActions').hidden = !(G.state === 'ORDER_PENDING' && waiting) || G.chat === 'kicked' || (G.chat === 'rude' && !talking);
+  $('#takeBtn').hidden = !!G.chat;
+  $('#keepBtn').hidden = G.chat !== 'rude' || !talking;
+  $('#kickBtn').hidden = !talking;
   $('#peekActions').hidden = G.state !== 'PREPARING';
   $('#handHint').hidden = G.state !== 'READY_TO_SERVE';
   $('#custZone').hidden = G.state !== 'READY_TO_SERVE' || !waiting;
