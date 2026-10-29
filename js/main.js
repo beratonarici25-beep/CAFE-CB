@@ -5,7 +5,7 @@
 const G = {
   state: 'MENU', day: save.day, idx: 0, total: 0, ticket: 100,
   cust: null, order: null, typed: 0, patience: 1, patMax: 70, servedPatience: 1,
-  earned: 0, stars: [], result: null, served: null, resultTimer: 0, peek: false,
+  chat: null, rudeN: 0, earned: 0, stars: [], result: null, served: null, resultTimer: 0, peek: false,
 };
 let T = 0;
 
@@ -79,6 +79,9 @@ function startDay() {
 }
 function nextCustomer() {
   G.cust = makeCustomer();
+  // now and then a guest starts rude: a short chat where you hear them out (they lose patience faster, but tip well) or show them the door
+  G.chat = !Tutorial.active && !Intro.active && G.day >= 2 && Math.random() < 0.1 ? 'rude' : null;
+  G.cust.rude = !!G.chat; G.rudeN = ri(3);
   // the first guest of the day orders the new drink, so the helper can show how it is made
   G.order = Tutorial.active && G.idx === 0 ? Tutorial.order() : makeOrder(G.day, G.fresh || [], Intro.active && G.idx === 0 ? Intro.drink : null);
   G.typed = 0; G.patience = 1; G.grace = 0; G.served = null; G.result = null; G.ticket++;
@@ -93,11 +96,34 @@ function onArrive() {
   $('#custName').textContent = G.cust.name;
 }
 function takeOrder() {
-  if (G.state !== 'ORDER_PENDING') return;
+  if (G.state !== 'ORDER_PENDING' || G.chat) return;
   G.typed = Infinity;
   $('#say').textContent = curText();
   sfx.click();
   setState('PREPARING');
+}
+function hearOut() {
+  if (G.state !== 'ORDER_PENDING' || G.chat !== 'rude') return;
+  sfx.click();
+  G.chat = null; G.typed = 0;
+  $('#say').textContent = '';
+  render();
+}
+function showDoor() {
+  if (G.state !== 'ORDER_PENDING' || G.chat !== 'rude') return;
+  sfx.click();
+  G.chat = 'kicked'; G.typed = 0;
+  G.cust.mood = 'upset'; G.cust.react = 'shake'; G.cust.reactT = 0;
+  $('#say').textContent = '';
+  render();
+  setTimeout(() => {
+    if (!G.cust || G.chat !== 'kicked') return;
+    toast(t('kickedOut', G.cust.name));
+    G.idx++; G.chat = null;
+    G.cust.state = 'leave';
+    $('#bubble').hidden = true;
+    setState('COMPLETED');
+  }, 2000);
 }
 // the cup was dropped on the customer: they check it, react, and leave their money on the bar
 function serve() {
@@ -107,6 +133,7 @@ function serve() {
   stopAllSounds();
   G.servedPatience = G.patience;
   const r = evaluate(G.order, cup, G.patience);
+  if (G.cust.rude && r.stars >= 4) r.tip = cents(r.tip + r.pay * 0.5);
   G.result = r; G.served = cup;
   B.cup = newCup(); layout();
   G.cust.mood = r.stars >= 5 ? 'delighted' : r.stars === 4 ? 'happy' : r.stars === 3 ? 'neutral' : 'upset';
@@ -210,6 +237,8 @@ function endDay() {
 
 /* ---------------- menus, HUD, language ---------------- */
 $('#takeBtn').addEventListener('click', takeOrder);
+$('#keepBtn').addEventListener('click', hearOut);
+$('#kickBtn').addEventListener('click', showDoor);
 $('#peekBtn').addEventListener('click', () => peek(true));
 $('#backBtn').addEventListener('click', () => peek(false));
 $('#nextBtn').addEventListener('click', afterResult);
@@ -410,13 +439,14 @@ function render() {
   $('#hudCash').textContent = money(save.cash);
   $('#muteBtn').textContent = save.muted ? L.soundOff : L.soundOn;
   const waiting = G.cust && G.cust.state === 'wait';
-  $('#talkActions').hidden = G.state !== 'ORDER_PENDING' || !waiting;
+  $('#talkActions').hidden = G.state !== 'ORDER_PENDING' || !waiting || !!G.chat;
+  $('#rudeActions').hidden = G.state !== 'ORDER_PENDING' || !waiting || G.chat !== 'rude' || G.typed < curText().length;
   $('#peekActions').hidden = G.state !== 'PREPARING';
   $('#handHint').hidden = G.state !== 'READY_TO_SERVE';
   $('#custZone').hidden = G.state !== 'READY_TO_SERVE' || !waiting;
   const text = curText();
   // the ticket appears once the order has been said, and then stays pinned in both views until the drink is handed over
-  const showTicket = G.order && waiting && G.typed >= text.length && G.state !== 'MENU';
+  const showTicket = G.order && waiting && !G.chat && G.typed >= text.length && G.state !== 'MENU';
   $('#ticket').hidden = !showTicket && curView === 'customer';
   $('#ticketNo').textContent = '#' + String(G.ticket).padStart(3, '0');
   $('#ticketText').textContent = showTicket ? `${G.cust.name}: “${text}”` : (G.state === 'MENU' || G.state === 'DAY_END' ? L.ticketIdle : L.ticketWait);
@@ -519,8 +549,8 @@ function update(dt) {
         }
       }
       // no patience lost while the tutorial or a new drink's intro runs (issues #12, #21)
-      if ((G.state === 'ORDER_PENDING' || G.state === 'PREPARING' || G.state === 'READY_TO_SERVE') && !Tutorial.active && !Intro.active) {
-        G.patience = Math.max(0, G.patience - dt / G.patMax);
+      if ((G.state === 'ORDER_PENDING' || G.state === 'PREPARING' || G.state === 'READY_TO_SERVE') && !Tutorial.active && !Intro.active && !G.chat) {
+        G.patience = Math.max(0, G.patience - dt * (c.rude ? 1.5 : 1) / G.patMax);
         c.mood = G.patience > 0.55 ? 'happy' : G.patience > 0.25 ? 'neutral' : 'annoyed';
         if (G.patience === 0 && (G.grace += dt) >= WALKOUT_GRACE) walkOut();
       }

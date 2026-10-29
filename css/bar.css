@@ -16,7 +16,7 @@
 /* ---------- back bar: shelves behind the barista ---------- */
 .backbar {
   height: 168px; margin: -6px 6px -30px; position: relative; z-index: 0; pointer-events: none;
-  background: url(../assets/cafe/backbar.webp?v=39) center bottom / cover no-repeat;
+  background: url(../assets/cafe/backbar.webp?v=40) center bottom / cover no-repeat;
 }
 .counter { position: relative; z-index: 1; }
 
@@ -24,12 +24,12 @@
 .counter {
   margin-bottom: 30px;
   /* the marble bar top is a Blender render (tools/blender/cafe.py); the front below it is a walnut strip that tiles sideways */
-  background: url(../assets/cafe/counter-top.webp?v=39) 0 0 / 100% 100% no-repeat, #ece5db;
+  background: url(../assets/cafe/counter-top.webp?v=40) 0 0 / 100% 100% no-repeat, #ece5db;
   box-shadow: inset 0 -10px 14px -6px rgba(120,100,80,.25), inset 0 8px 10px -6px rgba(60,40,25,.35);
 }
 .counter::after {
   content: ""; position: absolute; left: -3px; right: -3px; top: calc(100% - 2px); height: 30px; pointer-events: none;
-  background: url(../assets/cafe/counter-front.webp?v=39) 0 0 / auto 100% repeat-x;
+  background: url(../assets/cafe/counter-front.webp?v=40) 0 0 / auto 100% repeat-x;
   border-radius: 0 0 14px 14px; box-shadow: 0 10px 14px rgba(40,20,10,.3);
 }
 
@@ -86,7 +86,7 @@
 }
 .hopper-lid { position: absolute; left: -3px; right: -3px; top: -1px; height: 8px; background: linear-gradient(#4a3532, #241614); border-radius: 4px; z-index: 2; }
 .grinder-body {
-  background: url(../assets/cafe/grinder.webp?v=39) 0 0 / 100% 100% no-repeat; border: 0; border-radius: 14px 14px 8px 8px;
+  background: url(../assets/cafe/grinder.webp?v=40) 0 0 / 100% 100% no-repeat; border: 0; border-radius: 14px 14px 8px 8px;
   box-shadow: 7px 11px 12px -5px rgba(40,20,10,.42);
 }
 .grinder-body .chute { background: none; border: 0; height: 14px; bottom: -14px; }
@@ -131,7 +131,7 @@
   /* the steel body with its enamel side panels is a Blender render; a soft sheen on top gives the brushed steel its light */
   background:
     linear-gradient(105deg, rgba(255,255,255,.5) 0, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 70%, rgba(40,60,70,.16) 100%),
-    url(../assets/cafe/machine.webp?v=39) 0 0 / 100% 100% no-repeat;
+    url(../assets/cafe/machine.webp?v=40) 0 0 / 100% 100% no-repeat;
   border-radius: 16px 16px 8px 8px;
   box-shadow: 9px 14px 14px -6px rgba(40,20,10,.45);
 }
@@ -189,7 +189,7 @@
 
 /* ---------- milk: under-counter fridge with a glass door, steel pitcher ---------- */
 .fridge {
-  position: relative; padding: 7px; background: url(../assets/cafe/fridge.webp?v=39) 0 0 / 100% 100% no-repeat; border: 0; border-radius: 10px;
+  position: relative; padding: 7px; background: url(../assets/cafe/fridge.webp?v=40) 0 0 / 100% 100% no-repeat; border: 0; border-radius: 10px;
   box-shadow: 7px 11px 12px -5px rgba(40,20,10,.42);
 }
 .fridge .bottles { position: relative; padding: 8px 14px 6px 6px; overflow: hidden; background: none; border: 0; }

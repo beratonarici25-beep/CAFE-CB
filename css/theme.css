@@ -101,8 +101,8 @@
 .overlay.menu { background: #3a2a22; background-image: none; overflow: hidden auto; }
 .menu-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 .menu-bg > div { position: absolute; inset: 0; }
-.mb-wall { background: url(../assets/cafe/wall.webp?v=39) center bottom / cover no-repeat; filter: blur(2px) brightness(.72) saturate(.9); transform: scale(1.04); }
-.mb-seat { background: url(../assets/cafe/seating.webp?v=39) center bottom / cover no-repeat; filter: blur(4px) brightness(.68); transform: scale(1.04); }
+.mb-wall { background: url(../assets/cafe/wall.webp?v=40) center bottom / cover no-repeat; filter: blur(2px) brightness(.72) saturate(.9); transform: scale(1.04); }
+.mb-seat { background: url(../assets/cafe/seating.webp?v=40) center bottom / cover no-repeat; filter: blur(4px) brightness(.68); transform: scale(1.04); }
 .menu-bg::after {
   content: ""; position: absolute; inset: 0;
   background: radial-gradient(ellipse 60% 55% at 50% 45%, rgba(255,200,130,.18), transparent 70%), radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(30,15,8,.6) 100%);

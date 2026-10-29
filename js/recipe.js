@@ -144,7 +144,8 @@ function orderText(o, L) {
   const main = P.build([...adj, name].join(' '), tail, r.form);
   return [greet, main, ...extra].join(' ');
 }
-const curText = () => G.order ? orderText(G.order, save.lang) : '';
+// the rude guest first says something nasty (G.chat 'rude'), and answers if shown the door (G.chat 'kicked')
+const curText = () => G.chat === 'rude' ? S().rudeSay[G.rudeN] : G.chat === 'kicked' ? S().kickSay[G.rudeN] : G.order ? orderText(G.order, save.lang) : '';
 
 /* ---------------- scoring ---------------- */
 function evaluate(o, c, patience) {

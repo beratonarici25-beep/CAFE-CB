@@ -367,7 +367,7 @@ let counterCache = null;
 const counterArt = { top: new Image(), front: new Image() };
 for (const [k, f] of [['top', 'counter-top'], ['front', 'counter-front']]) {
   counterArt[k].onload = () => { counterCache = null; };
-  counterArt[k].src = `assets/cafe/${f}.webp?v=39`;
+  counterArt[k].src = `assets/cafe/${f}.webp?v=40`;
 }
 function counterImage(W, H, cy, topD) {
   const dpr = pxRatio(), ready = counterArt.top.complete && counterArt.front.complete && counterArt.top.naturalWidth > 0;
