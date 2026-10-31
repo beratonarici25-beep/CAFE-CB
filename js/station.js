@@ -341,9 +341,7 @@ function onPointerDown(e) {
   }
   e.preventDefault();
   sfx.init();
-  // under a finger the dragged thing rides a little above it, so the finger does not hide it (issue #27)
-  drag = { spec: src.dataset.drag, src, id: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, started: false, ghost: null, hover: null,
-    lift: e.pointerType === 'touch' ? 34 : 0 };
+  drag = { spec: src.dataset.drag, src, id: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, started: false, ghost: null, hover: null };
 }
 function onPointerMove(e) {
   if (!drag || e.pointerId !== drag.id) return;
@@ -456,10 +454,10 @@ function onKey(e) {
 // per-frame ghost follow with a little lag and tilt
 function updateDrag() {
   if (!drag || !drag.started) return;
-  const p = toStage(drag.x, drag.y - drag.lift);
+  const p = toStage(drag.x, drag.y);
   const g = drag.ghost, tx = p.x - drag.offX, ty = p.y - drag.offY;
   // the follow lag is per second, not per frame, so a slow phone does not make the copy trail behind the finger
-  const k = reduceMotion ? 1 : 1 - Math.exp(-dtLast * 30);
+  const k = reduceMotion ? 1 : 1 - Math.exp(-dtLast * 70);
   const vx = (tx - g.x) * k, vy = (ty - g.y) * k;
   g.x += vx; g.y += vy;
   g.tilt += (clamp(vx * 0.9, -16, 16) - g.tilt) * 0.25;
