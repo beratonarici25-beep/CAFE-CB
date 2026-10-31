@@ -54,7 +54,7 @@ const STAGE_H = 770, STAGE_MIN_W = 1560;
 // phones: the close-up camera (js/camera.js) lays the bench out in one row at this shorter design height, so the
 // stage scale is STAGE_H / CAM_H (about 1.4x) bigger and the camera pans along the bench
 const CAM_H = 540, CAM_MIN_W = 1150;
-const UI = { s: 1, ox: 0, oy: 0, w: 0, h: 0, cam: false };
+const UI = { s: 1, ox: 0, oy: 0, w: 0, h: 0, cam: false, q: 1 };
 function stageRect(el) {
   const r = el.getBoundingClientRect(), s = UI.s;
   return { left: (r.left - UI.ox) / s, top: (r.top - UI.oy) / s, width: r.width / s, height: r.height / s,
@@ -66,4 +66,4 @@ const toScreen = (x, y) => ({ x: x * UI.s + UI.ox, y: y * UI.s + UI.oy });
 const drawnScale = el => { const w = el.offsetWidth; return w ? el.getBoundingClientRect().width / UI.s / w : 1; };
 // canvas backing-store pixels per layout pixel: sharp on screen at any stage scale; at most 2 on a phone, where a
 // bigger canvas only costs frames
-const pxRatio = () => Math.min((window.devicePixelRatio || 1) * UI.s, UI.cam ? 2 : 3);
+const pxRatio = () => Math.min((window.devicePixelRatio || 1) * UI.s * UI.q, UI.cam ? 1.6 : 3);

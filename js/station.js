@@ -299,12 +299,16 @@ function makeGhost(src) {
   g.classList.add('drag-ghost');
   // picked up from a shrunk machine (the phone bench): the copy keeps its layout size and is drawn as small
   const k = drawnScale(src);
-  if (Math.abs(k - 1) > 0.01) { g.style.width = src.offsetWidth + 'px'; g.style.height = src.offsetHeight + 'px'; g.style.scale = k.toFixed(3); g.style.transformOrigin = '0 0'; }
+  // (the shrink goes into `transform`, around the copy's middle: the separate `scale` property would also scale the
+  // translate and the copy would drift away from the finger)
+  const shrunk = Math.abs(k - 1) > 0.01, kk = shrunk ? k : 1;
+  const ax = shrunk ? (1 - kk) * src.offsetWidth / 2 : 0, ay = shrunk ? (1 - kk) * src.offsetHeight / 2 : 0;
+  if (shrunk) { g.style.width = src.offsetWidth + 'px'; g.style.height = src.offsetHeight + 'px'; }
   else { g.style.width = r.width + 'px'; g.style.height = r.height + 'px'; }
-  g.style.transform = `translate3d(${r.left}px, ${r.top}px, 0)`;
+  g.style.transform = `translate3d(${r.left - ax}px, ${r.top - ay}px, 0)` + (shrunk ? ` scale(${kk.toFixed(3)})` : '');
   $('#views').appendChild(g);
   const cv = src.id === 'cupObj' ? g.querySelector('canvas') : null;
-  return { el: g, x: r.left, y: r.top, w: r.width, h: r.height, tilt: 0, sq: 0, cv, slosh: { a: 0, v: 0 } };
+  return { el: g, x: r.left, y: r.top, ax, ay, k: kk, w: r.width, h: r.height, tilt: 0, sq: 0, cv, slosh: { a: 0, v: 0 } };
 }
 
 function onPointerDown(e) {
@@ -454,16 +458,17 @@ function updateDrag() {
   if (!drag || !drag.started) return;
   const p = toStage(drag.x, drag.y - drag.lift);
   const g = drag.ghost, tx = p.x - drag.offX, ty = p.y - drag.offY;
-  const k = reduceMotion ? 1 : 0.38;
+  // the follow lag is per second, not per frame, so a slow phone does not make the copy trail behind the finger
+  const k = reduceMotion ? 1 : 1 - Math.exp(-dtLast * 30);
   const vx = (tx - g.x) * k, vy = (ty - g.y) * k;
   g.x += vx; g.y += vy;
   g.tilt += (clamp(vx * 0.9, -16, 16) - g.tilt) * 0.25;
-  if (reduceMotion) { g.el.style.transform = `translate3d(${g.x}px, ${g.y}px, 0) scale(1.06)`; return; }
+  if (reduceMotion) { g.el.style.transform = `translate3d(${g.x - g.ax}px, ${g.y - g.ay}px, 0) scale(${(1.06 * g.k).toFixed(3)})`; return; }
   // stretch along the motion, settle back when it stops (issue #6)
   g.sq += (clamp(Math.hypot(vx, vy) * 0.006, 0, 0.1) - g.sq) * 0.3;
   const across = Math.abs(vx) > Math.abs(vy);
   const sx = 1.06 + (across ? g.sq : -g.sq * 0.6), sy = 1.06 + (across ? -g.sq * 0.6 : g.sq);
-  g.el.style.transform = `translate3d(${g.x}px, ${g.y}px, 0) rotate(${g.tilt}deg) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
+  g.el.style.transform = `translate3d(${g.x - g.ax}px, ${g.y - g.ay}px, 0) rotate(${g.tilt}deg) scale(${(sx * g.k).toFixed(3)}, ${(sy * g.k).toFixed(3)})`;
   if (g.cv && B.cup.size) sloshGhost(g, vx);
 }
 // a dragged cup is redrawn every frame so its drink rocks against the tilt and spills a drop now and then.

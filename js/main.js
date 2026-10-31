@@ -599,9 +599,21 @@ function placeCustZone() {
   setStyle(z, 'width', (124 * k).toFixed(1) + 'px'); setStyle(z, 'height', (178 * k + dims.topD).toFixed(1) + 'px');
 }
 let last = performance.now(), dtLast = 0.016;
+// a phone that cannot keep up gets smaller canvases (UI.q, see pxRatio): after ~1.5 s of slow frames in a row it
+// steps down once or twice; sharpness drops a little, the dragging and the animation keep their frame rate
+let slowT = 0;
+function autoQuality(dt) {
+  if (!UI.cam || UI.q <= 0.6 || document.hidden) return;
+  slowT = dt > 0.028 ? slowT + dt : Math.max(0, slowT - dt * 2);
+  if (slowT < 1.5) return;
+  slowT = 0; UI.q = Math.max(0.6, UI.q - 0.2); fit();
+}
 function frame(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; T += dt; dtLast = dt;
-  try { update(dt); Cam.tick(dt); drawScene(); drawCupObj(); fx('frame', dt); Tutorial.tick(); Intro.tick(); } catch (e) { console.error(e); }
+  // only the view on screen is drawn (the other one is switched off); a phone has no frames to spare
+  const sceneOn = curView !== 'barista' || viewAnim, benchOn = curView !== 'customer' || viewAnim;
+  autoQuality(dt);
+  try { update(dt); Cam.tick(dt); if (sceneOn) drawScene(); if (benchOn) drawCupObj(); fx('frame', dt); Tutorial.tick(); Intro.tick(); } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
 }
 

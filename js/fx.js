@@ -185,7 +185,7 @@ const FX = {
       document.body.appendChild(this.cv);
       this.g = this.cv.getContext('2d');
     }
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, UI.cam ? 1.5 : 2);
     this.cv.width = Math.round(innerWidth * dpr); this.cv.height = Math.round(innerHeight * dpr);
     this.g.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.dpr = dpr;
