@@ -515,7 +515,7 @@ function makeChips(el, keys, fn) {
 // (not on anything else that takes a tap or a drag) presses the nearest
 function nearKey(e) {
   if (!UI.cam || !e.target.closest('#bench') || e.target.closest('button, .key, [data-press], [data-drag], .meter')) return null;
-  let best = null, bd = 16;
+  let best = null, bd = 30;
   for (const el of $('#bench').querySelectorAll('.key, .mbtn')) {
     if (el.disabled) continue;
     const r = el.getBoundingClientRect(); if (!r.width) continue;
