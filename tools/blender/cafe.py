@@ -259,11 +259,16 @@ def backbar():
 def counter_top():
     sc = stage(line=0); lights(key=2.0)
     sc.render.use_freestyle = False; sc.view_settings.exposure = 0.7
-    W, D = 100, 40
+    # the bar top as a barista sees it: a real slab lying in depth, looked at from about 36 degrees above. The far edge
+    # has a low back rail where it meets the shelves, the near edge a rounded lip that catches the light.
+    W, T = 100, 4.0
+    tilt = 36.0
+    D = (40 - T * math.cos(math.radians(tilt))) / math.sin(math.radians(tilt))
     mar = tex_mat('marbletop', 'marble', scale=(1, 1, 1))
-    # the bar top, seen from above: the front lip is a bevelled edge that catches the light
-    bx(W, 2.4, D, (W / 2, 1.2, 0), mar, bevel=0.5)
-    shoot('counter-top', 1600, 640, W, (W / 2, D / 2), tilt=0)
+    bx(W, D, T, (W / 2, D / 2, -T), mar, bevel=0.6)
+    bx(W, 1.2, 1.1, (W / 2, D - 0.6, 0), tex_mat('marblerail', 'marble', scale=(1, 1, 1)), bevel=0.35)
+    # the picture's axis goes through the middle of the slab; shoot() wants the point where that axis crosses y = 0
+    shoot('counter-top', 1600, 640, W, (W / 2, -T / 2 + (D / 2) * math.tan(math.radians(tilt))), tilt=tilt)
 
 
 @job('counter-front')
@@ -301,7 +306,7 @@ def machine():
     for i in range(24):
         bx(0.5, 0.5, 1.8, (2.7 + i * 1.0, -3.4, 1.6), col('grill', '#2e3a40' if i % 2 else '#dfe6e9', metal=1, rough=0.3), bevel=0.1)
     bx(W - 2, 5.2, 0.7, (W / 2, 0, 0), col('foot', '#2b2422', rough=0.7), bevel=0.2)
-    shoot('machine', 600, 842, W + 1.2, (W / 2, H / 2), tilt=4)
+    shoot('machine', 600, 842, W + 1.2, (W / 2, H / 2), tilt=12)
 
 
 @job('grinder')
@@ -312,7 +317,7 @@ def grinder():
     bx(W, 5, H, (W / 2, 0, 0), dk, bevel=1.1)
     bx(W - 1.6, 5.2, 0.35, (W / 2, -0.1, H - 0.9), col('trim', '#c9d2d7', metal=1, rough=0.2), bevel=0.1)
     bx(3.0, 3, 1.4, (W / 2, -1.5, -0.3), brushed(), bevel=0.35)
-    shoot('grinder', 340, 220, W + 0.4, (W / 2, H / 2), tilt=5)
+    shoot('grinder', 340, 220, W + 0.4, (W / 2, H / 2), tilt=13)
 
 
 @job('fridge')
@@ -323,7 +328,7 @@ def fridge():
     bx(W, 5, H, (W / 2, 0, 0), st, bevel=0.9)
     bx(W - 2.0, 0.6, H - 2.0, (W / 2, -2.6, 1.0), col('inside', '#d6e9ef', rough=0.3), bevel=0.3)
     bx(0.55, 0.7, H - 3.4, (W - 1.3, -3.2, 1.7), st, bevel=0.2)
-    shoot('fridge', 402, 418, W + 0.4, (W / 2, H / 2), tilt=3)
+    shoot('fridge', 402, 418, W + 0.4, (W / 2, H / 2), tilt=12)
 
 
 # ---------------------------------------------------------------- 4. the customers' side: wall with windows, and the seating
