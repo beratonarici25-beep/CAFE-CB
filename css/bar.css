@@ -345,3 +345,30 @@ img.hotwater { position: absolute; left: 2px; top: -40px; width: auto; height: 3
 
 /* the chalk menu's writing over the back bar picture (issue #21) */
 .backbar .chalk { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ======================================================================
+   The barista's eye view: not a map of the counter from above. The back bar shelves stand behind it, the marble top
+   runs away from you into shade at its far edge and comes up bright at the near edge, and every machine stands in
+   a soft contact shadow on it, with the equipment set low toward the front of the bar (where your hands are).
+   ====================================================================== */
+.counter { background: none; box-shadow: none; --far: 52px; padding-top: calc(var(--far) + 10px); }
+.counter::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; top: var(--far); z-index: -1; pointer-events: none;
+  border-radius: 12px 12px 0 0;
+  background:
+    linear-gradient(rgba(70,48,32,.5), rgba(70,48,32,0) 30%),
+    linear-gradient(0deg, rgba(255,255,255,.34), rgba(255,255,255,0) 22%),
+    url(../assets/cafe/counter-top.webp?v=40) 0 0 / 100% 100% no-repeat, #ece5db;
+  box-shadow: inset 0 3px 0 #b9ab98, inset 0 -10px 14px -6px rgba(120,100,80,.25), 0 -3px 8px rgba(40,25,15,.25);
+}
+/* the far rail where the bar top meets the shelves, and the near edge catching the light */
+.counter::after { z-index: 1; }
+.barmat, .fridge, .cupstand, .tampstation, .z-prep > .slot, .z-serve > .servetray { position: relative; }
+.barmat::before, .fridge::before {
+  content: ""; position: absolute; left: 3%; right: -1%; bottom: 0; height: 16px; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(36,22,12,.55), rgba(36,22,12,0) 72%);
+}
+.machine, .grinder-body, .fridge { box-shadow: none; }
+.cam .counter { --far: 14px; }
+/* everything stands on the near side of the bar top, the way it lies under a barista's hands, not hung from the far edge */
+.counter > .zone { align-self: end; }
