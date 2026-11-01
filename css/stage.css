@@ -93,7 +93,7 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 .z-machine > .shotlist { grid-area: shots; }
 
 /* milk: the fridge on top, the pitcher and its thermometer side by side under it */
-.z-milk { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "h h" "fridge fridge" "pitcher ctl"; align-items: start; }
+.z-milk { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "h h" "pitcher ctl" "fridge fridge"; align-items: start; align-self: end; }
 .z-milk > h3 { grid-area: h; }
 .z-milk > .fridge { grid-area: fridge; }
 .z-milk > .slot { grid-area: pitcher; min-width: 96px; }
@@ -180,7 +180,7 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 .cam .scene .talk { margin-left: max(150px, 30%); }
 .cam #sceneTicket { flex-basis: 300px; }
 .cam .say { font-size: 24px; }
-.cam .z-milk { grid-template-columns: 226px 160px; grid-template-areas: "h h" "fridge pitcher" "fridge ctl"; }
+.cam .z-milk { grid-template-columns: 226px 160px; align-self: end; grid-template-areas: "h h" "pitcher ctl" "fridge fridge"; }
 /* the keys and buttons on the shrunk machines are under a third of their size on a phone: bigger there (a tap that
    just misses one still counts, see nearKey() in js/station.js) */
 .cam .mach-panel, .cam .mach-head { grid-template-columns: 1fr 200px; }

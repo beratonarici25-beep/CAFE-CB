@@ -370,3 +370,17 @@ img.hotwater { position: absolute; left: 2px; top: -40px; width: auto; height: 3
 }
 .machine, .grinder-body, .fridge { box-shadow: none; }
 .cam .counter { --far: 14px; }
+
+/* ---- depth: the machines are solid objects with a top and a side, not pictures stuck on the bar ---- */
+.machine::before, .machine::after, .grinder-body::before { content: ""; position: absolute; pointer-events: none; }
+.machine::before { left: 0; right: -10px; top: -11px; height: 12px; background: linear-gradient(90deg, #fbfdfd, #d3dbdf 55%, #a9b4ba); clip-path: polygon(0 100%, 10px 0, 100% 0, calc(100% - 10px) 100%); }
+.machine::after { left: 100%; width: 10px; top: -11px; height: calc(100% + 11px); background: linear-gradient(90deg, #8d989f, #4f5a61); clip-path: polygon(0 11px, 100% 0, 100% calc(100% - 11px), 0 100%); }
+.grinder-body::before { left: 0; right: -8px; top: -9px; height: 10px; background: linear-gradient(90deg, #6a4a45, #3a2523); clip-path: polygon(0 100%, 8px 0, 100% 0, calc(100% - 8px) 100%); }
+.barmat::before { height: 22px; left: 0; right: -6%; }
+
+/* ---- under the counter: the milk fridge is built into the front, under a marble lip, and the bin stands on the floor ---- */
+.z-milk > .fridge { margin: 4px -4px -6px; box-shadow: 0 0 0 5px #5a341f, inset 0 0 0 2px rgba(0,0,0,.25); border-radius: 4px; }
+.z-milk > .fridge::before { display: none; }
+.z-milk > .fridge::after { content: ""; position: absolute; left: -9px; right: -9px; top: -15px; height: 10px; border-radius: 3px;
+  background: linear-gradient(#fbf8f2, #d9cfbf); box-shadow: 0 3px 4px rgba(40,25,15,.45); pointer-events: none; }
+.z-trash { align-self: end; margin-bottom: -10px; }
