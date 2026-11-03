@@ -21,7 +21,7 @@ const HAIR_STYLES = ['short', 'bun', 'long', 'curly', 'beanie', 'straight'];   /
 const CUST_IMG = {};
 for (const g of ['f', 'm']) {
   ['skin', 'torso', 'collar-round', 'collar-v', 'scarf', 'hat-beanie', 'hat-pom', 'hat-cap', ...(g === 'm' ? ['beard'] : []),
-    ...['short', 'bun', 'long', 'curly', 'straight'].map(h => `hair-${h}-front`), ...['long', 'curly', 'straight'].map(h => `hair-${h}-back`)]
+    ...['short', 'bun', 'long', 'curly', 'straight'].map(h => `hair-${h}-front`), ...['long', 'curly'].map(h => `hair-${h}-back`)]
     .forEach(n => { const i = new Image(); i.src = `assets/models/cust-${n}-${g}.webp`; CUST_IMG[`${n}-${g}`] = i; });
 }
 function tintLayer(img, col, W, H) {

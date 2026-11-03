@@ -220,6 +220,16 @@ def body_B():
             new_ = {i: sum((P[j] for j in nbr[i]), Vector()) / len(nbr[i]) for i in reg}
             for i, w in reg.items():
                 P[i] = P[i].lerp(new_[i], w)
+    if CUSTOMER:   # take the lips' relief off the mouth area, so the game's mouth line is not drawn on pursed lips
+        ym = {}
+        for i in body_ids:
+            d_ = math.hypot(P[i].x / 5.4, (P[i].z - mz_) / 4.2)
+            if d_ < 1.0 and P[i].y < nose_.y + 9:
+                ym[i] = 0.7 * (1 - d_ * d_)
+        for _ in range(80):
+            new_ = {i: sum((P[j].y for j in nbr[i]), 0.0) / len(nbr[i]) for i in ym}
+            for i, w in ym.items():
+                P[i] = Vector((P[i].x, P[i].y + (new_[i] - P[i].y) * w, P[i].z))
     me = bpy.data.meshes.new('mh'); bm = bmesh.new()
     idx = {}
     for i in sorted(body_ids):

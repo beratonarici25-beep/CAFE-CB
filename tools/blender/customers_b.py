@@ -224,35 +224,81 @@ def strand(phi0, e0, e1, sweep, r, m, g=1.0, fall=None, taper=0.3, outline=0.08,
     return tube('lock', smooth_curve(pts, 4), r, m, outline=outline, taper=taper)
 
 
-def hair_cap(m, front_eps=60, side_eps=96, back_eps=128, g=0.8):
+def hairline_eps(phi, front_eps, side_eps=96, back_eps=128):
+    c = math.cos(math.radians(phi))                                  # +1 front .. -1 back
+    return front_eps + (side_eps - front_eps) * (1 - c * c) if c > 0 else side_eps + (back_eps - side_eps) * c * c
+
+
+def smooth01(a, b, x):
+    t = max(0.0, min(1.0, (x - a) / (b - a)))
+    return t * t * (3 - 2 * t)
+
+
+def sheet(name, m, end_fn, g=0.8, flare=0.0, thick=0.4, N=96, R=16):
+    """a sheet of hair/cloth over the skull: from the crown down to end_fn(phi) (a height) all the way round; below the
+    ear line it falls straight down, flaring out by `flare` per unit. Built as a grid, so its lower edge is a smooth curve"""
+    k = skull()
+    ztop = k['cz'] + k['hz'] + g
+    zb = k['cz'] + (k['hz'] + g) * math.cos(math.radians(100))
+    bm = bmesh.new()
+    pole = bm.verts.new((0, k['cy'], ztop))
+    rows = []
+    for j in range(1, R + 1):
+        row = []
+        for i in range(N):
+            phi = 360.0 * i / N
+            z = ztop - (j / R) * (ztop - end_fn(phi))
+            if z >= zb:
+                e = math.degrees(math.acos(max(-1.0, min(1.0, (z - k['cz']) / (k['hz'] + g)))))
+                row.append(bm.verts.new(pt(phi, e, g)))
+            else:
+                bx, by, _ = pt(phi, 100, g)
+                f = 1 + flare * (zb - z)
+                row.append(bm.verts.new((bx * f, k['cy'] + (by - k['cy']) * f, z)))
+        rows.append(row)
+    for i in range(N):
+        bm.faces.new((pole, rows[0][i], rows[0][(i + 1) % N]))
+    for a_, b_ in zip(rows, rows[1:]):
+        for i in range(N):
+            bm.faces.new((a_[i], b_[i], b_[(i + 1) % N], a_[(i + 1) % N]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    c = Vector((0, k['cy'], k['cz']))
+    if sum((f.calc_center_median() - c).dot(f.normal) for f in bm.faces) < 0:     # normals must point outwards
+        for f in bm.faces:
+            f.normal_flip()
+    me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    o = link(bpy.data.objects.new(name, me)); M.finish(o, m, outline=0.1)
+    shell(o, thick)
+    return o
+
+
+def hair_cap(m, front_eps=60, g=0.8):
     """a skull cap of hair: closed over the crown, down to a hairline that is high at the front, lower at the sides and back"""
     k = skull()
-    o = sphere('cap', 1.0, m, loc=(0, k['cy'], k['cz']), scale=(k['rx'] + g, k['ry'] + g, k['hz'] + g), outline=0.1, segs=64)
-    bpy.context.view_layer.update()
+    return sheet('cap', m, lambda phi: k['cz'] + (k['hz'] + g) * math.cos(math.radians(hairline_eps(phi, front_eps))), g=g)
 
-    def lim_of(x, y):
-        px, py = x / (k['rx'] + g), (k['cy'] - y) / (k['ry'] + g)
-        c = py / max(1e-6, math.hypot(px, py))                      # +1 front .. -1 back
-        return front_eps + (side_eps - front_eps) * (1 - c * c) if c > 0 else side_eps + (back_eps - side_eps) * (c * c)
 
-    def test(x, y, z):
-        pz = (z - k['cz']) / (k['hz'] + g)
-        return math.degrees(math.acos(max(-1.0, min(1.0, pz)))) < lim_of(x, y)
-    keep(o, test, lambda x, y: k['cz'] + (k['hz'] + g) * math.cos(math.radians(lim_of(x, y))))
-    shell(o, 0.4)
-    return o
+def bob(m, g=1.0):
+    """a bob: the sheet falls from the crown to the neck at the sides and back, and stops at the hairline over the face"""
+    k = skull(); zend = H['neck_z'] + 2.5
+
+    def end(phi):
+        zh = k['cz'] + (k['hz'] + g) * math.cos(math.radians(hairline_eps(phi, 74)))
+        t = smooth01(40, 115, min(phi, 360 - phi))
+        return zh * (1 - t) + zend * t
+    return sheet('bob', m, end, g=g, flare=0.012, thick=0.5)
 
 
 def hair_front(style, m):
     k = skull()
-    cap = hair_cap(m, front_eps=58 if style != 'curly' else 50)
-    n = 15
-    # fringe: strands from a part near the crown down over the forehead, swept to one side
+    cap = hair_cap(m, front_eps={'curly': 68, 'long': 74, 'straight': 74}.get(style, 76))
+    n = 9
+    # fringe: chunky locks from a part near the crown down over the forehead, swept to one side
     for j in range(n):
         u = j / (n - 1)
-        phi = -66 + 132 * u
-        sw = 14 if style in ('short', 'bun') else 9
-        strand(phi, 12 + 6 * abs(u - 0.5), 60 + 5 * math.sin(j * 1.7), sw * (1 if u > 0.15 else -0.5), 1.7, m, g=1.0, taper=0.35)
+        phi = -62 + 124 * u
+        sw = 12 if style in ('short', 'bun') else 8
+        strand(phi, 14 + 5 * abs(u - 0.5), 70 + 3 * math.sin(j * 1.7), sw * (1 if u > 0.15 else -0.5), 2.7, m, g=0.9, taper=0.22, outline=0.08)
     if style == 'short':
         for sd in SIDES:   # short sideburns in front of the ears
             strand(sd * 82, 52, 98, 0, 1.5, m, g=0.9, taper=0.5)
@@ -261,8 +307,10 @@ def hair_front(style, m):
         # the pulled-back strands towards the bun
         for sd in SIDES:
             strand(sd * 70, 40, 14, sd * -50, 1.5, m, g=1.0, taper=0.4)
-    elif style in ('long', 'straight'):
-        end = H['sh_z'] - 8 if style == 'long' else H['neck_z'] + 1.5
+    elif style == 'straight':
+        bob(m)
+    elif style == 'long':
+        end = H['sh_z'] - 8
         for sd in SIDES:
             for q, phi in enumerate((74, 92, 112, 134)):
                 strand(sd * phi, 14 + 3 * q, 99, sd * 6, 2.5 - 0.2 * q, m, g=1.1, fall=end + 1.8 * math.sin((q + (sd > 0)) * 2.3), spread=0.011 if q < 2 else 0.006, taper=0.2, outline=0.1)
@@ -278,8 +326,8 @@ def hair_front(style, m):
 
 def hair_back(style, m):
     k = skull()
-    if style in ('long', 'straight'):
-        end = H['sh_z'] - 12 if style == 'long' else H['neck_z'] + 0.5
+    if style == 'long':
+        end = H['sh_z'] - 12
         bm = bmesh.new(); rows = []
         n = 11
         for zi in range(n):
@@ -309,35 +357,33 @@ def head_ell(name, m, grow=0.0, outline=0.1, segs=64):
     return sphere(name, 1.0, m, loc=(0, k['cy'], k['cz']), scale=(k['rx'] + grow, k['ry'] + grow, k['hz'] + grow), outline=outline, segs=segs)
 
 
+def rim_ring(z, g, r, m):
+    k = skull()
+    e = math.acos(max(-1.0, min(1.0, (z - k['cz']) / (k['hz'] + g))))
+    pts = [((k['rx'] + g) * math.sin(e) * math.cos(a), k['cy'] + (k['ry'] + g) * math.sin(e) * math.sin(a), z) for a in [i * 2 * math.pi / 48 for i in range(49)]]
+    return tube('cuff', pts, r, m, outline=0.06)
+
+
 def hat_beanie():
     m = toon('hat', WHITE)
-    o = head_ell('dome', m, grow=0.95)
-    z = H['eye_z'] + 3.3
-    keep(o, lambda x, y, zz: zz > z, lambda x, y: z)
-    shell(o, 0.4)
-    # a folded cuff: a band around the head at the rim
-    pts = []
-    for i in range(49):
-        a = i / 48 * 2 * math.pi
-        pts.append(((H['rx'] + 1.15) * math.cos(a), H['cy'] + (H['ry'] + 1.15) * math.sin(a), z))
-    t = tube('cuff', pts, 1.15, m, outline=0.1)
+    z = H['eye_z'] + 6.2
+    sheet('dome', m, lambda phi: z, g=1.2, thick=0.5)
+    rim_ring(z + 0.3, 1.5, 1.2, m)
     return True
 
 
 def hat_pom():
-    sphere('pom', 2.6, toon('pom', WHITE), loc=(0, H['cy'], H['top'] + 2.6), outline=0.12)
+    sphere('pom', 2.8, toon('pom', WHITE), loc=(0, skull()['cy'], skull()['cz'] + skull()['hz'] + 2.6), outline=0.1)
     return True
 
 
 def hat_cap():
     m = toon('cap', WHITE)
-    o = head_ell('crown', m, grow=0.8)
-    z = H['eye_z'] + 3.6
-    keep(o, lambda x, y, zz: zz > z, lambda x, y: z)
-    shell(o, 0.4)
-    b = sphere('brim', 1.0, m, loc=(-1.6, H['face_y'] - 2.6, z + 0.2), scale=(H['rx'] * 0.92, 4.2, 0.55), outline=0.1)
-    b.rotation_euler = (math.radians(-10), 0, math.radians(14))
-    sphere('button', 0.7, m, loc=(0, H['cy'], H['top'] + 0.7), outline=0.1)
+    k = skull(); z = H['eye_z'] + 6.6
+    sheet('crown', m, lambda phi: z, g=1.2, thick=0.5)
+    b = sphere('brim', 1.0, m, loc=(-0.8, k['cy'] - k['ry'] - 1.6, z - 0.3), scale=(k['rx'] * 0.78, 5.0, 0.8), outline=0.06)
+    b.rotation_euler = (math.radians(-8), 0, math.radians(12))
+    sphere('button', 0.8, m, loc=(0, k['cy'], k['cz'] + k['hz'] + 1.9), outline=0.06)
     return True
 
 
@@ -365,7 +411,7 @@ def scarf():
     # a thick wrap round the neck, a knot at the front and a tail hanging down the chest
     lathe('wrap', M.soft([(3.4, nz + 4.6), (6.4, nz + 5.0), (7.6, nz + 2.8), (7.0, nz - 0.6), (3.6, nz + 0.2)]), m, segs=48).location = (0, H['cy'] * 0.25 + 1.2, 0)
     sphere('knot', 2.5, m, loc=(2.6, surf(2.6, nz + 1.0)[1] - 0.6, nz + 0.6), outline=0.1, segs=20)
-    M.box('tail', (3.4, 1.2, 11.0), m, loc=(2.6, surf(2.6, nz - 6, 0.7)[1], nz - 1.5 - 5.5), bevel=0.55, rot=(math.radians(8), math.radians(-5), 0))
+    tube('tail', [surf(2.6, nz - 1.0, 1.0), surf(2.8, nz - 6.0, 1.0), surf(3.0, nz - 11.0, 0.9)], 1.7, m, outline=0.06)
     return True
 
 
@@ -374,9 +420,9 @@ def collar(kind):
     nz = H['neck_z']
     xs = [i * 0.5 for i in range(-12, 13)]
     if kind == 'round':       # a ribbed crew neck following the neckline
-        tube('rib', [surf(x, neckline(x) + 0.2, 0.55) for x in xs], 0.85, m, outline=0.1)
+        tube('rib', [surf(x, neckline(x) + 0.2, 0.55) for x in xs], 0.7, m, outline=0.04)
     else:                     # a shirt collar: a neck ring, two flaps and the open V
-        tube('rib', [surf(x, neckline(x) + 0.9, 0.5) for x in xs if abs(x) < 5.6], 0.7, m, outline=0.08)
+        tube('rib', [surf(x, neckline(x) + 0.9, 0.5) for x in xs if abs(x) < 5.6], 0.6, m, outline=0.04)
         for sd in SIDES:
             pts = [surf(sd * 3.4, nz + 0.2, 0.7), surf(sd * 4.6, nz - 2.6, 0.9), surf(sd * 2.0, nz - 8.5, 0.9)]
             me = bpy.data.meshes.new('fl'); bm = bmesh.new()
@@ -446,7 +492,7 @@ def run():
                 pass
             m = hair_mat()
             snap('cust-hair-%s-front-%s' % (st, g), mats, 'hold', lambda st=st, m=m: hair_front(st, m))
-            if st in ('long', 'curly', 'straight'):
+            if st in ('long', 'curly'):
                 snap('cust-hair-%s-back-%s' % (st, g), mats, 'hold', lambda st=st, m=m: hair_back(st, m))
         if want('hat-beanie'): snap('cust-hat-beanie-%s' % g, mats, 'hold', hat_beanie)
         if want('hat-pom'): snap('cust-hat-pom-%s' % g, mats, None, hat_pom)
