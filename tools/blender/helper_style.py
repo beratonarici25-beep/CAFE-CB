@@ -141,7 +141,8 @@ def body_B():
     vs, faces = read_obj(os.path.join(MPFB, '3dobjs', 'base.obj'))
     T = os.path.join(MPFB, 'targets')
     # a young woman, fair skin; slightly bigger eyes and a softer face for the game's cute-but-real look
-    for t, w in (('macrodetails/caucasian-female-young', 1.0), ('macrodetails/universal-female-young-averagemuscle-averageweight', 1.0),
+    sex = 'male' if CUSTOMER and CUSTOMER.get('male') else 'female'
+    for t, w in (('macrodetails/caucasian-%s-young' % sex, 1.0), ('macrodetails/universal-%s-young-averagemuscle-averageweight' % sex, 1.0),
                  ('eyes/l-eye-scale-incr', 1.0), ('eyes/r-eye-scale-incr', 1.0), ('chin/chin-width-decr', 0.4) if os.path.exists(os.path.join(T, 'chin/chin-width-decr.target.gz')) else (None, 0)):
         if t and os.path.exists(os.path.join(T, t + '.target.gz')):
             apply_target(vs, os.path.join(T, t + '.target.gz'), w)
@@ -201,6 +202,24 @@ def body_B():
         new_ = {i: sum((P[j].y for j in nbr[i]), 0.0) / len(nbr[i]) for i in wgt}
         for i, w in wgt.items():
             P[i] = Vector((P[i].x, P[i].y + (new_[i] - P[i].y) * min(1.0, w * 1.4), P[i].z))
+    if CUSTOMER:   # the game draws the eyes and mouth: flatten the pockets of the base mesh into a smooth skin membrane
+        def _hp(p):
+            t = min(1.0, max(0.0, (p.z - neck.z - 2) / 4.0)); f = 1 + (hk - 1) * t
+            return Vector((p.x * f * (1 + 0.14 * t), (p.y - neck.y) * f + neck.y, (p.z - neck.z) * f + neck.z))
+        reg = {}
+        for e_ in (_hp(eyeL), _hp(eyeR)):
+            for i in body_ids:
+                d_ = math.hypot((P[i].x - e_.x) / 4.8, (P[i].z - e_.z - 0.5) / 3.6)
+                if d_ < 1.0 and P[i].y < nose_.y + 17:
+                    reg[i] = max(reg.get(i, 0), 1.0 if d_ < 0.7 else (1 - d_) / 0.3)
+        for i in body_ids:
+            d_ = math.hypot(P[i].x / 4.6, (P[i].z - mz_) / 3.4)
+            if d_ < 1.0 and P[i].y < nose_.y + 17:
+                reg[i] = max(reg.get(i, 0), 1.0 if d_ < 0.7 else (1 - d_) / 0.3)
+        for _ in range(900):
+            new_ = {i: sum((P[j] for j in nbr[i]), Vector()) / len(nbr[i]) for i in reg}
+            for i, w in reg.items():
+                P[i] = P[i].lerp(new_[i], w)
     me = bpy.data.meshes.new('mh'); bm = bmesh.new()
     idx = {}
     for i in sorted(body_ids):
@@ -224,32 +243,35 @@ def body_B():
     nose = min(front, key=lambda p: p.y)
     chinp = min((p for p in front if p.y < nose.y + 4.5), key=lambda p: p.z)
     mz = nose.z - 0.5 * (nose.z - chinp.z)
-    finish(o, body_mat(sh, mz, nose.y + 3.0, neck.z), outline=0.14)
+    global BODYOBJ, MATARGS
+    BODYOBJ = o; MATARGS = (sh, mz, nose.y + 3.0, neck.z)
+    finish(o, body_mat(*MATARGS, mode='skin' if CUSTOMER else None), outline=0.14)
     # eyes in the sockets (scaled the same way as the head)
     def headpt(p):
         t = min(1.0, max(0.0, (p.z - neck.z - 2) / 4.0)); f = 1 + (hk - 1) * t
         return Vector((p.x * f * (1 + 0.14 * t), (p.y - neck.y) * f + neck.y, (p.z - neck.z) * f + neck.z))
     eL, eR = headpt(eyeL), headpt(eyeR)
-    r = 1.22 * hk
-    bvh = BVHTree.FromObject(o, bpy.context.evaluated_depsgraph_get())
-    lid = toon('lid', '#3a2318', lo=1.0); brow = toon('brow', '#3f2619', lo=0.8)
-    for s, e in ((1, eL), (-1, eR)):
-        def onface(x, z, off=0.25):
-            hit = bvh.ray_cast(Vector((x, -60, z)), Vector((0, 1, 0)))
-            return (x, (hit[0].y if hit[0] else e.y - 1) - off, z)
-        ring = [bvh.ray_cast(Vector((e.x + 2.6 * math.cos(a), -60, e.z + 2.6 * math.sin(a))), Vector((0, 1, 0)))[0] for a in [k * math.pi / 4 for k in range(8)]]
-        fy_ = min(h.y for h in ring if h) if any(ring) else e.y
-        eyeball("eye" + str(s), Vector((e.x, fy_ - 0.15, e.z)), 1.95)
-        tube('lid', smooth_curve([onface(e.x - s * 1.35 * hk, e.z + 1.3, 0.05), onface(e.x, e.z + 2.3 * hk, 0.15), onface(e.x + s * 1.35 * hk, e.z + 1.3, 0.1)], 6), 0.2, lid, outline=0)
-        tube('brow', smooth_curve([onface(e.x - s * 1.9, e.z + 4.1 + BROW), onface(e.x + s * 0.3, e.z + 4.7 + BROW * 0.5), onface(e.x + s * 2.4, e.z + 4.2 - BROW * 0.3)], 6), 0.42, brow, outline=0)
-        bl = onface(s * (abs(e.x) + 1.3), e.z - 3.6, -0.05)
-        sphere('blush', 1.0, toon('blush', '#f2948a', alpha=0.0, edge=0.45), loc=bl, scale=(2.1, 0.22, 1.2), outline=0)
-    cx_, cy_, cz_ = onface(0, mz - 1.6, 0.0)
-    sphere('chinpatch', 1.0, toon('chinpatch', SKIN, lo=0.72), loc=(cx_, cy_ + 0.05, cz_ + 0.2), scale=(3.3, 0.25, 1.4), outline=0)
-    for sd in (-1, 1):   # skin over the mesh's creases at the corners of the mouth, which the outline pass draws as whiskers
-        wx, wy, wz = onface(sd * 3.0, mz + 0.3, 0.0)
-        sphere('cornerpatch', 1.0, toon('cornerpatch', SKIN, lo=0.72), loc=(wx, wy + 0.05, wz), scale=(1.3, 0.25, 0.9), outline=0)
-    mouth(onface, mz)
+    if not CUSTOMER:   # customers get their face drawn by the game (blink, mood), so the head stays blank
+        r = 1.22 * hk
+        bvh = BVHTree.FromObject(o, bpy.context.evaluated_depsgraph_get())
+        lid = toon('lid', '#3a2318', lo=1.0); brow = toon('brow', '#3f2619', lo=0.8)
+        for s, e in ((1, eL), (-1, eR)):
+            def onface(x, z, off=0.25):
+                hit = bvh.ray_cast(Vector((x, -60, z)), Vector((0, 1, 0)))
+                return (x, (hit[0].y if hit[0] else e.y - 1) - off, z)
+            ring = [bvh.ray_cast(Vector((e.x + 2.6 * math.cos(a), -60, e.z + 2.6 * math.sin(a))), Vector((0, 1, 0)))[0] for a in [k * math.pi / 4 for k in range(8)]]
+            fy_ = min(h.y for h in ring if h) if any(ring) else e.y
+            eyeball("eye" + str(s), Vector((e.x, fy_ - 0.15, e.z)), 1.95)
+            tube('lid', smooth_curve([onface(e.x - s * 1.35 * hk, e.z + 1.3, 0.05), onface(e.x, e.z + 2.3 * hk, 0.15), onface(e.x + s * 1.35 * hk, e.z + 1.3, 0.1)], 6), 0.2, lid, outline=0)
+            tube('brow', smooth_curve([onface(e.x - s * 1.9, e.z + 4.1 + BROW), onface(e.x + s * 0.3, e.z + 4.7 + BROW * 0.5), onface(e.x + s * 2.4, e.z + 4.2 - BROW * 0.3)], 6), 0.42, brow, outline=0)
+            bl = onface(s * (abs(e.x) + 1.3), e.z - 3.6, -0.05)
+            sphere('blush', 1.0, toon('blush', '#f2948a', alpha=0.0, edge=0.45), loc=bl, scale=(2.1, 0.22, 1.2), outline=0)
+        cx_, cy_, cz_ = onface(0, mz - 1.6, 0.0)
+        sphere('chinpatch', 1.0, toon('chinpatch', SKIN, lo=0.72), loc=(cx_, cy_ + 0.05, cz_ + 0.2), scale=(3.3, 0.25, 1.4), outline=0)
+        for sd in (-1, 1):   # skin over the mesh's creases at the corners of the mouth, which the outline pass draws as whiskers
+            wx, wy, wz = onface(sd * 3.0, mz + 0.3, 0.0)
+            sphere('cornerpatch', 1.0, toon('cornerpatch', SKIN, lo=0.72), loc=(wx, wy + 0.05, wz), scale=(1.3, 0.25, 0.9), outline=0)
+        mouth(onface, mz)
     # landmarks for the shared parts
     zs = [P[i].z for i in body_ids if P[i].z > neck.z]
     top = max(zs)
@@ -260,11 +282,12 @@ def body_B():
     chest_y = min(p.y for p in torso_pts) if torso_pts else -10
     H = dict(cz=(top + chin) / 2 + 0.5, rx=rx + 0.2, ry=(max(p.y for p in head_pts) - ry_front) / 2, top=top, chin=chin,
              eye_z=eL.z, eye_x=abs(eL.x), face_y=ry_front, neck_z=neck.z, sh_x=sh.x, sh_z=sh.z, chest_y=chest_y,
-             cy=(max(p.y for p in head_pts) + ry_front) / 2)
+             cy=(max(p.y for p in head_pts) + ry_front) / 2, mz=mz, nose_y=nose.y, nose_z=nose.z)
     return H
 
 
 ARM = None
+CUSTOMER = None   # customers_b.py sets {'male': bool, 'age': ..}: a blank face (the game draws it) and a neutral base
 MOUTH = 'smile'   # 'smile' | 'open' | 'o' | 'flat'
 BROW = 0.0        # tilts the inner ends of the brows up (worried) or down
 
@@ -371,7 +394,7 @@ def raise_arm(side, up=0, fwd=0, elbow_up=0, elbow_fwd=0):
     if elbow_up: rot('lowerarm01.' + side, 'Y', -s * elbow_up)
 
 
-def body_mat(sh, mz, lip_y, neck_z):
+def body_mat(sh, mz, lip_y, neck_z, mode=None):
     """skin, the black short-sleeved top and rosy lips on the one MakeHuman mesh, split by smooth masks on the
     position (so the borders are clean curves, not the mesh's faces)"""
     m = toon('skinB', SKIN, lo=0.72).copy(); m.name = 'skinB'
@@ -414,6 +437,21 @@ def body_mat(sh, mz, lip_y, neck_z):
             else:
                 L.new(v, n.inputs[k])
         return n.outputs[0]
+    if mode:   # a customer layer: grey (the game tints it), only the skin or only the shirt shows; '-ink' = its outline
+        mul.inputs[2].default_value = (1, 1, 1, 1)
+        em = next(n for n in N if n.bl_idname == 'ShaderNodeEmission'); out = next(n for n in N if n.bl_idname == 'ShaderNodeOutputMaterial')
+        if mode.endswith('-ink'):
+            for l in list(em.inputs[0].links):
+                L.remove(l)
+            em.inputs[0].default_value = M.srgb('#4b2e2b') + (1,)
+        tr = N.new('ShaderNodeBsdfTransparent'); mx = N.new('ShaderNodeMixShader')
+        # customers: a plain U-shaped neckline, a hard (not dithered) edge between skin and shirt
+        nl = op('ADD', op('MULTIPLY', op('MULTIPLY', X, X), 0.14), neck_z - 5.0)
+        top = op('MULTIPLY', op('MULTIPLY', step(op('SUBTRACT', nl, Z), 0.0, 0.25), step(op('SUBTRACT', neck_z + 3.0, Z), 0.0, 0.25)), op('SUBTRACT', 1.0, bare_arm))
+        fac = op('ROUND', top if mode.startswith('skin') else op('SUBTRACT', 1.0, top))
+        L.new(fac, mx.inputs[0])
+        L.new(em.outputs[0], mx.inputs[1]); L.new(tr.outputs[0], mx.inputs[2]); L.new(mx.outputs[0], out.inputs[0])
+        return m
     c = mix(top, srgb(SKIN) + (1,), srgb(TOP) + (1,))
     c = mix(lips, c, srgb(SKIN) + (1,))
     L.new(c, mul.inputs[2])
@@ -610,7 +648,8 @@ def build(name):
     render(name, H)
 
 
-os.makedirs(OUTDIR, exist_ok=True)
-for w in (list(POSES) if WHICH == ['all'] else WHICH):
-    build(w)
-print('done ->', OUTDIR)
+if os.environ.get('HELPER_NO_BUILD') != '1':
+    os.makedirs(OUTDIR, exist_ok=True)
+    for w in (list(POSES) if WHICH == ['all'] else WHICH):
+        build(w)
+    print('done ->', OUTDIR)

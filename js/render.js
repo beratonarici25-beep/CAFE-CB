@@ -19,9 +19,11 @@ function litFill(g, col, cx, cy, r) {
    tinted with each customer's colours and stacked once into a cached image; the face is drawn on top every frame. */
 const HAIR_STYLES = ['short', 'bun', 'long', 'curly', 'beanie', 'straight'];   // by makeCustomer().hairStyle
 const CUST_IMG = {};
-['skin', 'torso', 'collar-round', 'collar-v', 'scarf', 'beard', 'hat-beanie', 'hat-pom', 'hat-cap',
-  ...['short', 'bun', 'long', 'curly', 'straight'].map(h => `hair-${h}-front`), ...['long', 'curly', 'straight'].map(h => `hair-${h}-back`)]
-  .forEach(n => { const i = new Image(); i.src = `assets/models/cust-${n}.webp`; CUST_IMG[n] = i; });
+for (const g of ['f', 'm']) {
+  ['skin', 'torso', 'collar-round', 'collar-v', 'scarf', 'hat-beanie', 'hat-pom', 'hat-cap', ...(g === 'm' ? ['beard'] : []),
+    ...['short', 'bun', 'long', 'curly', 'straight'].map(h => `hair-${h}-front`), ...['long', 'curly', 'straight'].map(h => `hair-${h}-back`)]
+    .forEach(n => { const i = new Image(); i.src = `assets/models/cust-${n}-${g}.webp`; CUST_IMG[`${n}-${g}`] = i; });
+}
 function tintLayer(img, col, W, H) {
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const g = cv.getContext('2d');
@@ -32,20 +34,20 @@ function tintLayer(img, col, W, H) {
 }
 function customerSprite(c) {
   if (c._spr) return c._spr;
-  const st = HAIR_STYLES[c.hairStyle] || 'short', hairSt = st === 'beanie' ? 'short' : st;
+  const st = HAIR_STYLES[c.hairStyle] || 'short', hairSt = st === 'beanie' ? 'short' : st, gd = c.male ? 'm' : 'f';
   const L = [];
-  if (CUST_IMG[`hair-${hairSt}-back`]) L.push([`hair-${hairSt}-back`, c.hair]);
+  if (CUST_IMG[`hair-${hairSt}-back-${gd}`]) L.push([`hair-${hairSt}-back`, c.hair]);
   L.push(['torso', c.shirt], [c.collar ? 'collar-v' : 'collar-round', c.collar ? shade(c.shirt, 0.6) : shade(c.shirt, -0.12)], ['skin', c.skin]);
   if (c.acc === 'scarf') L.push(['scarf', c.hat]);
-  if (c.acc === 'beard') L.push(['beard', c.hair]);
+  if (c.acc === 'beard' && CUST_IMG[`beard-${gd}`]) L.push(['beard', c.hair]);
   L.push([`hair-${hairSt}-front`, c.hair]);
   if (st === 'beanie') L.push(['hat-beanie', c.hat], ['hat-pom', C.paper]);
   else if (c.acc === 'cap') L.push(['hat-cap', c.hat]);
-  if (L.some(([n]) => !CUST_IMG[n].complete || !CUST_IMG[n].naturalWidth)) return null;
-  const W = CUST_IMG.skin.naturalWidth, H = CUST_IMG.skin.naturalHeight;
+  if (L.some(([n]) => !CUST_IMG[`${n}-${gd}`].complete || !CUST_IMG[`${n}-${gd}`].naturalWidth)) return null;
+  const W = CUST_IMG[`skin-${gd}`].naturalWidth, H = CUST_IMG[`skin-${gd}`].naturalHeight;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-  const g = cv.getContext('2d');
-  for (const [n, col] of L) g.drawImage(tintLayer(CUST_IMG[n], col, W, H), 0, 0);
+  const cx = cv.getContext('2d');
+  for (const [n, col] of L) cx.drawImage(tintLayer(CUST_IMG[`${n}-${gd}`], col, W, H), 0, 0);
   return (c._spr = cv);
 }
 

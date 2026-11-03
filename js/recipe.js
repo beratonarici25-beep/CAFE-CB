@@ -88,10 +88,12 @@ const Rules = {
 
 /* ---------------- customers & orders ---------------- */
 function makeCustomer() {
+  // two bodies (assets/models/cust-*-m|f.webp); hair, beards and earrings follow the body
+  const male = Math.random() < 0.5;
   return {
-    name: pick(NAMES), skin: pick(SKIN), hair: pick(HAIR), shirt: pick(SHIRT), hat: pick(SHIRT),
-    hairStyle: ri(6), glasses: Math.random() < 0.3, seed: rand(0, 6),
-    eye: pick(EYES), collar: Math.random() < 0.5, acc: pick(['none', 'none', 'scarf', 'earrings', 'beard', 'cap']),
+    name: pick(NAMES), skin: pick(SKIN), hair: pick(HAIR), shirt: pick(SHIRT), hat: pick(SHIRT), male,
+    hairStyle: pick(male ? [0, 0, 3, 4] : [1, 2, 3, 4, 5, 5]), glasses: Math.random() < 0.3, seed: rand(0, 6),
+    eye: pick(EYES), collar: Math.random() < 0.5, acc: pick(male ? ['none', 'none', 'scarf', 'beard', 'beard', 'cap'] : ['none', 'none', 'scarf', 'earrings', 'earrings', 'cap']),
     x: -90, state: 'enter', mood: 'happy',
   };
 }

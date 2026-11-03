@@ -2,11 +2,11 @@
    too. The page itself is fetched from the network first (so a new version shows up at once) and from the cache when
    offline; everything else comes from the cache and is fetched only the first time. Bump VERSION with every release
    (together with the ?v= on the links in index.html): the old cache is then dropped. */
-const VERSION = 'cafe-cb-52';
+const VERSION = 'cafe-cb-53';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'style.css?v=41',
   'css/scene.css?v=41', 'css/fx.css?v=41', 'css/views.css?v=41', 'css/bar.css?v=52', 'css/theme.css?v=41', 'css/helper.css?v=41', 'css/stage.css?v=53', 'css/intro.css?v=41',
-  'js/intro.js?v=41', 'js/util.js?v=41', 'js/economy.js?v=41', 'js/i18n.js?v=42', 'js/audio.js?v=41', 'js/recipe.js?v=42', 'js/render.js?v=41', 'js/scene.js?v=41', 'js/fx.js?v=41',
+  'js/intro.js?v=41', 'js/util.js?v=41', 'js/economy.js?v=41', 'js/i18n.js?v=42', 'js/audio.js?v=41', 'js/recipe.js?v=43', 'js/render.js?v=42', 'js/scene.js?v=41', 'js/fx.js?v=41',
   'js/station.js?v=42', 'js/camera.js?v=42', 'js/helper.js?v=41', 'js/tutorial.js?v=41', 'js/main.js?v=41',
   'assets/favicon-64.png', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/icon-512-any.png', 'assets/apple-touch-icon.png',
   'assets/cover/logo-menu.webp', 'assets/intro/cup.webp', 'assets/intro/text.webp',
@@ -15,12 +15,13 @@ const CORE = [
   ...['backbar', 'wall', 'seating', 'counter-top', 'counter-front', 'machine', 'grinder', 'fridge'].map(n => `assets/cafe/${n}.webp?v=41`),
   'assets/fonts/fonts.css?v=41', ...['courier-prime-400', 'courier-prime-700', 'grandstander-500-800', 'nunito-400-800', 'pacifico-400']
     .flatMap(f => [`assets/fonts/${f}-latin.woff2`, `assets/fonts/${f}-latin-ext.woff2`]),
-  ...['bell', 'bin', 'binlid', 'cup-L', 'cup-M', 'cup-S', 'cust-beard', 'cust-collar-round', 'cust-collar-v', 'cust-hair-bun-front',
-    'cust-hair-curly-back', 'cust-hair-curly-front', 'cust-hair-long-back', 'cust-hair-long-front', 'cust-hair-short-front',
-    'cust-hair-straight-back', 'cust-hair-straight-front', 'cust-hat-beanie', 'cust-hat-cap', 'cust-hat-pom', 'cust-scarf', 'cust-skin',
-    'cust-torso', 'gauge', 'grouphead', 'hopper', 'hotwater', 'knockbox', 'milk-almond', 'milk-oat', 'milk-whole', 'pf-empty', 'pf-ground',
+  ...['bell', 'bin', 'binlid', 'cup-L', 'cup-M', 'cup-S', 'gauge', 'grouphead', 'hopper', 'hotwater', 'knockbox', 'milk-almond', 'milk-oat', 'milk-whole', 'pf-empty', 'pf-ground',
     'pf-tamped', 'pitcher-empty', 'pitcher-foam', 'pitcher-milk', 'syrup-caramel', 'syrup-hazelnut', 'syrup-vanilla', 'tamper',
     'top-cinnamon', 'top-cocoa', 'top-whip', 'wand', 'warmer', 'icebucket', 'cocoatin', 'tipjar', 'stool'].map(n => `assets/models/${n}.webp`),
+  // customers: two bodies (f, m), each with its own skin, shirt, collars, scarf, hair and hats (the beard is for m only)
+  ...['f', 'm'].flatMap(g => ['skin', 'torso', 'collar-round', 'collar-v', 'scarf', 'hat-beanie', 'hat-pom', 'hat-cap', ...(g === 'm' ? ['beard'] : []),
+    ...['short', 'bun', 'long', 'curly', 'straight'].map(h => `hair-${h}-front`), ...['long', 'curly', 'straight'].map(h => `hair-${h}-back`)]
+    .map(n => `assets/models/cust-${n}-${g}.webp`)),
 ];
 
 self.addEventListener('install', e => {
