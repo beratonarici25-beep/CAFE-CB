@@ -83,6 +83,9 @@ def setup(male):
         mats[mode] = HS.body_mat(*HS.MATARGS, mode=mode)
         mats[mode + '-ink'] = HS.body_mat(*HS.MATARGS, mode=mode + '-ink')
         mats[mode + '-ink'].use_backface_culling = True; mats[mode + '-ink'].use_backface_culling_shadow = True
+    for mode in ('skin', 'shirt'):   # a softer shadow side, so arms and face read as one skin tone
+        rp = next(n for n in mats[mode].node_tree.nodes if n.bl_idname == 'ShaderNodeValToRGB').color_ramp
+        rp.elements[0].color = (0.86 * 0.95, 0.86 * 0.88, 0.86 * 0.95, 1)
     hold = bpy.data.materials.new('holdout'); hold.use_nodes = True
     N = hold.node_tree.nodes
     for n in list(N):
@@ -410,7 +413,6 @@ def scarf():
     nz = H['neck_z']
     # a thick wrap round the neck, a knot at the front and a tail hanging down the chest
     lathe('wrap', M.soft([(3.4, nz + 4.6), (6.4, nz + 5.0), (7.6, nz + 2.8), (7.0, nz - 0.6), (3.6, nz + 0.2)]), m, segs=48).location = (0, H['cy'] * 0.25 + 1.2, 0)
-    sphere('knot', 2.5, m, loc=(2.6, surf(2.6, nz + 1.0)[1] - 0.6, nz + 0.6), outline=0.1, segs=20)
     tube('tail', [surf(2.6, nz - 1.0, 1.0), surf(2.8, nz - 6.0, 1.0), surf(3.0, nz - 11.0, 0.9)], 1.7, m, outline=0.06)
     return True
 
