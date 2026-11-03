@@ -42,9 +42,9 @@ function newCup() {
     cold: false, ice: 0, choc: 0 };
 }
 // pf.at: 'rack' | 'grinder' | 'group'
-function newPortafilter() { return { at: 'rack', bean: 'esp', dose: 0, doseQ: 0, grinding: false, tamped: false }; }
+function newPortafilter() { return { at: 'rack', bean: 'esp', dose: 0, doseQ: 0, grindTo: 0, grinding: false, tamped: false }; }
 // pitcher.at: 'rack' | 'wand'
-function newPitcher() { return { at: 'rack', milk: null, foam: 'light', temp: 6, steaming: false, scorched: false }; }
+function newPitcher() { return { at: 'rack', milk: null, foam: 'light', temp: 6, heat: null, heatTo: 0, steaming: false, scorched: false }; }
 
 // The summary shape the issue tracker talks about; handy for debugging (window.CB.cupState()).
 function cupStatus(c) {

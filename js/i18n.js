@@ -9,8 +9,8 @@ const STR = {
     ticketIdle: 'Open the café to take your first order.', ticketWait: 'Waiting for the next guest…',
     trash: 'Trash it', serve: 'Serve', cup: 'Cup', grinder: 'Grinder', sweetSpot: 'sweet spot {0}–{1} g',
     espresso: 'Espresso', stopAt: 'stop at 25–30 s', steamWand: 'Steam wand', syrups: 'Syrups', onePump: 'one tap = one pump', toppings: 'Toppings',
-    holdGrind: 'Hold to grind', dump: 'Dump', pullShot: 'Pull shot', pullAnother: 'Pull another shot', stop: 'Stop!',
-    holdSteam: 'Hold to steam', pour: 'Pour', poured: 'Poured',
+    pressGrind: 'Press to grind', dump: 'Dump', pullShot: 'Pull shot', pullAnother: 'Pull another shot', stop: 'Stop!',
+    pressSteam: 'Press to heat', pour: 'Pour', poured: 'Poured',
     grinding: 'Grinding…', doseLight: 'A bit light', doseOver: 'Overpacked', perfectDose: 'Perfect dose',
     waitFor: 'Wait for it…', now: 'Now!', tooLong: 'Too long!', grindFirst: 'Grind first', max3: 'Three shots max', ready: 'Ready',
     scorched: 'Scorched!', steaming: 'Steaming…', pourReady: 'Pour when ready', sec: 's',
@@ -38,7 +38,7 @@ const STR = {
     foams: { none: 'No foam', light: 'Light foam', thick: 'Thick foam' },
     syrupNames: { vanilla: 'Vanilla', caramel: 'Caramel', hazelnut: 'Hazelnut' },
     tops: { whip: 'Whipped cream', cocoa: 'Cocoa', cinnamon: 'Cinnamon' },
-    temps: { warm: 'Warm', normal: 'Normal', hot: 'Extra hot' },
+    temps: { warm: 'Warm', normal: 'Hot', hot: 'Extra hot' },
     upg: {
       stools: ['Comfy Stools', 'Customers wait 25% longer.'], grinder: ['Precision Grinder', 'Dose sweet spot widens to 16–20 g.'],
       tipjar: ['Big Tip Jar', 'Tips are 50% bigger.'], gauge: ['Pressure Gauge', 'The shot timer runs 30% slower.'],
@@ -95,8 +95,8 @@ const STR = {
     ticketIdle: 'İlk siparişi almak için kafeyi aç.', ticketWait: 'Sıradaki misafir bekleniyor…',
     trash: 'Dök gitsin', serve: 'Servis et', cup: 'Bardak', grinder: 'Öğütücü', sweetSpot: 'ideal {0}–{1} g',
     espresso: 'Espresso', stopAt: '25–30 sn’de durdur', steamWand: 'Buhar çubuğu', syrups: 'Şuruplar', onePump: 'her dokunuş = bir pompa', toppings: 'Süslemeler',
-    holdGrind: 'Basılı tut, öğüt', dump: 'Boşalt', pullShot: 'Shot çek', pullAnother: 'Bir shot daha', stop: 'Dur!',
-    holdSteam: 'Basılı tut, ısıt', pour: 'Dök', poured: 'Döküldü',
+    pressGrind: 'Bas, öğüt', dump: 'Boşalt', pullShot: 'Shot çek', pullAnother: 'Bir shot daha', stop: 'Dur!',
+    pressSteam: 'Bas, ısıt', pour: 'Dök', poured: 'Döküldü',
     grinding: 'Öğütülüyor…', doseLight: 'Biraz az', doseOver: 'Fazla dolu', perfectDose: 'Mükemmel doz',
     waitFor: 'Bekle…', now: 'Şimdi!', tooLong: 'Çok uzun!', grindFirst: 'Önce öğüt', max3: 'En fazla üç shot', ready: 'Hazır',
     scorched: 'Yandı!', steaming: 'Isıtılıyor…', pourReady: 'Hazırsan dök', sec: 'sn',
@@ -124,7 +124,7 @@ const STR = {
     foams: { none: 'Köpüksüz', light: 'Az köpük', thick: 'Bol köpük' },
     syrupNames: { vanilla: 'Vanilya', caramel: 'Karamel', hazelnut: 'Fındık' },
     tops: { whip: 'Krem şanti', cocoa: 'Kakao', cinnamon: 'Tarçın' },
-    temps: { warm: 'Ilık', normal: 'Normal', hot: 'Çok sıcak' },
+    temps: { warm: 'Ilık', normal: 'Sıcak', hot: 'Çok sıcak' },
     upg: {
       stools: ['Rahat Tabureler', 'Müşteriler %25 daha uzun bekler.'], grinder: ['Hassas Öğütücü', 'İdeal doz aralığı 16–20 g olur.'],
       tipjar: ['Büyük Bahşiş Kavanozu', 'Bahşişler %50 daha fazla.'], gauge: ['Basınç Göstergesi', 'Shot zamanlayıcısı %30 daha yavaş akar.'],
@@ -331,7 +331,7 @@ Object.assign(STR.en, {
     pf: 'Portafilter', tamper: 'Tamper', rack: 'Rack', cup: 'Cup', brew: 'Brew', hold: 'Holding: {0}', drop: 'Drop',
     ice: 'Ice', cocoa: 'Cocoa',
   },
-  brewBtn: 'Brew', stopBtn: 'Stop!', holdGrindShort: 'Hold: grind', holdSteamShort: 'Hold: steam', serveBtn: 'Serve',
+  brewBtn: 'Brew', stopBtn: 'Stop!', serveBtn: 'Serve',
   grindKey: 'Grind', steamKey: 'Steam',
   beanKey: { esp: 'House', decaf: 'Decaf', dark: 'Dark' }, foamKey: { none: 'None', light: 'Light', thick: 'Thick' },
   toBarista: 'Go to the barista bench', toCustomer: 'Look at the customer', backToBench: 'Back to the bench',
@@ -361,7 +361,7 @@ Object.assign(STR.tr, {
     pf: 'Portafiltre', tamper: 'Tamper', rack: 'Askı', cup: 'Bardak', brew: 'Demle', hold: 'Elinde: {0}', drop: 'Bırak',
     ice: 'Buz', cocoa: 'Kakao',
   },
-  brewBtn: 'Demle', stopBtn: 'Dur!', holdGrindShort: 'Basılı tut: öğüt', holdSteamShort: 'Basılı tut: ısıt', serveBtn: 'Servis et',
+  brewBtn: 'Demle', stopBtn: 'Dur!', serveBtn: 'Servis et',
   grindKey: 'Öğüt', steamKey: 'Buhar',
   beanKey: { esp: 'Ev', decaf: 'Kafeinsiz', dark: 'Koyu' }, foamKey: { none: 'Yok', light: 'Az', thick: 'Bol' },
   toBarista: 'Barista alanına geç', toCustomer: 'Müşteriye bak', backToBench: 'Tezgâha dön',
@@ -387,20 +387,20 @@ Object.assign(STR.tr, {
 STR.en.howSteps = `<ol class="steps">
   <li><b>Cup:</b> drag a cup from the stand onto the prep mat or the drip tray.</li>
   <li><b>Order:</b> listen to the customer, then press <b>Go to the barista bench</b>. The order ticket stays pinned while you work.</li>
-  <li><b>Grind:</b> drag the portafilter under the grinder, pick the beans with the keys on the grinder, hold its <b>Grind</b> button to <b>17–19 g</b>.</li>
+  <li><b>Grind:</b> drag the portafilter under the grinder, pick the beans with the keys on the grinder, press its <b>Grind</b> button: one press grinds one portion (<b>17–19 g</b>).</li>
   <li><b>Tamp:</b> drag the tamper onto the portafilter.</li>
   <li><b>Brew:</b> lock the portafilter into the group head, put the cup on the drip tray, press the machine's <b>Brew</b> button and stop at <b>25–30 s</b>. Press again for another shot.</li>
-  <li><b>Milk:</b> drag a milk bottle onto the pitcher, put the pitcher under the steam wand, pick the foam with the keys on the machine, hold <b>Steam</b>, then drag the pitcher onto the cup.</li>
+  <li><b>Milk:</b> drag a milk bottle onto the pitcher, put the pitcher under the steam wand, pick the foam with the keys on the machine, press the temperature button on the machine until it shows the heat you want, then drag the pitcher onto the cup.</li>
   <li><b>Extras:</b> press a syrup bottle's pump (or drag the bottle onto the cup) and drag topping shakers onto the cup.</li>
   <li><b>Serve:</b> put the cup on the <b>serving tray</b> and ring the <b>Serve</b> bell. Back at the bar, drag the cup onto the customer. Messed up? Drag it into the trash. Knock old grounds out of the portafilter into the <b>knock box</b>; the trash also empties the pitcher.</li>
 </ol>`;
 STR.tr.howSteps = `<ol class="steps">
   <li><b>Bardak:</b> standdan bir bardağı hazırlık alanına ya da damlalığa sürükle.</li>
   <li><b>Sipariş:</b> müşteriyi dinle, sonra <b>Barista alanına geç</b>’e bas. Sipariş fişi sen çalışırken köşede durur.</li>
-  <li><b>Öğüt:</b> portafiltreyi öğütücünün altına sürükle, çekirdeği öğütücünün üstündeki tuşlardan seç, <b>Öğüt</b> düğmesini <b>17–19 g</b> olana kadar basılı tut.</li>
+  <li><b>Öğüt:</b> portafiltreyi öğütücünün altına sürükle, çekirdeği öğütücünün üstündeki tuşlardan seç, <b>Öğüt</b> düğmesine bas: her basış bir porsiyon (<b>17–19 g</b>) öğütür.</li>
   <li><b>Sıkıştır:</b> tamper’ı portafiltrenin üstüne sürükle.</li>
   <li><b>Demle:</b> portafiltreyi grup başlığına tak, bardağı damlalığa koy, makinedeki <b>Demle</b> düğmesine bas ve <b>25–30 sn</b>’de durdur. Bir shot daha için tekrar bas.</li>
-  <li><b>Süt:</b> bir süt şişesini potaya sürükle, potayı buhar çubuğunun altına koy, köpüğü makinedeki tuşlardan seç, <b>Buhar</b>’ı basılı tut, sonra potayı bardağın üstüne sürükle.</li>
+  <li><b>Süt:</b> bir süt şişesini potaya sürükle, potayı buhar çubuğunun altına koy, köpüğü makinedeki tuşlardan seç, makinedeki sıcaklık düğmesine istediğin sıcaklığa gelene kadar bas, sonra potayı bardağın üstüne sürükle.</li>
   <li><b>Ekstralar:</b> şurup şişesinin pompasına bas (ya da şişeyi bardağa sürükle), süsleme kaplarını bardağın üstüne sürükle.</li>
   <li><b>Servis:</b> bardağı <b>servis tepsisine</b> koy ve <b>Servis et</b> ziline bas. Tezgâha dönünce bardağı müşterinin üstüne sürükle. Hata mı yaptın? Çöpe at. Portafiltredeki eski telveyi <b>telve kutusuna</b> vur; çöp ayrıca potayı da boşaltır.</li>
 </ol>`;
@@ -416,13 +416,13 @@ STR.en.helper = {
   peekBack: 'Head back to the bench when you are ready.',
   cup: 'A medium latte, so: drag the Medium cup onto the drip tray of the espresso machine.',
   pfGrinder: 'Grab the portafilter (the handle with the basket) and put it under the grinder.',
-  grind: 'Hold the Grind button until the scale shows 17–19 g. Aim for the green zone.',
+  grind: 'Press the Grind button: one press grinds one portion, right in the green zone (17–19 g).',
   tamp: 'Drag the tamper onto the portafilter to press the coffee flat.',
   lock: 'Lock the portafilter into the group head of the machine.',
   brew: 'Press Brew and stop it between 25 and 30 seconds. A latte gets two shots, so do it twice.',
   milk: 'Milk time! Drag the whole milk bottle from the fridge onto the pitcher.',
   wand: 'Put the pitcher under the steam wand.',
-  steam: 'A latte has light foam, and that key is already lit. Hold Steam until 60–67 °C.',
+  steam: 'A latte has light foam, and that key is already lit. Press the temperature button until it reads Hot (60–67 °C).',
   pour: 'Now drag the pitcher onto the cup to pour the milk.',
   serveTray: 'Lovely! Put the cup on the serving tray.',
   bell: 'Ring the Serve bell to take it out to the bar.',
@@ -438,7 +438,7 @@ STR.en.helper = {
   hintMilk: "Oops, that's a different milk. Empty the pitcher into the trash and use whole milk.",
   hintScorched: 'Too hot, the milk burnt! Empty the pitcher into the trash and start again.',
   hintFoam: 'A latte needs light foam: press the Light key on the machine.',
-  hintSteamMore: 'A bit warmer: hold Steam until it reaches 60 °C.',
+  hintSteamMore: 'A bit warmer: press the temperature button again until it reads Hot (60 °C).',
   // a new drink's intro (issue #21); {1} is the drink
   introNew: "New on the menu today: {1}! Here comes someone who wants one. Take the order and I'll show you how it's made.",
   introNext: 'Next', introGotIt: 'Got it!', introSkip: 'Skip',
@@ -461,13 +461,13 @@ STR.tr.helper = {
   peekBack: 'Hazır olunca tezgâha dön.',
   cup: 'Orta boy latte istendi: Orta bardağı espresso makinesinin damlalığına sürükle.',
   pfGrinder: 'Portafiltreyi (sepetli sap) al ve öğütücünün altına koy.',
-  grind: 'Terazide 17–19 g görünene kadar Öğüt düğmesini basılı tut. Yeşil bölgeyi hedefle.',
+  grind: 'Öğüt düğmesine bas: her basış bir porsiyon öğütür, yeşil bölgeye (17–19 g) tam oturur.',
   tamp: 'Kahveyi düzleştirmek için tamper’ı portafiltrenin üstüne sürükle.',
   lock: 'Portafiltreyi makinenin grup başlığına tak.',
   brew: 'Demle’ye bas ve 25 ile 30 saniye arasında durdur. Latte iki shot ister, iki kez yap.',
   milk: 'Süt zamanı! Buzdolabındaki tam yağlı süt şişesini potaya sürükle.',
   wand: 'Potayı buhar çubuğunun altına koy.',
-  steam: 'Latte az köpüklü olur, o tuş zaten yanıyor. 60–67 °C olana kadar Buhar’ı basılı tut.',
+  steam: 'Latte az köpüklü olur, o tuş zaten yanıyor. Sıcaklık düğmesine “Sıcak” (60–67 °C) yazana kadar bas.',
   pour: 'Şimdi sütü dökmek için potayı bardağın üstüne sürükle.',
   serveTray: 'Harika! Bardağı servis tepsisine koy.',
   bell: 'Tezgâha çıkarmak için Servis zilini çal.',
@@ -483,7 +483,7 @@ STR.tr.helper = {
   hintMilk: 'Hop, bu başka bir süt. Potayı çöpe boşalt ve tam yağlı süt kullan.',
   hintScorched: 'Çok ısındı, süt yandı! Potayı çöpe boşalt ve baştan başla.',
   hintFoam: 'Latte az köpük ister: makinedeki Az tuşuna bas.',
-  hintSteamMore: 'Biraz daha sıcak: 60 °C olana kadar Buhar’ı basılı tut.',
+  hintSteamMore: 'Biraz daha sıcak: sıcaklık düğmesine “Sıcak” (60 °C) yazana kadar bir daha bas.',
   introNew: 'Bugün menüde yeni bir şey var: {1}! Bak, biri tam onu istiyor. Siparişi al, nasıl yapıldığını göstereyim.',
   introNext: 'Devam', introGotIt: 'Anladım!', introSkip: 'Geç',
   intro_cappuccino1: 'Kapuçino da latte gibi yapılır: iki shot ve ısıtılmış süt.',

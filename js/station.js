@@ -104,7 +104,7 @@ function apply(spec, target, from) {
         sfx.pour(); fx('pourInto', $('#cupObj'), MILK_COLORS[arg]);
         break;
       }
-      B.pitcher.milk = arg; B.pitcher.temp = 6; B.pitcher.scorched = false;
+      B.pitcher.milk = arg; B.pitcher.temp = 6; B.pitcher.heat = null; B.pitcher.scorched = false;
       sfx.pour(); fx('pourInto', $('#pitcherObj'), C.milk);
       break;
     case 'pitcher':
@@ -137,9 +137,12 @@ function apply(spec, target, from) {
 /* ---------------- station actions (buttons) ---------------- */
 function pickBean(k) { if (!canAct() || B.pf.dose > 0 || B.pf.grinding) return; B.pf.bean = k; sfx.click(); render(); }
 const doseZone = () => has('grinder') ? [16, 20] : [17, 19];
+// one press of the grinder button grinds one portion: the middle of the sweet spot (issue #29)
 function grindStart() {
-  if (!canAct()) return;
+  if (!canAct() || B.pf.grinding) return;
   const e = Rules.grind(B); if (e) { deny(e, $('#pfObj')); return; }
+  const [lo, hi] = doseZone();
+  B.pf.grindTo = (lo + hi) / 2;
   B.pf.grinding = true; stopGrindSnd = sfx.grind();
 }
 function grindEnd() {
@@ -169,10 +172,18 @@ function stopShot() {
   c.shots.push({ t: tm, q: Math.max(0, 1 - dist * 0.08) });
   render();
 }
+// each press of the temperature button raises the setting (warm, normal, extra hot; it stays on extra hot) and the wand
+// heats the milk up to it by itself (issue #29)
+const HEAT_KEYS = ['warm', 'normal', 'hot'];
 function steamStart() {
   if (!canAct()) return;
+  const p = B.pitcher;
   const e = Rules.steam(B); if (e) { deny(e, $('#pitcherObj')); return; }
-  B.pitcher.steaming = true; stopSteamSnd = sfx.steam();
+  p.heat = HEAT_KEYS[Math.min(HEAT_KEYS.length - 1, HEAT_KEYS.indexOf(p.heat) + 1)];
+  sfx.init(); sfx.button();
+  const b = TEMPS[p.heat]; p.heatTo = (b.lo + b.hi) / 2;
+  if (!p.steaming && p.temp < p.heatTo) { p.steaming = true; stopSteamSnd = sfx.steam(); }
+  render();
 }
 function steamEnd() {
   if (!B.pitcher.steaming) return;
@@ -255,10 +266,10 @@ function markTargets(spec, src) {
   clearMarks();
   document.querySelectorAll('[data-drop]').forEach(n => {
     if (n === src || n.hidden || n.closest('[hidden]')) return;
-    if (check(spec, n.dataset.drop) === null) n.classList.add('can-drop');
+    if (check(spec, n.dataset.drop) === null) n.classList.add('drop-ok');
   });
 }
-function clearMarks() { document.querySelectorAll('.can-drop, .drop-hover').forEach(n => n.classList.remove('can-drop', 'drop-hover')); }
+function clearMarks() { document.querySelectorAll('.drop-ok, .drop-hover').forEach(n => n.classList.remove('drop-ok', 'drop-hover')); }
 function objName(spec) {
   const [kind, arg] = spec.split(':'), L = S();
   return kind === 'newcup' ? fmt(L.cupWord, L.sizes[arg]) : kind === 'milk' ? L.milkLabel[arg] : kind === 'syrup' ? L.syrupNames[arg]
@@ -295,7 +306,7 @@ function makeGhost(src) {
   g.querySelectorAll('[id]').forEach(n => { if (n.tagName.toLowerCase() !== 'clippath') n.removeAttribute('id'); });
   const srcCv = src.querySelectorAll('canvas'), gCv = g.querySelectorAll('canvas');
   srcCv.forEach((cv, i) => { gCv[i].width = cv.width; gCv[i].height = cv.height; gCv[i].getContext('2d').drawImage(cv, 0, 0); });
-  g.classList.remove('selected', 'can-drop', 'drop-hover', 'dragging-src');
+  g.classList.remove('selected', 'drop-ok', 'drop-hover', 'dragging-src');
   g.classList.add('drag-ghost');
   // picked up from a shrunk machine (the phone bench): the copy keeps its layout size and is drawn as small
   const k = drawnScale(src);
@@ -373,7 +384,7 @@ function looseTarget(box, points) {
   // (among the targets the copy touches, the one closest to its middle: a big area like the trash must not win just
   // because it is big)
   let over = null, oc = Infinity, near = null, bd = dropReach();
-  document.querySelectorAll('.can-drop').forEach(n => {
+  document.querySelectorAll('.drop-ok').forEach(n => {
     const r = n.getBoundingClientRect();
     if (!r.width || n === drag.src || n.contains(drag.src)) return;
     if (box) {
@@ -522,31 +533,14 @@ function nearKey(e) {
   }
   return best;
 }
-function holdable(btn, onStart, onEnd) {
-  let on = false;
-  btn.dataset.hold = '';
-  const start = () => { if (btn.disabled || on) return; on = true; btn.classList.add('active'); sfx.init(); sfx.button(); onStart(); };
-  const end = () => { if (!on) return; on = false; btn.classList.remove('active'); onEnd(); };
-  btn.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.preventDefault(); try { btn.setPointerCapture(e.pointerId); } catch (_) {} start(); });
-  btn.addEventListener('pointerup', end);
-  btn.addEventListener('pointercancel', end);
-  btn.addEventListener('lostpointercapture', end);
-  btn.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); start(); } });
-  btn.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); end(); } });
-  btn.addEventListener('blur', end);
-  btn.addEventListener('contextmenu', e => e.preventDefault());
-  // switching apps mid-hold never leaves the grinder or the steam wand running
-  document.addEventListener('visibilitychange', () => { if (document.hidden) end(); });
-}
-
 function buildBench() {
   $('#milkBottles').innerHTML = MILK_KEYS.map(k => bottle('milk:' + k, 'milk', MILK_COLORS[k])).join('');
   $('#syrupBottles').innerHTML = Object.entries(SYRUPS).map(([k, s]) => bottle('syrup:' + k, 'syrup', s.color, `<span class="pumphead" data-press="syrup:${k}"></span>`)).join('');
   $('#topShakers').innerHTML = TOP_KEYS.map(k => bottle('top:' + k, 'shaker', TOP_COLORS[k])).join('');
   makeChips($('#beanChips'), BEAN_KEYS, pickBean);
   makeChips($('#foamChips'), FOAM_KEYS, setFoam);
-  holdable($('#grindBtn'), grindStart, grindEnd);
-  holdable($('#steamBtn'), steamStart, steamEnd);
+  $('#grindBtn').addEventListener('click', () => { sfx.init(); sfx.button(); grindStart(); });
+  $('#steamBtn').addEventListener('click', () => { sfx.init(); steamStart(); });
   $('#brewBtn').addEventListener('click', () => { sfx.init(); sfx.button(); toggleShot(); });
   $('#serveBtn').addEventListener('click', () => { sfx.init(); sendOut(); });
   const ctr = $('#counter'), views = $('#views');
@@ -628,6 +622,10 @@ function renderBench() {
 
   $('#brewCap').textContent = c.shotting ? L.stopBtn : L.brewBtn;
   $('#brewBtn').classList.toggle('on', c.shotting);
+  $('#grindBtn').classList.toggle('on', p.grinding);
+  $('#steamBtn').classList.toggle('on', pt.steaming);
+  $('#steamBtn').dataset.heat = pt.heat || '';
+  $('#steamCap').textContent = pt.heat ? L.temps[pt.heat] : L.steamKey;
   $('#shotList').innerHTML = c.shots.map((s, i) => {
     const cls = s.q >= 0.9 ? 'good' : s.q < 0.5 ? 'bad' : '';
     const word = s.t < 25 ? L.sour : s.t > 30 ? L.bitter : L.perfect;
@@ -661,16 +659,16 @@ function updateBench(dt) {
   const L = S(), c = B.cup, p = B.pf, pt = B.pitcher;
   if (G.state === 'PREPARING') {
     if (p.grinding) {
-      p.dose = Math.min(25, p.dose + 7 * dt);
-      if (p.dose >= 25) grindEnd();
+      p.dose = Math.min(p.grindTo, p.dose + 7 * dt);
+      if (p.dose >= p.grindTo) grindEnd();
     }
     if (c.shotting) {
       c.shotT += (has('gauge') ? 7.7 : 11) * dt;
       if (c.shotT >= 45) stopShot();
     }
     if (pt.steaming) {
-      pt.temp = Math.min(95, pt.temp + 15 * dt);
-      if (pt.temp > 82) pt.scorched = true;
+      pt.temp = Math.min(pt.heatTo, pt.temp + 15 * dt);
+      if (pt.temp >= pt.heatTo) steamEnd();
     }
   }
   $('#pfObj').classList.toggle('has-grounds', p.dose > 0);
@@ -678,14 +676,14 @@ function updateBench(dt) {
   setFill($('#doseFill'), p.dose / 25);
   setText($('#doseTxt'), p.dose.toFixed(1) + ' g');
   const [lo, hi] = doseZone();
-  setText($('#doseMsg'), p.grinding ? L.grinding : p.dose <= 0 ? L.holdGrind : p.dose < lo ? L.doseLight : p.dose > hi ? L.doseOver : L.perfectDose);
+  setText($('#doseMsg'), p.grinding ? L.grinding : p.dose <= 0 ? L.pressGrind : p.dose < lo ? L.doseLight : p.dose > hi ? L.doseOver : L.perfectDose);
   setStyle($('#shotNeedle'), 'left', (Math.min(45, c.shotT) / 45 * 100).toFixed(1) + '%');
   setText($('#shotTxt'), Math.round(c.shotT) + ' ' + L.sec);
   setText($('#shotMsg'), c.shotting ? (c.shotT < 25 ? L.waitFor : c.shotT <= 30 ? L.now : L.tooLong)
     : p.at !== 'group' ? t('err.pfToGroup') : c.shots.length >= 3 ? L.max3 : L.ready);
   setFill($('#tempFill'), Math.min(90, pt.temp) / 90);
   setText($('#tempTxt'), Math.round(pt.temp) + ' °C');
-  setText($('#tempMsg'), !pt.milk ? t('err.pitcherEmpty') : pt.scorched ? L.scorched : pt.steaming ? L.steaming : pt.temp >= 30 ? L.pourReady : L.holdSteam);
+  setText($('#tempMsg'), !pt.milk ? t('err.pitcherEmpty') : pt.scorched ? L.scorched : pt.steaming ? L.steaming : pt.temp >= 30 ? L.pourReady : L.pressSteam);
   if (p.grinding || pt.steaming) setText($(p.grinding ? '#pfTag' : '#pitcherTag'), p.grinding ? p.dose.toFixed(1) + ' g' : `${L.milks[pt.milk]}, ${Math.round(pt.temp)} °C`);
   // the pitcher model shows what is inside: empty, cold milk, or milk with foam on top once it is steamed
   setSprite($('#pitcherImg'), !pt.milk ? 'pitcher-empty' : pt.foam !== 'none' && pt.temp >= 30 ? 'pitcher-foam' : 'pitcher-milk');

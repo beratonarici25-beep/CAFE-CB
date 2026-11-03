@@ -73,15 +73,18 @@ async function drag(page, from, to) {
 async function hold(page, sel, untilFn) {
   await reveal(page, sel);
   const b = await page.locator(sel).boundingBox();
-  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
-  await page.mouse.down();
-  try { await page.waitForFunction(untilFn, null, { timeout: 15000 }); }
-  catch (e) {
+  // the grinder and the temperature button are press-to-run now (issue #29): press again each time the last run is over
+  try {
+    for (let t0 = Date.now(); !(await page.waitForFunction(untilFn, null, { timeout: 150 }).then(() => true, () => false)); ) {
+      if (Date.now() - t0 > 15000) throw new Error('hold timeout');
+      if (await page.evaluate(() => !window.CB.B.pf.grinding && !window.CB.B.pitcher.steaming)) await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+    }
+  } catch (e) {
     console.log('hold failed on', sel, await page.evaluate(() => JSON.stringify({ pf: window.CB.B.pf, pitcher: window.CB.B.pitcher, y: scrollY,
       toast: document.querySelector('#toast').textContent, state: window.CB.G.state })));
     throw e;
   }
-  await page.mouse.up();
+  await page.waitForTimeout(80);
 }
 const st = (page, fn) => page.evaluate(fn);
 

@@ -39,9 +39,11 @@ async function place(page, from, to, touch) {
 }
 async function hold(page, sel, until) {
   const a = await center(page, sel);
-  await page.mouse.move(a.x, a.y); await page.mouse.down();
-  await page.waitForFunction(until, null, { timeout: 15000 });
-  await page.mouse.up();
+  // press-to-run buttons (issue #29): press again each time the last run is over
+  for (let t0 = Date.now(); !(await page.waitForFunction(until, null, { timeout: 150 }).then(() => true, () => false)); ) {
+    if (Date.now() - t0 > 15000) throw new Error('hold timeout');
+    if (await page.evaluate(() => !CB.B.pf.grinding && !CB.B.pitcher.steaming)) await page.mouse.click(a.x, a.y);
+  }
 }
 const helperKey = page => page.evaluate(() => {
   const h = document.querySelector('.helper');
