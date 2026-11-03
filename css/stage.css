@@ -52,12 +52,14 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 .backbar { position: absolute; left: 24px; right: 24px; top: 6px; height: 150px; margin: 0; }
 .counter {
   flex: 1 1 auto; min-height: 0; margin: 6px 0 0; padding: 8px 12px;
-  grid-template-columns: minmax(160px, .7fr) minmax(340px, 1.45fr) minmax(340px, 1.7fr) minmax(220px, .9fr) minmax(180px, .8fr) minmax(200px, .9fr);
-  grid-template-rows: auto minmax(0, 1fr);
+  /* on the bar top: cups, prep mat, grinder with the tamp station, the machine, the milk pitcher, the pass. Under the bar
+     (second row, the cubbies in the front): ice and cocoa, the knock box, syrups and toppings, the milk fridge, the bin. */
+  grid-template-columns: 140px 160px minmax(250px, 1.2fr) minmax(380px, 1.8fr) minmax(180px, .9fr) minmax(220px, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
   grid-template-areas:
-    "cups grinder machine milk syrups serve"
-    "prep grinder machine milk tops   trash";
-  align-content: stretch;
+    "cups prep grinder machine milk serve"
+    "ucups uprep ugrinder umachine umilk userve";
+  align-content: stretch; row-gap: 2px;
 }
 
 /* the cup slots and the cup a bit lower than before, so the machine column fits the height */
@@ -75,7 +77,7 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 /* grinder with the tamp station beside it */
 .z-grinder {
   grid-template-columns: minmax(0, 1fr) 128px; column-gap: 10px;
-  grid-template-areas: "h h" "mat tamp" "meter tamp" "msg tamp";
+  grid-template-areas: "h h" "mat tamp" "meter meter" "msg msg";
 }
 .z-grinder > h3 { grid-area: h; }
 .z-grinder > .barmat { grid-area: mat; }
@@ -84,7 +86,9 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 .z-grinder > .tampstation { grid-area: tamp; grid-template-columns: 1fr; align-content: start; }
 
 /* machine: the shot message and the shot list under the meter (on a phone the list sits beside the label) */
-.z-machine { gap: 4px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "h h" "mat mat" "meter meter" "msg msg" "shots shots"; }
+.z-machine { gap: 4px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "h" "mat" "meter" "msg" "shots"; align-content: start; }
+.z-machine > .barmat, .z-grinder > .barmat { transform: scale(var(--k, 1)); transform-origin: 0 0; }
+.z-machine > .barmat { --k: .85; width: 435px; } .z-grinder > .barmat { --k: 1; }
 .z-machine > .shotlist { min-height: 0; }
 .z-machine > h3 { grid-area: h; }
 .z-machine > .barmat { grid-area: mat; }
@@ -93,9 +97,8 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 .z-machine > .shotlist { grid-area: shots; }
 
 /* milk: the fridge on top, the pitcher and its thermometer side by side under it */
-.z-milk { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "h h" "pitcher ctl" "fridge fridge"; align-items: start; align-self: end; }
+.z-milk { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "h h" "pitcher ctl"; align-items: start; align-content: start; }
 .z-milk > h3 { grid-area: h; }
-.z-milk > .fridge { grid-area: fridge; }
 .z-milk > .slot { grid-area: pitcher; min-width: 96px; }
 .z-milk > .wandctl { grid-area: ctl; }
 
@@ -159,35 +162,37 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
    tall machines are drawn smaller (--k) so they fit the short stage; camera.js shrinks their layout box to match. */
 .cam .counter {
   align-self: flex-start; width: max-content; column-gap: 16px; will-change: translate;
-  grid-template-columns: 190px 190px auto auto auto 210px 210px 260px 110px;
-  grid-template-rows: minmax(0, 1fr);
-  grid-template-areas: "cups prep grinder machine milk syrups tops serve trash";
+  grid-template-columns: 190px 200px auto auto 310px 360px;
+  grid-template-rows: minmax(0, 1fr) 100px;
+  grid-template-areas:
+    "cups prep grinder machine milk serve"
+    "ucups uprep ugrinder umachine umilk userve";
 }
 .cam .z-grinder {
   grid-template-columns: auto 210px; grid-template-rows: auto auto auto 1fr;
   grid-template-areas: "h h" "mat tamp" "mat meter" "mat msg";
 }
-.cam .z-grinder > .barmat { width: 232px; --k: .9; transform: scale(var(--k)); transform-origin: 0 0; }
+.cam .z-grinder > .barmat { width: 232px; --k: .66; }
 .cam .z-grinder > .tampstation { grid-template-columns: minmax(0, 1fr) auto; }
 .cam .z-machine {
   grid-template-columns: auto 170px; grid-template-rows: auto auto auto 1fr;
   grid-template-areas: "h h" "mat shots" "mat meter" "mat msg";
 }
 .cam .z-machine > .shotlist { justify-content: flex-start; align-self: start; flex-wrap: wrap; }
-.cam .z-machine > .barmat { width: 435px; --k: .72; transform: scale(var(--k)); transform-origin: 0 0; }
+.cam .z-machine > .barmat { width: 435px; --k: .5; }
 /* the customer view is narrower on the close-up stage: a wider bubble (the ticket and the gap give way) and a little
    smaller words, so a long order still leaves the go-to-bench button on screen */
 .cam .scene .talk { margin-left: max(150px, 30%); }
 .cam #sceneTicket { flex-basis: 300px; }
 .cam .say { font-size: 24px; }
-.cam .z-milk { grid-template-columns: 226px 160px; align-self: end; grid-template-areas: "h h" "pitcher ctl" "fridge fridge"; }
+.cam .z-milk { grid-template-columns: 130px 170px; grid-template-areas: "h h" "pitcher ctl"; }
 /* the keys and buttons on the shrunk machines are under a third of their size on a phone: bigger there (a tap that
    just misses one still counts, see nearKey() in js/station.js) */
 .cam .mach-panel, .cam .mach-head { grid-template-columns: 1fr 200px; }
 .cam .panel-right .key, .cam .grinder-body .key { font-size: 16px; padding: 21px 1px 11px; }
 .cam .keys { gap: 7px; }
 .cam .mbtn.steam { font-size: 18px; padding-block: 16px; }
-.cam .mbtn.round, .cam .mbtn.brew { width: 84px; height: 84px; font-size: 18px; }
+.cam .mbtn.round, .cam .mbtn.brew { width: 112px; height: 112px; font-size: 22px; }
 
 /* a slimmer top bar on short screens (a phone held sideways), so the stage gets the height */
 @media (max-height: 500px) {

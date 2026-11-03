@@ -21,10 +21,10 @@
 <link rel="stylesheet" href="css/scene.css?v=41">
 <link rel="stylesheet" href="css/fx.css?v=41">
 <link rel="stylesheet" href="css/views.css?v=41">
-<link rel="stylesheet" href="css/bar.css?v=46">
+<link rel="stylesheet" href="css/bar.css?v=52">
 <link rel="stylesheet" href="css/theme.css?v=41">
 <link rel="stylesheet" href="css/helper.css?v=41">
-<link rel="stylesheet" href="css/stage.css?v=43">
+<link rel="stylesheet" href="css/stage.css?v=49">
 <link rel="stylesheet" href="css/intro.css?v=41">
 </head>
 <body>
@@ -162,8 +162,6 @@
               <img class="spr" src="assets/models/tamper.webp" width="171" height="220" alt="" draggable="false">
             </div>
           </div>
-          <!-- the knock box takes the used puck out of the portafilter -->
-          <div class="knockbox" data-drop="knockbox" id="knockBox"><img class="spr" src="assets/models/knockbox.webp" width="280" height="259" alt="" draggable="false"><small data-t="obj.knock">Knock box</small></div>
         </div>
       </div>
     </section>
@@ -212,8 +210,7 @@
 
     <!-- 4 milk: an under-counter milk fridge, the pitcher on its mat and a pitcher thermometer -->
     <section class="zone z-milk">
-      <h3><span class="step">4</span><span data-t="obj.milk">Milk</span></h3>
-      <div class="fridge"><div class="bottles" id="milkBottles"></div></div>
+      <h3><span class="step">4</span><span data-t="obj.pitcher">Pitcher</span></h3>
       <div class="slot pitcherslot" data-drop="pitcherrack" id="slotPitcherRack">
         <div class="obj pitcher" id="pitcherObj" role="button" tabindex="0" data-drag="pitcher" data-drop="pitcher">
           <img class="spr pitcher-img" id="pitcherImg" src="assets/models/pitcher-empty.webp" width="340" height="313" alt="" draggable="false">
@@ -239,23 +236,6 @@
         </div>
       </div>
       <div class="cupinfo" id="cupInfo"></div>
-      <!-- the recipe shop's drinks (issue #21): on the bench once bought -->
-      <div class="extras" id="extras">
-        <div class="obj icebucket" id="iceObj" role="button" tabindex="0" data-drag="ice"><img class="spr" src="assets/models/icebucket.webp?v=41" width="191" height="220" alt="" draggable="false"><small class="objtag" data-t="obj.ice">Ice</small></div>
-        <div class="obj cocoatin" id="cocoaObj" role="button" tabindex="0" data-drag="cocoa"><img class="spr" src="assets/models/cocoatin.webp?v=41" width="119" height="172" alt="" draggable="false"><small class="objtag" data-t="obj.cocoa">Cocoa</small></div>
-      </div>
-    </section>
-
-    <!-- 5 syrups: pump bottles with plain paper labels -->
-    <section class="zone z-syrups">
-      <h3><span class="step">5</span><span data-t="syrups">Syrups</span></h3>
-      <div class="bottles" id="syrupBottles"></div>
-    </section>
-
-    <!-- 6 toppings -->
-    <section class="zone z-tops">
-      <h3><span class="step">6</span><span data-t="toppings">Toppings</span></h3>
-      <div class="bottles" id="topShakers"></div>
     </section>
 
     <!-- the pass: put the finished cup on the serving tray, then ring the bell to take it out to the customer -->
@@ -268,11 +248,58 @@
       </div>
     </section>
 
-    <!-- trash -->
-    <section class="zone z-trash" data-drop="trash" id="trashZone">
-      <h3><span data-t="obj.trash">Trash</span></h3>
-      <div class="bin" id="bin"><img class="spr can" src="assets/models/bin.webp" width="82" height="116" alt="" draggable="false"><img class="spr lid" src="assets/models/binlid.webp" width="124" height="48" alt="" draggable="false"></div>
-    </section>
+    <!-- under the counter (real cafés keep most things in cubbies under the bar top, not on it): each one slides up a little
+         when it is touched, dragged or tapped (css/bar.css). Left to right under the station they belong to. -->
+    <div class="under" id="under">
+      <div class="ucell u-prep">
+        <section class="zone z-extras">
+        <!-- the recipe shop's drinks (issue #21): on the bench once bought -->
+        <div class="extras" id="extras">
+          <div class="obj icebucket" id="iceObj" role="button" tabindex="0" data-drag="ice"><img class="spr" src="assets/models/icebucket.webp?v=41" width="191" height="220" alt="" draggable="false"><small class="objtag" data-t="obj.ice">Ice</small></div>
+          <div class="obj cocoatin" id="cocoaObj" role="button" tabindex="0" data-drag="cocoa"><img class="spr" src="assets/models/cocoatin.webp?v=41" width="119" height="172" alt="" draggable="false"><small class="objtag" data-t="obj.cocoa">Cocoa</small></div>
+        </div>
+        </section>
+      </div>
+      <div class="ucell u-grinder">
+        <section class="zone z-knock">
+          <h3><span data-t="obj.knock">Knock box</span></h3>
+          <!-- the knock box takes the used puck out of the portafilter -->
+          <div class="knockbox" data-drop="knockbox" id="knockBox"><img class="spr" src="assets/models/knockbox.webp" width="280" height="259" alt="" draggable="false"><small data-t="obj.knock">Knock box</small></div>
+
+        </section>
+      </div>
+      <div class="ucell u-machine">
+      <!-- 5 syrups: pump bottles with plain paper labels -->
+      <section class="zone z-syrups">
+        <h3><span class="step">5</span><span data-t="syrups">Syrups</span></h3>
+        <div class="bottles" id="syrupBottles"></div>
+      </section>
+
+
+
+
+      </div>
+      <div class="ucell u-milk">
+        <section class="zone z-fridge">
+          <h3><span data-t="obj.milk">Milk</span></h3>
+          <div class="fridge"><div class="bottles" id="milkBottles"></div></div>
+        </section>
+      </div>
+      <div class="ucell u-serve">
+      <!-- 6 toppings -->
+      <section class="zone z-tops">
+        <h3><span class="step">6</span><span data-t="toppings">Toppings</span></h3>
+        <div class="bottles" id="topShakers"></div>
+      </section>
+
+      <!-- trash -->
+      <section class="zone z-trash" data-drop="trash" id="trashZone">
+        <h3><span data-t="obj.trash">Trash</span></h3>
+        <div class="bin" id="bin"><img class="spr can" src="assets/models/bin.webp" width="82" height="116" alt="" draggable="false"><img class="spr lid" src="assets/models/binlid.webp" width="124" height="48" alt="" draggable="false"></div>
+      </section>
+
+      </div>
+    </div>
   </div>
 </main>
 </div>
@@ -359,7 +386,7 @@
 <script src="js/scene.js?v=41"></script>
 <script src="js/fx.js?v=41"></script>
 <script src="js/station.js?v=41"></script>
-<script src="js/camera.js?v=41"></script>
+<script src="js/camera.js?v=42"></script>
 <script src="js/helper.js?v=41"></script>
 <script src="js/tutorial.js?v=41"></script>
 <script src="js/main.js?v=41"></script>

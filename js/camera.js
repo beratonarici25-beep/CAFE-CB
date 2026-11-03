@@ -21,7 +21,7 @@ const Cam = (() => {
     // the machines that would not fit the short phone stage are drawn smaller (--k in css/stage.css); their layout box
     // shrinks with them
     for (const el of c.querySelectorAll('.zone > .barmat')) {
-      const k = UI.cam ? parseFloat(getComputedStyle(el).getPropertyValue('--k')) || 1 : 1;
+      const k = parseFloat(getComputedStyle(el).getPropertyValue('--k')) || 1;
       setStyle(el, 'marginRight', k === 1 ? '' : (-el.offsetWidth * (1 - k)).toFixed(1) + 'px');
       setStyle(el, 'marginBottom', k === 1 ? '' : (-el.offsetHeight * (1 - k)).toFixed(1) + 'px');
     }

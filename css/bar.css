@@ -369,7 +369,7 @@ img.hotwater { position: absolute; left: 2px; top: -40px; width: auto; height: 3
   background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(36,22,12,.55), rgba(36,22,12,0) 72%);
 }
 .machine, .grinder-body, .fridge { box-shadow: none; }
-.cam .counter { --far: 14px; }
+.cam .counter { --far: 6px; }
 
 /* ---- depth: the machines are solid objects with a top and a side, not pictures stuck on the bar ---- */
 .machine::before, .machine::after, .grinder-body::before { content: ""; position: absolute; pointer-events: none; }
@@ -378,9 +378,42 @@ img.hotwater { position: absolute; left: 2px; top: -40px; width: auto; height: 3
 .grinder-body::before { left: 0; right: -8px; top: -9px; height: 10px; background: linear-gradient(90deg, #6a4a45, #3a2523); clip-path: polygon(0 100%, 8px 0, 100% 0, calc(100% - 8px) 100%); }
 .barmat::before { height: 22px; left: 0; right: -6%; }
 
-/* ---- under the counter: the milk fridge is built into the front, under a marble lip, and the bin stands on the floor ---- */
-.z-milk > .fridge { margin: 4px -4px -6px; box-shadow: 0 0 0 5px #5a341f, inset 0 0 0 2px rgba(0,0,0,.25); border-radius: 4px; }
-.z-milk > .fridge::before { display: none; }
-.z-milk > .fridge::after { content: ""; position: absolute; left: -9px; right: -9px; top: -15px; height: 10px; border-radius: 3px;
-  background: linear-gradient(#fbf8f2, #d9cfbf); box-shadow: 0 3px 4px rgba(40,25,15,.45); pointer-events: none; }
-.z-trash { align-self: end; margin-bottom: -10px; }
+/* ---- under the counter ---- most of the things a barista uses stand in cubbies in the front of the bar, not on top of it.
+   Each cubby is a dark niche; what is in it sits a little low and slides up when it is touched, dragged or tapped. */
+.under { display: contents; }
+.ucell { position: relative; grid-row: 2; display: flex; align-items: flex-end; justify-content: center; gap: 10px; min-width: 0;
+  margin: 6px 3px 0; padding: 0 6px; overflow: hidden; border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(#24150d, #3a2316 70%, #2a190f); box-shadow: inset 0 7px 10px rgba(0,0,0,.65), inset 0 -2px 0 rgba(255,255,255,.06), 0 1px 0 rgba(255,255,255,.12); }
+.u-prep { grid-area: uprep; } .u-grinder { grid-area: ugrinder; } .u-machine { grid-area: umachine; } .u-milk { grid-area: umilk; } .u-serve { grid-area: userve; }
+.ucell > .zone { padding: 0; flex: 0 1 auto; }
+.ucell .zone h3 { position: absolute; left: 6px; top: 4px; z-index: 2; font-size: 11px; padding: 0 6px; opacity: .95; }
+.ucell .zone { position: static; }
+.ucell .bottles, .ucell .fridge .bottles { margin-top: 12px; }
+/* tucked in: low, the top of each thing visible; interaction brings it up */
+.ucell .obj, .ucell .bottle-obj, .ucell .knockbox, .ucell .bin { transform: translateY(16px); transition: transform .18s ease-out; }
+.ucell .obj:hover, .ucell .obj:focus-visible, .ucell .obj.selected, .ucell .obj.dragging-src,
+.ucell .bottle-obj:hover, .ucell .bottle-obj:focus-within, .ucell .bottle-obj.selected, .ucell .bottle-obj.dragging-src,
+.ucell .knockbox:hover, .ucell .knockbox.drop-hover, .ucell .knockbox.can-drop, .ucell .bin:hover, .ucell .bin.drop-hover, .ucell .bin.can-drop { transform: translateY(-9px); }
+@media (prefers-reduced-motion: reduce) { .ucell .obj, .ucell .bottle-obj, .ucell .knockbox, .ucell .bin { transition: none; } }
+/* the front of the bar: marble lip, then the walnut cabinet front behind the niches */
+.counter::before { grid-row: 1; grid-column: 1 / -1; left: -12px; right: -12px; top: -10px; bottom: 0; }
+.counter::after { grid-row: 2; grid-column: 1 / -1; left: -12px; right: -12px; top: 0; bottom: -10px; height: auto; z-index: -1;
+  background: url(../assets/cafe/counter-front.webp?v=41) 0 0 / auto 100% repeat-x, #5a341f; border-radius: 0 0 14px 14px; box-shadow: 0 10px 14px rgba(40,20,10,.3); }
+.z-trash { margin: 0; }
+
+/* things in the cubbies are drawn a little smaller so their tops show */
+.z-knock h3 { display: none; }
+.ucell .bottle-obj.syrup .spr { height: 70px; } .ucell .bottle-obj.shaker .spr { height: 56px; } .ucell .bottle-obj.shaker[data-drag="top:whip"] .spr { height: 64px; }
+.ucell .bottle-obj.milk .spr { height: 52px; }
+.ucell .knockbox, .ucell .knockbox .spr { width: 64px; }
+.ucell .bin { transform-origin: 50% 100%; scale: .8; }
+.ucell .extras .icebucket .spr { width: 62px; } .ucell .extras .cocoatin .spr { width: 40px; }
+.ucell .obj, .ucell .bottle-obj, .ucell .knockbox, .ucell .bin { transform: translateY(4px); }
+.ucell .fridge { margin: 0; box-shadow: none; background: none; padding: 0; }
+.ucell .fridge::before, .ucell .fridge::after { display: none; }
+.ucell .fridge .bottles { background: none; padding: 0 6px; }
+.ucell .bottle-obj .nm { background: rgba(255,250,243,.9); color: var(--ink); border-radius: 5px; padding: 0 4px; }
+.ucell .fridge .bottles::after { display: none; }
+.ucell .bottles, .ucell .fridge .bottles { flex-wrap: nowrap; gap: 4px; }
+.ucell { padding-bottom: 12px; }
+.z-trash h3 { left: auto; right: 6px; }
