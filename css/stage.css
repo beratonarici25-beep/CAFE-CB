@@ -163,7 +163,7 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 .cam .counter {
   align-self: flex-start; width: max-content; column-gap: 16px; will-change: translate;
   grid-template-columns: 190px 200px auto auto 310px 360px;
-  grid-template-rows: minmax(0, 1fr) 100px;
+  grid-template-rows: minmax(0, 1fr) 74px;
   grid-template-areas:
     "cups prep grinder machine milk serve"
     "ucups uprep ugrinder umachine umilk userve";
@@ -172,14 +172,14 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
   grid-template-columns: auto 210px; grid-template-rows: auto auto auto 1fr;
   grid-template-areas: "h h" "mat tamp" "mat meter" "mat msg";
 }
-.cam .z-grinder > .barmat { width: 232px; --k: .66; }
+.cam .z-grinder > .barmat { width: 232px; --k: .72; }
 .cam .z-grinder > .tampstation { grid-template-columns: minmax(0, 1fr) auto; }
 .cam .z-machine {
   grid-template-columns: auto 170px; grid-template-rows: auto auto auto 1fr;
   grid-template-areas: "h h" "mat shots" "mat meter" "mat msg";
 }
 .cam .z-machine > .shotlist { justify-content: flex-start; align-self: start; flex-wrap: wrap; }
-.cam .z-machine > .barmat { width: 435px; --k: .5; }
+.cam .z-machine > .barmat { width: 435px; --k: .55; }
 /* the customer view is narrower on the close-up stage: a wider bubble (the ticket and the gap give way) and a little
    smaller words, so a long order still leaves the go-to-bench button on screen */
 .cam .scene .talk { margin-left: max(150px, 30%); }
@@ -218,3 +218,12 @@ body *, body *::before, body *::after { -webkit-user-select: none; user-select: 
 @media (prefers-reduced-motion: reduce) {
   .rotate-ov .phone { animation: none; transform: rotate(-90deg); }
 }
+/* phones: a thin row of cubbies under the bar, so the bar top (the machine above all) keeps the height */
+.cam .ucell { margin-top: 3px; padding-bottom: 6px; }
+.cam .ucell .zone h3 { display: none; }
+.cam .ucell .bottle-obj.syrup .spr { height: 50px; } .cam .ucell .bottle-obj.shaker .spr, .cam .ucell .bottle-obj.shaker[data-drag="top:whip"] .spr { height: 42px; }
+.cam .ucell .bottle-obj.milk .spr { height: 40px; }
+.cam .ucell .bottle-obj { min-width: 40px; } .cam .ucell .bottle-obj .nm { font-size: 13px; }
+.cam .ucell .knockbox, .cam .ucell .knockbox .spr { width: 52px; } .cam .ucell .knockbox small { font-size: 11px; white-space: nowrap; padding: 0 3px; }
+.cam .ucell .bin { scale: .62; } .cam .ucell .extras .icebucket .spr { width: 44px; } .cam .ucell .extras .cocoatin .spr { width: 30px; }
+.cam .ucell .bottles { margin-top: 0; }

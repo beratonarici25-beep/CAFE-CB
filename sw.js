@@ -5,7 +5,7 @@
 const VERSION = 'cafe-cb-51';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'style.css?v=41',
-  'css/scene.css?v=41', 'css/fx.css?v=41', 'css/views.css?v=41', 'css/bar.css?v=52', 'css/theme.css?v=41', 'css/helper.css?v=41', 'css/stage.css?v=49', 'css/intro.css?v=41',
+  'css/scene.css?v=41', 'css/fx.css?v=41', 'css/views.css?v=41', 'css/bar.css?v=52', 'css/theme.css?v=41', 'css/helper.css?v=41', 'css/stage.css?v=53', 'css/intro.css?v=41',
   'js/intro.js?v=41', 'js/util.js?v=41', 'js/economy.js?v=41', 'js/i18n.js?v=41', 'js/audio.js?v=41', 'js/recipe.js?v=41', 'js/render.js?v=41', 'js/scene.js?v=41', 'js/fx.js?v=41',
   'js/station.js?v=41', 'js/camera.js?v=42', 'js/helper.js?v=41', 'js/tutorial.js?v=41', 'js/main.js?v=41',
   'assets/favicon-64.png', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/icon-512-any.png', 'assets/apple-touch-icon.png',
