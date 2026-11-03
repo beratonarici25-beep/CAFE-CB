@@ -387,31 +387,34 @@ def collar(kind):
 
 
 def beard():
-    """a short beard hugging the jaw: a strip of the face's front, from the sideburns round the chin, leaving the mouth free"""
+    """a short beard: the face's own surface from the sideburns round the chin, pushed out a little, with an oval left open for the mouth"""
     m = toon('beard', WHITE, 'gloss', lo=0.55)
     mz = H['mz']; ch = 2 * mz - H['nose_z']      # the chin: as far below the mouth as the nose tip is above it
-    bm = bmesh.new()
-    nx, nzs = 40, 14
-    grid = {}
-    for i in range(nx + 1):
-        x = -8.4 + 16.8 * i / nx
-        zt = mz + 4.2 - 0.05 * x * x
-        for j in range(nzs + 1):
-            z = ch + 0.6 + (zt - ch - 0.6) * j / nzs
-            grid[i, j] = bm.verts.new(surf(x, z, 0.8))
-    for i in range(nx):
-        for j in range(nzs):
-            xc = -8.4 + 16.8 * (i + 0.5) / nx
-            zt = mz + 4.2 - 0.05 * xc * xc
-            zc = ch + 0.6 + (zt - ch - 0.6) * (j + 0.5) / nzs
-            if abs(xc) < 3.0 and mz - 0.9 < zc < mz + 1.5 and not zc < ch + 2.0:   # the mouth stays free
-                continue
-            if abs(xc) < 1.7 and zc < mz - 1.0 and zc > ch + 2.2:                      # a clear patch under the lip
-                continue
-            bm.faces.new((grid[i, j], grid[i + 1, j], grid[i + 1, j + 1], grid[i, j + 1]))
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = BODY.evaluated_get(dg); src = ev.to_mesh()
+    bm = bmesh.new(); bm.from_mesh(src); ev.to_mesh_clear()
+    bm.faces.ensure_lookup_table()
+
+    def zt(x):
+        return mz + 3.6 - 0.05 * x * x
+
+    def keepface(f):
+        c = f.calc_center_median()
+        if f.material_index != 0 or c.y > H['nose_y'] + 9.0 or c.z < ch - 1.2 or c.z > zt(c.x) or abs(c.x) > 8.6:
+            return False
+        if (c.x / 4.0) ** 2 + ((c.z - mz) / 2.0) ** 2 < 1.0:      # the mouth
+            return False
+        return True
+    near = [f for f in bm.faces if f.material_index == 0 and f.calc_center_median().y < H['nose_y'] + 9.0 and ch - 3 < f.calc_center_median().z < mz + 6]
+    bmesh.ops.subdivide_edges(bm, edges=list({e for f in near for e in f.edges}), cuts=3, use_grid_fill=True)   # finer cuts: smoother edges
+    bm.faces.ensure_lookup_table()
+    bmesh.ops.delete(bm, geom=[f for f in bm.faces if not keepface(f)], context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    bm.normal_update()
+    for v in bm.verts:
+        v.co += v.normal * 0.5
     me = bpy.data.meshes.new('beard'); bm.to_mesh(me); bm.free()
-    o = link(bpy.data.objects.new('beard', me)); M.finish(o, m, outline=0.1)
+    o = link(bpy.data.objects.new('beard', me)); M.finish(o, m, outline=0.12)
     return True
 
 
