@@ -10,7 +10,7 @@ const G = {
 let T = 0;
 
 /* ---------------- state machine ---------------- */
-const OVERLAYS = { MENU: 'ovMenu', RESULT: 'ovResult', DAY_END: 'ovDay' };
+const OVERLAYS = { MENU: 'ovMenu', RESULT: 'ovResult', THE_END: 'ovEnd', DAY_END: 'ovDay' };
 function setState(s) {
   G.state = s;
   for (const [k, id] of Object.entries(OVERLAYS)) $('#' + id).hidden = k !== s;
@@ -195,8 +195,16 @@ function showResult() {
 function afterResult() {
   if (G.state !== 'RESULT') return;
   sfx.click();
+  const wasTut = Tutorial.active;
   if (Tutorial.active) Tutorial.complete();
   if (Intro.active) Intro.stop();
+  if (!wasTut && (save.cups = (save.cups || 0) + 1) >= 3) {
+    persist();
+    $('#eTitle').textContent = t('endTitle'); $('#eText').textContent = t('endText');
+    $('#bubble').hidden = true;
+    setState('THE_END');
+    return;
+  }
   G.idx++;
   G.cust.state = 'leave';
   $('#bubble').hidden = true;
@@ -259,6 +267,7 @@ $('#startBtn').addEventListener('click', startDay);
 $('#tutBtn').addEventListener('click', () => { save.tutorialDone = false; persist(); startDay(); });
 $('#nextDayBtn').addEventListener('click', startDay);
 $('#toMenuBtn').addEventListener('click', () => setState('MENU'));
+$('#endMenuBtn').addEventListener('click', () => setState('MENU'));
 // the recipe book opens over the main menu or over the bar; its close button says where it goes back to (issue #8)
 let bookFrom = 'bar';
 let selectedRecipe = 'latte';
