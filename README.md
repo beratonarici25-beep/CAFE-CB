@@ -25,8 +25,8 @@ cocoa, no coffee) and iced latte (ice and cold milk straight from the bottle) br
 Prices are in `RECIPE_COST` (`js/recipe.js`); `node tools/balance.js` simulates what a good and an average player can
 unlock in the 7-day demo. Bought upgrades show in the café (stools, the tip jar, a brass dial on the grinder and gauge).
 
-Development will continue. Open to contributions.
-Geliştirmeye devam edicem, katkılara açığım.
+> **Note:** The game stops after the 3rd coffee. It will not be continued; it was left unfinished.
+> **Not:** Oyun 3. kahveden sonra devam etmeyecek, yarım kaldı.
 
 ## Project layout
 
