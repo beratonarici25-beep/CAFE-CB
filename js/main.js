@@ -195,10 +195,9 @@ function showResult() {
 function afterResult() {
   if (G.state !== 'RESULT') return;
   sfx.click();
-  const wasTut = Tutorial.active;
   if (Tutorial.active) Tutorial.complete();
   if (Intro.active) Intro.stop();
-  if (!wasTut && (save.cups = (save.cups || 0) + 1) >= 3) {
+  if ((save.cups = (save.cups || 0) + 1) >= 1) {
     persist();
     $('#eTitle').textContent = t('endTitle'); $('#eText').textContent = t('endText');
     $('#bubble').hidden = true;
